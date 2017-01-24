@@ -1,0 +1,65 @@
+@model SCM.Models.ViewModels.InterfaceViewModel
+
+@{
+    ViewData["Title"] = "GetByPortID";
+}
+
+<h2>Interface for port @ViewBag.Port.Type @ViewBag.Port.Name</h2>
+<p>
+    @{
+        if (Model == null)
+        {
+            <a asp-action="Create" asp-route-id="@ViewBag.Port.ID">Create New</a>
+        }
+    }
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.IsTagged)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubnetMask)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InterfaceBandwidth)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => model.IsTagged)
+            </td>
+            <td>
+                @Html.DisplayFor(model => model.IpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(model => model.SubnetMask)
+            </td>
+            <td>
+                @Html.DisplayFor(model => model.InterfaceBandwidth.BandwidthKbps)
+            </td>
+            <td>
+                @Html.DisplayFor(model => model.Vrf.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+                @Html.ActionLink("Details", "Details", new { id = Model.ID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = Model.ID })
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="Port" asp-action="GetAllByDeviceID" asp-route-id="@ViewBag.Port.DeviceID">Back to Ports</a>

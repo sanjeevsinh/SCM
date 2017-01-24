@@ -1,0 +1,55 @@
+@model IEnumerable<SCM.Models.ViewModels.DeviceViewModel>
+
+@{
+    ViewData["Title"] = "GetAll";
+}
+
+<h2>Devices</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Plane)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Location)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Plane.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Location.SiteName)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.ID } ) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.ID }) |
+                <a asp-controller="Port" asp-action="GetAllByDeviceID" asp-route-id="@item.ID">Ports</a> |
+                <a asp-controller="Vrf" asp-action="GetAllByDeviceID" asp-route-id="@item.ID">VRFs</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

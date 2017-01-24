@@ -1,0 +1,8 @@
+{
+  "name": "scm",
+  "version": "1.0.0",
+  "description": "Sigma Cloud Manager",
+  "devDependencies": {
+    "typescript": "^2.1.4"
+  }
+}

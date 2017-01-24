@@ -1,0 +1,48 @@
+@model SCM.Models.ViewModels.VrfViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Port</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Device)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Device.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AdministratorSubField)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AdministratorSubField)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AssignedNumberSubField)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AssignedNumberSubField)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID }) |
+    <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">Back to List</a>
+</div>

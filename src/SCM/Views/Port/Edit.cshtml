@@ -1,0 +1,63 @@
+@model SCM.Models.ViewModels.PortViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h2>Edit</h2>
+
+<form asp-action="Edit">
+    <div class="form-horizontal">
+        <h4>Port</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="DeviceID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-group">
+            <label asp-for="Type" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Type" class="form-control" />
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="PortBandwidth" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="PortBandwidthID" class="form-control" asp-items="ViewBag.PortBandwidthID">
+                    <option value="">-- Select Port Bandwidth (Kbps) --</option>
+                </select>
+                <span asp-validation-for="PortBandwidthID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Tenant" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
+                    <option value="">-- Optionally select a Tenant --</option>
+                </select>
+                <span asp-validation-for="TenantID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByDeviceID" asp-route-id ="@Model.DeviceID">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
