@@ -12,5 +12,6 @@ namespace SCM.Models
         public int BgpPeerID { get; set; }
         public TenantNetwork TenantNetwork { get; set; }
         public BgpPeer BgpPeer { get; set; }
+        public int? Weight { get; set; }
     }
 }

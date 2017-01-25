@@ -14,42 +14,41 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SCM.Controllers
 {
-    public class InterfaceController : BaseViewController
+    public class BundleInterfaceController : BaseViewController
     {
-        public InterfaceController(IInterfaceService interfaceService, IMapper mapper)
+        public BundleInterfaceController(IBundleInterfaceService interfaceService, IMapper mapper)
         {
-            InterfaceService = interfaceService;
+            BundleInterfaceService = interfaceService;
             Mapper = mapper;
         }
-        private IInterfaceService InterfaceService { get; set; }
+        private IBundleInterfaceService BundleInterfaceService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> GetByID(int id)
         {
-            var item = await InterfaceService.GetByIDAsync(id);
+            var item = await BundleInterfaceService.GetByIDAsync(id);
             if (item == null)
             {
                 return NotFound();
             }
-            return View(Mapper.Map<InterfaceViewModel>(item));
+            return View(Mapper.Map<BundleInterfaceViewModel>(item));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetByPortID(int id)
+        public async Task<IActionResult> GetAllByDeviceID(int id)
         {
-            var port = await InterfaceService.UnitOfWork.PortRepository.GetByIDAsync(id);
-            if (port == null)
+            var device = await BundleInterfaceService.UnitOfWork.DeviceRepository.GetByIDAsync(id);
+            if (device == null)
             {
                 return NotFound();
             }
 
-            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id,
-                includeProperties: "Port,Vrf,InterfaceBandwidth");
-            var iface = dbResult.SingleOrDefault();
+            var bundleIfaces = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.DeviceID == id,
+                includeProperties: "Device,Vrf,InterfaceBandwidth");
 
-            ViewBag.Port = port;
-            return View(Mapper.Map<InterfaceViewModel>(iface));
+            ViewBag.Device = device;
+            return View(Mapper.Map<List<BundleInterfaceViewModel>>(bundleIfaces));
         }
 
         [HttpGet]
@@ -60,8 +59,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id.Value,
-                includeProperties: "InterfaceBandwidth,Vrf");
+            var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == id.Value,
+                includeProperties: "InterfaceBandwidth,Device,Vrf");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -69,8 +68,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulatePortItem(item.ID);
-            return View(Mapper.Map<InterfaceViewModel>(item));
+            return View(Mapper.Map<BundleInterfaceViewModel>(item));
         }
 
         [HttpGet]
@@ -81,22 +79,22 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            await PopulateDeviceItem(id.Value);
             await PopulateInterfaceBandwidthsDropDownList();
             await PopulateVrfsDropDownList(id.Value);
-            await PopulatePortItem(id.Value);
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,IpAddress,SubnetMask,IsTagged,VrfID,InterfaceBandwidthID")] InterfaceViewModel iface)
+        public async Task<IActionResult> Create([Bind("IpAddress,SubnetMask,IsTagged,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await InterfaceService.AddAsync(Mapper.Map<Interface>(iface));
-                    return RedirectToAction("GetByPortID", new { id = iface.ID });
+                    await BundleInterfaceService.AddAsync(Mapper.Map<BundleInterface>(bundleIface));
+                    return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
                 }
             }
             catch (DbUpdateException)
@@ -107,10 +105,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
+            await PopulateDeviceItem(bundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
-            await PopulateVrfsDropDownList(iface.ID);
-            await PopulatePortItem(iface.ID);
-            return View(iface);
+            await PopulateVrfsDropDownList(bundleIface.DeviceID);
+            return View(bundleIface);
         }
 
         [HttpGet]
@@ -121,45 +119,44 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            Interface iface = await InterfaceService.GetByIDAsync(id.Value);
+            BundleInterface bundleIface = await BundleInterfaceService.GetByIDAsync(id.Value);
 
-            if (iface == null)
+            if (bundleIface == null)
             {
                 return NotFound();
             }
 
+            await PopulateDeviceItem(bundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
-            await PopulatePortItem(iface.ID);
-            await PopulateVrfsDropDownList(iface.ID);
-            return View(Mapper.Map<InterfaceViewModel>(iface));
+            await PopulateVrfsDropDownList(bundleIface.DeviceID);
+            return View(Mapper.Map<BundleInterfaceViewModel>(bundleIface));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ID,IpAddress,SubnetMask,IsTagged,VrfID,InterfaceBandwidthID,RowVersion")] InterfaceViewModel iface)
+        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,IpAddress,SubnetMask,IsTagged,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
         {
-            if (id != iface.ID)
+            if (id != bundleIface.BundleInterfaceID)
             {
                 return NotFound();
             }
 
-            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(filter: d => d.ID == id,
+            var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(filter: d => d.BundleInterfaceID == id,
                AsTrackable: false);
-            var currentInterface = dbResult.SingleOrDefault();
+            var currentBundleInterface = dbResult.SingleOrDefault();
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentInterface == null)
+                    if (currentBundleInterface == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The interface was deleted by another user.");
-                        await PopulatePortItem(iface.ID);
-                        return View(iface);
+                        return View(bundleIface);
                     }
 
-                    await InterfaceService.UpdateAsync(Mapper.Map<Interface>(iface));
-                    return RedirectToAction("GetByPortID", new { id = iface.ID });
+                    await BundleInterfaceService.UpdateAsync(Mapper.Map<BundleInterface>(bundleIface));
+                    return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
                 }
             }
 
@@ -168,33 +165,33 @@ namespace SCM.Controllers
                 var exceptionEntry = ex.Entries.Single();
 
                 var proposedIpAddress = (string)exceptionEntry.Property("IpAddress").CurrentValue;
-                if (currentInterface.IpAddress != proposedIpAddress)
+                if (currentBundleInterface.IpAddress != proposedIpAddress)
                 {
-                    ModelState.AddModelError("IpAddress", $"Current value: {currentInterface.IpAddress}");
+                    ModelState.AddModelError("IpAddress", $"Current value: {currentBundleInterface.IpAddress}");
                 }
 
                 var proposedSubnetMask = (string)exceptionEntry.Property("SubnetMask").CurrentValue;
-                if (currentInterface.SubnetMask != proposedSubnetMask)
+                if (currentBundleInterface.SubnetMask != proposedSubnetMask)
                 {
-                    ModelState.AddModelError("SubnetMask", $"Current value: {currentInterface.SubnetMask}");
+                    ModelState.AddModelError("SubnetMask", $"Current value: {currentBundleInterface.SubnetMask}");
                 }
 
                 var proposedInterfaceBandwidthID = (int)exceptionEntry.Property("InterfaceBandwidthID").CurrentValue;
-                if (currentInterface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
+                if (currentBundleInterface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
                 {
-                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentInterface.InterfaceBandwidth.BandwidthKbps}");
+                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleInterface.InterfaceBandwidth.BandwidthKbps}");
                 }
 
                 var proposedVrfID = (int)exceptionEntry.Property("VrfID").CurrentValue;
-                if (currentInterface.VrfID != proposedVrfID)
+                if (currentBundleInterface.VrfID != proposedVrfID)
                 {
-                    ModelState.AddModelError("VrfID", $"Current value: {currentInterface.Vrf.Name}");
+                    ModelState.AddModelError("VrfID", $"Current value: {currentBundleInterface.Vrf.Name}");
                 }
 
                 var proposedIsTagged = (bool)exceptionEntry.Property("IsTagged").CurrentValue;
-                if (currentInterface.IsTagged != proposedIsTagged)
+                if (currentBundleInterface.IsTagged != proposedIsTagged)
                 {
-                    ModelState.AddModelError("IsTagged", $"Current value: {currentInterface.IsTagged}");
+                    ModelState.AddModelError("IsTagged", $"Current value: {currentBundleInterface.IsTagged}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
@@ -214,10 +211,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
+            await PopulateDeviceItem(currentBundleInterface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
-            await PopulatePortItem(currentInterface.ID);
-            await PopulateVrfsDropDownList(currentInterface.ID);
-            return View(Mapper.Map<InterfaceViewModel>(currentInterface));
+            await PopulateVrfsDropDownList(currentBundleInterface.DeviceID);
+            return View(Mapper.Map<BundleInterfaceViewModel>(currentBundleInterface));
         }
 
         [HttpGet]
@@ -228,12 +225,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var iface = await InterfaceService.GetByIDAsync(id.Value);
-            if (iface == null)
+            var bundleIface = await BundleInterfaceService.GetByIDAsync(id.Value);
+            if (bundleIface == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetByPortID", new { id = iface.ID });
+                    return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
                 }
 
                 return NotFound();
@@ -249,51 +246,47 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulatePortItem(iface.ID);
-            return View(Mapper.Map<InterfaceViewModel>(iface));
+            return View(Mapper.Map<BundleInterfaceViewModel>(bundleIface));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(InterfaceViewModel iface)
+        public async Task<IActionResult> Delete(BundleInterfaceViewModel bundleIface)
         {
             try
             {
-                var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(filter: d => d.ID == iface.ID, AsTrackable: false);
-                var currentInterface = dbResult.SingleOrDefault();
+                var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(filter: d => d.DeviceID == bundleIface.DeviceID,
+                    AsTrackable: false);
+                var currentBundleInterface = dbResult.SingleOrDefault();
 
-                if (currentInterface != null)
+                if (currentBundleInterface != null)
                 {
-                    await InterfaceService.DeleteAsync(Mapper.Map<Interface>(iface));
+                    await BundleInterfaceService.DeleteAsync(Mapper.Map<BundleInterface>(bundleIface));
                 }
-                return RedirectToAction("GetByPortID", new { id = iface.ID });
+                return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = iface.ID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = bundleIface.BundleInterfaceID });
             }
         }
-        private async Task PopulatePortItem(int portID)
+        private async Task PopulateDeviceItem(int deviceID)
         {
-            var dbResult = await InterfaceService.UnitOfWork.PortRepository.GetAsync(q => q.ID == portID, includeProperties:"Device");
-            var port = dbResult.Single();
-            ViewBag.Port = port;
+            var device = await BundleInterfaceService.UnitOfWork.DeviceRepository.GetByIDAsync(deviceID);
+            ViewBag.Device = device;
         }
+
         private async Task PopulateInterfaceBandwidthsDropDownList(object selectedInterfaceBandwidth = null)
         {
-            var interfaceBandwidths = await InterfaceService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
+            var interfaceBandwidths = await BundleInterfaceService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
             ViewBag.InterfaceBandwidthID = new SelectList(interfaceBandwidths, "InterfaceBandwidthID", "BandwidthKbps", selectedInterfaceBandwidth);
         }
-        private async Task PopulateVrfsDropDownList(int portID, object selectedVrf = null)
+        private async Task PopulateVrfsDropDownList(int deviceID, object selectedVrf = null)
         {
-            var port = await InterfaceService.UnitOfWork.PortRepository.GetByIDAsync(portID);
-            if (port != null)
-            {
-                var vrfs = await InterfaceService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == port.DeviceID);
-                ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
-            }
+            var vrfs = await BundleInterfaceService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == deviceID);
+            ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
         }
     }
 }

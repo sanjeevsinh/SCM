@@ -56,7 +56,8 @@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
                 @Html.ActionLink("Details", "Details", new { id = Model.ID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = Model.ID })
+                @Html.ActionLink("Delete", "Delete", new { id = Model.ID }) |
+                @Html.ActionLink("Vlans", actionName: "GetAllByInterfaceID", controllerName: "InterfaceVlan", routeValues: new { id = Model.ID})
             </td>
         </tr>
         }

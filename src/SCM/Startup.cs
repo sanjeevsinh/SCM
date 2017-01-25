@@ -74,6 +74,8 @@ namespace SCM
             services.AddScoped<IDeviceService, DeviceService>();
             services.AddScoped<IInterfaceService, InterfaceService>();
             services.AddScoped<IVrfService, VrfService>();
+            services.AddScoped<IInterfaceVlanService, InterfaceVlanService>();
+            services.AddScoped<IBundleInterfaceService, BundleInterfaceService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());
         }

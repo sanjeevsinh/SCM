@@ -1,0 +1,60 @@
+@model SCM.Models.ViewModels.InterfaceViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Interface</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Port.Type)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Port.Type)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Port.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Port.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsTagged)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsTagged)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.InterfaceBandwidth)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.InterfaceBandwidth.BandwidthKbps)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IpAddress)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpAddress)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.SubnetMask)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.SubnetMask)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+    <a asp-action="GetByPortID" asp-route-id="@ViewBag.Port.ID">Back to Interface</a>
+</div>

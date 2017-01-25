@@ -14,6 +14,7 @@ namespace SCM.Models
         [Required]
         [Range(1,65535)]
         public int AutonomousSystem { get; set; }
+        public int MaximumRoutes { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Vrf Vrf { get; set; }

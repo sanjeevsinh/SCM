@@ -24,7 +24,6 @@ namespace SCM.Data
         private GenericRepository<SubRegion> subRegionRepository;
         private GenericRepository<Tenant> tenantRepository;
         private GenericRepository<TenantNetwork> tenantNetworkRepository;
-        private GenericRepository<Vlan> vlanRepository;
         private GenericRepository<Vpn> vpnRepository;
         private GenericRepository<VpnProtocolType> vpnProtocolTypeRepository;
         private GenericRepository<VpnTenancyType> vpnTenancyTypeRepository;
@@ -223,18 +222,6 @@ namespace SCM.Data
                     this.tenantNetworkRepository = new GenericRepository<TenantNetwork>(context);
                 }
                 return tenantNetworkRepository;
-            }
-        }
-
-        public GenericRepository<Vlan> VlanRepository
-        {
-            get
-            {
-                if (this.vlanRepository == null)
-                {
-                    this.vlanRepository = new GenericRepository<Vlan>(context);
-                }
-                return vlanRepository;
             }
         }
 

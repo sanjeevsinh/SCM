@@ -16,6 +16,7 @@ namespace SCM.Models.ViewModels
             CreateMap<Interface, InterfaceViewModel>().ReverseMap();
             CreateMap<InterfaceBandwidth, InterfaceBandwidthViewModel>().ReverseMap();
             CreateMap<Vrf, VrfViewModel>().ReverseMap();
+            CreateMap<InterfaceVlan, InterfaceVlanViewModel>().ReverseMap();
         }
     }
 }

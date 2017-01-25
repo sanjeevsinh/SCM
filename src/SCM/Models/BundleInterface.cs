@@ -18,8 +18,11 @@ namespace SCM.Models
         public string IpAddress { get; set; }
         [MaxLength(15)]
         public string SubnetMask { get; set; }
+        public int DeviceID { get; set; }
+        public int? VrfID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
+        public virtual Device Device { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
         public ICollection<BundleInterfacePort> BundleInterfacePort { get; set; }

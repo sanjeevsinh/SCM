@@ -26,7 +26,6 @@ namespace SCM.Data
         public DbSet<InterfaceBandwidth> LogicalBandwidth { get; set; }
         public DbSet<BundleInterface> BundleInterfaces { get; set; }
         public DbSet<BundleInterfacePort> BundleInterfacePorts { get; set; }
-        public DbSet<Vlan> Vlans { get; set; }
         public DbSet<InterfaceVlan> InterfaceVlans { get; set; }
         public DbSet<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
         public DbSet<Vrf> Vrfs { get; set; }
@@ -59,7 +58,6 @@ namespace SCM.Data
             builder.Entity<Tenant>().ToTable("Tenant");
             builder.Entity<TenantNetwork>().ToTable("TenantNetwork");
             builder.Entity<TenantNetworkBgpPeer>().ToTable("TenantNetworkBgpPeer");
-            builder.Entity<Vlan>().ToTable("Vlan");
             builder.Entity<Vpn>().ToTable("Vpn");
             builder.Entity<VpnVrf>().ToTable("VpnVrf");
             builder.Entity<VpnProtocolType>().ToTable("VpnProtocolType");
@@ -85,10 +83,10 @@ namespace SCM.Data
             .HasIndex(p => new { p.AdministratorSubField, p.AssignedNumberSubField }).IsUnique();
 
             builder.Entity<InterfaceVlan>()
-            .HasIndex(p => new { p.InterfaceID, p.VlanID }).IsUnique();
+            .HasIndex(p => new { p.InterfaceID, p.VlanTag }).IsUnique();
 
             builder.Entity<BundleInterfaceVlan>()
-            .HasIndex(p => new { p.BundleInterfaceID, p.VlanID }).IsUnique();
+            .HasIndex(p => new { p.BundleInterfaceID, p.VlanTag }).IsUnique();
 
             builder.Entity<Device>()
             .HasIndex(p => p.Name).IsUnique();
@@ -138,17 +136,7 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<InterfaceVlan>()
-                   .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
             builder.Entity<BundleInterface>()
-                   .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<BundleInterfaceVlan>()
                    .HasOne(c => c.InterfaceBandwidth)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
@@ -163,10 +151,18 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Prevent cascade delete on recursive relationship on Location table
+            builder.Entity<InterfaceVlan>()
+                   .HasOne(c => c.Vrf)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Location>()
                    .HasOne(c => c.AlternateLocation)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<BundleInterface>()
+                   .HasOne(c => c.Device)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
         }

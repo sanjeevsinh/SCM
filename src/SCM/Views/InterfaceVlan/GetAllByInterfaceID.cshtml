@@ -1,0 +1,54 @@
+@model IEnumerable<SCM.Models.ViewModels.InterfaceVlanViewModel>
+
+@{
+    ViewData["Title"] = "GetByInterfaceID";
+}
+
+<h2>Vlans for interface @ViewBag.Interface.Port.Type @ViewBag.Interface.Port.Name</h2>
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Interface.ID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.VlanTag)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubnetMask)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.VlanTag)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SubnetMask)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.InterfaceVlanID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.InterfaceVlanID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.InterfaceVlanID })
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="Interface" asp-action="GetByPortID" asp-route-id="@ViewBag.Interface.ID">Back to Interface</a>

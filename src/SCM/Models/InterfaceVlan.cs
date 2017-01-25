@@ -15,13 +15,12 @@ namespace SCM.Models
         [MaxLength(15)]
         public string SubnetMask { get; set; }
         public int InterfaceID { get; set; }
-        public int VlanID { get; set; }
-        public int InterfaceBandwidthID { get; set; }
+        [Range(2,4094)]
+        public int VlanTag { get; set; }
+        public int VrfID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Interface Interface { get; set; }
         public virtual Vrf Vrf { get; set; }
-        public virtual Vlan Vlan { get; set; }
-        public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
     }
 }

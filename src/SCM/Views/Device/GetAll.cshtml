@@ -47,6 +47,7 @@
                 @Html.ActionLink("Details", "Details", new { id = item.ID } ) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.ID }) |
                 <a asp-controller="Port" asp-action="GetAllByDeviceID" asp-route-id="@item.ID">Ports</a> |
+                <a asp-controller="BundleInterface" asp-action="GetAllByDeviceID" asp-route-id="@item.ID">Bundles</a> |
                 <a asp-controller="Vrf" asp-action="GetAllByDeviceID" asp-route-id="@item.ID">VRFs</a>
             </td>
         </tr>
