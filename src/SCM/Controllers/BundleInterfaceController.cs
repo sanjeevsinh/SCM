@@ -68,6 +68,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            await PopulateDeviceItem(item.DeviceID);
             return View(Mapper.Map<BundleInterfaceViewModel>(item));
         }
 
@@ -87,7 +88,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IpAddress,SubnetMask,IsTagged,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
+        public async Task<IActionResult> Create([Bind("ID,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
         {
             try
             {
@@ -134,7 +135,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,IpAddress,SubnetMask,IsTagged,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
+        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,ID,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
         {
             if (id != bundleIface.BundleInterfaceID)
             {

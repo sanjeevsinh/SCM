@@ -1,0 +1,36 @@
+@model SCM.Models.ViewModels.BundleInterfacePortViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Port for Bundle Interface @Model.BundleInterface.ID</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.BundleInterface.ID)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.BundleInterface.ID)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Port.Type)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Port.Type)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Port.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Port.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.BundleInterfacePortID }) |
+    <a asp-action="GetAllByBundleInterfaceID" asp-route-id="@ViewBag.BundleInterface.BundleInterfaceID">Back to Ports</a>
+</div>

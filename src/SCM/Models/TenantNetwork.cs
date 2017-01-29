@@ -14,10 +14,9 @@ namespace SCM.Models
         [Required]
         [Range(1,32)]
         public int Length { get; set; }
-        public int VpnID { get; set; }
+        public int TenantNetworkVpnID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
-        public virtual Vpn Vpn { get; set; }
-
+        public ICollection<VpnTenantNetwork> VpnTenantNetworks { get; set; }
     }
 }

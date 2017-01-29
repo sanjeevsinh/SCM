@@ -1,12 +1,12 @@
-@model IEnumerable<SCM.Models.ViewModels.InterfaceVlanViewModel>
+@model IEnumerable<SCM.Models.ViewModels.BundleInterfaceVlanViewModel>
 
 @{
-    ViewData["Title"] = "GetByInterfaceID";
+    ViewData["Title"] = "GetByBundleInterfaceID";
 }
 
-<h2>Vlans for interface @ViewBag.Interface.Port.Type @ViewBag.Interface.Port.Name</h2>
+<h2>Vlans for bundle interface @ViewBag.BundleInterface.ID</h2>
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Interface.ID">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.BundleInterface.ID">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -49,12 +49,12 @@
                 @Html.DisplayFor(modelItem => item.Vrf.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.InterfaceVlanID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.InterfaceVlanID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.InterfaceVlanID })
+                @Html.ActionLink("Edit", "Edit", new { id = item.BundleInterfaceVlanID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.BundleInterfaceVlanID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.BundleInterfaceVlanID })
             </td>
         </tr>
         }
     </tbody>
 </table>
-<a asp-controller="Interface" asp-action="GetByPortID" asp-route-id="@ViewBag.Interface.ID">Back to Interface</a>
+<a asp-controller="BundleInterface" asp-action="GetAllByDeviceID" asp-route-id="@ViewBag.BundleInterface.DeviceID">Back to Bundle Interfaces List</a>

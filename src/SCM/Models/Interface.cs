@@ -11,6 +11,7 @@ namespace SCM.Models
         [ForeignKey("Port")]
         public int ID { get; set; }
         public bool IsTagged { get; set; }
+        public bool IsLayer3 { get; set; }
         [MaxLength(15)]
         public string IpAddress { get; set; }
         [MaxLength(15)]
@@ -22,5 +23,6 @@ namespace SCM.Models
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
         public virtual Port Port { get; set; }
+        public ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

@@ -12,6 +12,8 @@ namespace SCM.Models.ViewModels
         public int ID { get; set; }
         [Display(Name ="Tagged")]
         public bool IsTagged { get; set; }
+        [Display(Name = "Layer 3 Enabled")]
+        public bool IsLayer3 { get; set; }
         [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
             ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
         [Display(Name = "IP Address")]
@@ -26,7 +28,7 @@ namespace SCM.Models.ViewModels
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
         public virtual VrfViewModel Vrf { get; set; }
-        [Display(Name ="Interface Bandwidth")]
+        [Display(Name ="Interface Bandwidth (Kbps)")]
         public virtual InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
         public virtual Port Port { get; set; }
 
@@ -34,7 +36,8 @@ namespace SCM.Models.ViewModels
         {
             if (IsTagged == true)
             {
-                if (!string.IsNullOrEmpty(IpAddress)) {
+                if (!string.IsNullOrEmpty(IpAddress))
+                {
                     yield return new ValidationResult(
                         "An IP address cannot be specified for tagged interfaces.");
                 }
@@ -49,18 +52,39 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A VRF cannot be selected for tagged interfaces.");
                 }
-            } else
+            }
+
+            if (IsLayer3)
             {
                 if (string.IsNullOrEmpty(IpAddress))
                 {
                     yield return new ValidationResult(
-                        "An IP address must be specified for untagged interfaces.");
+                        "An IP address must be specified for layer 3 interfaces.");
                 }
 
                 if (string.IsNullOrEmpty(SubnetMask))
                 {
                     yield return new ValidationResult(
-                        "A subnet mask must be specified for untagged interfaces.");
+                        "A subnet mask must be specified for layer 3 interfaces.");
+                }
+                if (VrfID == null)
+                {
+                    yield return new ValidationResult(
+                        "A VRF must be selected for layer 3 interfaces.");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(IpAddress))
+                {
+                    yield return new ValidationResult(
+                        "An IP address can only be specified for layer 3 interfaces.");
+                }
+
+                if (!string.IsNullOrEmpty(SubnetMask))
+                {
+                    yield return new ValidationResult(
+                        "A subnet mask can only be specified for layer 3 interfaces.");
                 }
             }
         }

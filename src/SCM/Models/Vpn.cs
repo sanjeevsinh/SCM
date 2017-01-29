@@ -13,7 +13,8 @@ namespace SCM.Models
         public string Name { get; set; }
         [MaxLength(250)]
         public string Description { get; set; }
-        public bool ForceAssistedVpnAttachment { get; set; }
+        public bool ForceAssistedAttachment { get; set; }
+        public bool IsExtranet { get; set; }
         public int VpnTopologyTypeID { get; set; }
         public int VpnTenancyTypeID { get; set; }
         public int TenantID { get; set; }
@@ -24,7 +25,7 @@ namespace SCM.Models
         public virtual Region Region { get; set; }
         public virtual VpnTopologyType VpnTopologyType { get; set; }
         public virtual VpnTenancyType VpnTenancyType { get; set; }
-        public ICollection<TenantNetwork> TenantNetworks { get; set; }
+        public ICollection<VpnTenantNetwork> VpnTenantNetworks { get; set; }
         public ICollection<RouteTarget> RouteTargets { get; set; }
     }
 }

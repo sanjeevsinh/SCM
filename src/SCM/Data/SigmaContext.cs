@@ -35,7 +35,7 @@ namespace SCM.Data
         public DbSet<TenantNetwork> TenantNetworks { get; set; }
         public DbSet<TenantNetworkBgpPeer> TenantNetworkBgpPeers { get; set; }
         public DbSet<Plane> Planes { get; set; }
- 
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
 
@@ -68,7 +68,7 @@ namespace SCM.Data
             // Set Indexes
 
             builder.Entity<BundleInterfacePort>()
-           .HasIndex(p => new { p.BundleInterfaceID, p.PortID }).IsUnique();
+           .HasIndex(p => new { p.PortID }).IsUnique();
 
             builder.Entity<VpnProtocolType>()
             .HasIndex(p => new { p.ProtocolType }).IsUnique();
@@ -119,11 +119,17 @@ namespace SCM.Data
             .HasIndex(p => p.Name).IsUnique();
 
             builder.Entity<TenantNetworkBgpPeer>()
-            .HasIndex(p => new { p.BgpPeerID, p.TenantNetworkID });
+            .HasIndex(p => new { p.BgpPeerID, p.TenantNetworkID }).IsUnique();
 
             builder.Entity<Plane>()
             .HasIndex(p => p.Name).IsUnique();
 
+            builder.Entity<VpnTenantNetwork>()
+            .HasIndex(p => new { p.TenantNetworkID, p.VpnID }).IsUnique();
+
+            builder.Entity<BundleInterface>()
+            .HasIndex(p => new { p.DeviceID, p.ID }).IsUnique();
+            
             // Prevent cascade delete to the PhysicalPortBandwidth and LogicalBandwidth tables
 
             builder.Entity<Port>()

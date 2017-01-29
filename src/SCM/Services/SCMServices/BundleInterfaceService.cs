@@ -18,21 +18,21 @@ namespace SCM.Services.SCMServices
             return await UnitOfWork.BundleInterfaceRepository.GetByIDAsync(key);
         }
 
-        public async Task<int> AddAsync(BundleInterface bundleIface)
+        public async Task<int> AddAsync(BundleInterface bundleIfacePort)
         {
-            this.UnitOfWork.BundleInterfaceRepository.Insert(bundleIface);
+            this.UnitOfWork.BundleInterfaceRepository.Insert(bundleIfacePort);
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<int> UpdateAsync(BundleInterface bundleIface)
+        public async Task<int> UpdateAsync(BundleInterface bundleIfacePort)
         {
-            this.UnitOfWork.BundleInterfaceRepository.Update(bundleIface);
+            this.UnitOfWork.BundleInterfaceRepository.Update(bundleIfacePort);
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<int> DeleteAsync(BundleInterface bundleIface)
+        public async Task<int> DeleteAsync(BundleInterface bundleIfacePort)
         {
-            this.UnitOfWork.BundleInterfaceRepository.Delete(bundleIface);
+            this.UnitOfWork.BundleInterfaceRepository.Delete(bundleIfacePort);
             return await this.UnitOfWork.SaveAsync();
         }
     }

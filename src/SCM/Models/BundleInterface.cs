@@ -10,10 +10,10 @@ namespace SCM.Models
     {
         public int BundleInterfaceID { get; set; }
         [Required]
-        [MaxLength(50)]
-        public string Name { get; set; }
+        public int ID { get; set; }
         public int InterfaceBandwidthID { get; set; }
         public bool IsTagged { get; set; }
+        public bool IsLayer3 { get; set; }
         [MaxLength(15)]
         public string IpAddress { get; set; }
         [MaxLength(15)]
@@ -25,7 +25,7 @@ namespace SCM.Models
         public virtual Device Device { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
-        public ICollection<BundleInterfacePort> BundleInterfacePort { get; set; }
+        public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
         public ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
     }
 }

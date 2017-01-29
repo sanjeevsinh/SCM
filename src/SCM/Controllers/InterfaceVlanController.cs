@@ -16,9 +16,9 @@ namespace SCM.Controllers
 {
     public class InterfaceVlanController : BaseViewController
     {
-        public InterfaceVlanController(IInterfaceVlanService interfaceService, IMapper mapper)
+        public InterfaceVlanController(IInterfaceVlanService interfaceVlanService, IMapper mapper)
         {
-            InterfaceVlanService = interfaceService;
+            InterfaceVlanService = interfaceVlanService;
             Mapper = mapper;
         }
         private IInterfaceVlanService InterfaceVlanService { get; set; }
@@ -88,14 +88,22 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("InterfaceID,IpAddress,SubnetMask,VlanTag,VrfID")] InterfaceVlanViewModel ifaceVlan)
+        public async Task<IActionResult> Create([Bind("InterfaceID,IpAddress,IsLayer3,SubnetMask,VlanTag,VrfID")] InterfaceVlanViewModel ifaceVlan)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await InterfaceVlanService.AddAsync(Mapper.Map<InterfaceVlan>(ifaceVlan));
-                    return RedirectToAction("GetAllByInterfaceID", new { id = ifaceVlan.InterfaceID });
+                    var mapped = Mapper.Map<InterfaceVlan>(ifaceVlan);
+                    if (!await ValidateInterfaceVlan(mapped.InterfaceID))
+                    {
+                        ModelState.AddModelError(string.Empty, "A vlan cannot be created on an untagged interface.");
+                    }
+                    else
+                    {
+                        await InterfaceVlanService.AddAsync(mapped);
+                        return RedirectToAction("GetAllByInterfaceID", new { id = ifaceVlan.InterfaceID });
+                    }
                 }
             }
             catch (DbUpdateException)
@@ -133,7 +141,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("InterfaceVlanID,InterfaceID,IpAddress,SubnetMask,VlanTag,VrfID,RowVersion")] InterfaceVlanViewModel ifaceVlan)
+        public async Task<ActionResult> Edit(int id, [Bind("InterfaceVlanID,InterfaceID,IsLayer3,IpAddress,SubnetMask,VlanTag,VrfID,RowVersion")] InterfaceVlanViewModel ifaceVlan)
         {
             if (id != ifaceVlan.InterfaceVlanID)
             {
@@ -150,7 +158,7 @@ namespace SCM.Controllers
                 {
                     if (currentInterfaceVlan == null)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The interface vlan was deleted by another user.");
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vlan was deleted by another user.");
                         await PopulateInterfaceItem(ifaceVlan.InterfaceID);
                         return View(ifaceVlan);
                     }
@@ -284,6 +292,18 @@ namespace SCM.Controllers
                 var vrfs = await InterfaceVlanService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == iface.Port.DeviceID);
                 ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
             }
+        }
+        
+        /// <summary>
+        /// Validates that an interface is tagged. If the interface is not tagged then vlans
+        /// cannot be created.
+        /// </summary>
+        /// <param name="ifaceVlan"></param>
+        /// <returns></returns>
+        private async Task<bool> ValidateInterfaceVlan(int ifaceID)
+        {
+            var iface = await InterfaceVlanService.UnitOfWork.InterfaceRepository.GetByIDAsync(ifaceID);
+            return iface.IsTagged;
         }
     }
 }

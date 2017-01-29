@@ -171,7 +171,14 @@ namespace SCM.Controllers
                         return View(port);
                     }
 
-                    await PortService.UpdateAsync(Mapper.Map<Port>(port));
+                    var p = Mapper.Map<Port>(port);
+                    if (!await ValidatePortBandwidth(p, currentPort))
+                    {
+                        ModelState.AddModelError(string.Empty, "The port bandwidth cannot be changed because the port is a member of a bundle.");
+                        return View(port);
+                    }
+
+                    await PortService.UpdateAsync(p);
                     return RedirectToAction("GetAllByDeviceID", new { id = port.DeviceID });
                 }
             }
@@ -254,7 +261,7 @@ namespace SCM.Controllers
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
                     + "record, click the Delete button again. Otherwise "
-                    + "click the Back to List hyperlink.";
+                    + "click the Back to Device hyperlink.";
             }
 
             await PopulateDeviceItem(port.DeviceID);
@@ -298,6 +305,28 @@ namespace SCM.Controllers
         {
             var tenants = await PortService.UnitOfWork.TenantRepository.GetAsync();
             ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
+        }
+
+        /// <summary>
+        /// Checks if the bandwidth of the port is being updated from the current bandwidth.
+        /// If it is then check if the port belongs to a bundle. If it does then return false
+        /// (the port bandwidth should not be updated).
+        /// </summary>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        private async Task<bool> ValidatePortBandwidth(Port port, Port currentPort)
+        {
+            if (currentPort.PortBandwidthID == port.PortBandwidthID)
+            {
+                return true;
+            }
+
+            var dbResult = await PortService.UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.PortID == port.ID);
+            if (dbResult.Count > 0)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -89,12 +89,27 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,IpAddress,SubnetMask,IsTagged,VrfID,InterfaceBandwidthID")] InterfaceViewModel iface)
+        public async Task<IActionResult> Create([Bind("ID,IpAddress,SubnetMask,IsTagged,IsLayer3,VrfID,InterfaceBandwidthID")] InterfaceViewModel iface)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
+                    var dbResult = await InterfaceService.UnitOfWork.PortRepository.GetAsync(q => q.ID == iface.ID, includeProperties: "BundleInterfacePort.BundleInterface");
+                    var port = dbResult.Single();
+                    if (port.BundleInterfacePort != null)
+                    {
+                        ModelState.AddModelError(string.Empty, "You cannot create an interface for this port "
+                            + "because the port is a member of bundle interface "
+                            + port.BundleInterfacePort.BundleInterface.ID);
+
+                        await PopulateInterfaceBandwidthsDropDownList();
+                        await PopulateVrfsDropDownList(iface.ID);
+                        await PopulatePortItem(iface.ID);
+                        return View(iface);
+                    }
+
+
                     await InterfaceService.AddAsync(Mapper.Map<Interface>(iface));
                     return RedirectToAction("GetByPortID", new { id = iface.ID });
                 }
@@ -136,14 +151,14 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ID,IpAddress,SubnetMask,IsTagged,VrfID,InterfaceBandwidthID,RowVersion")] InterfaceViewModel iface)
+        public async Task<ActionResult> Edit(int id, [Bind("ID,IpAddress,SubnetMask,IsTagged,IsLayer3,VrfID,InterfaceBandwidthID,RowVersion")] InterfaceViewModel iface)
         {
             if (id != iface.ID)
             {
                 return NotFound();
             }
 
-            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(filter: d => d.ID == id,
+            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id, includeProperties:"InterfaceVlans",
                AsTrackable: false);
             var currentInterface = dbResult.SingleOrDefault();
 
@@ -154,8 +169,25 @@ namespace SCM.Controllers
                     if (currentInterface == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The interface was deleted by another user.");
+                        await PopulateInterfaceBandwidthsDropDownList();
                         await PopulatePortItem(iface.ID);
+                        await PopulateVrfsDropDownList(iface.ID);
                         return View(iface);
+                    }
+                    else
+                    {
+                        if (!iface.IsTagged)
+                        {
+                            if (currentInterface.IsTagged && currentInterface.InterfaceVlans.Count > 0)
+                            {
+                                ModelState.AddModelError(string.Empty, "You cannot set this interface to untagged because "
+                                + "there are interface vlans configured. Delete the interface vlans first.");
+                                await PopulateInterfaceBandwidthsDropDownList();
+                                await PopulatePortItem(iface.ID);
+                                await PopulateVrfsDropDownList(iface.ID);
+                                return View(iface);
+                            }
+                        }
                     }
 
                     await InterfaceService.UpdateAsync(Mapper.Map<Interface>(iface));

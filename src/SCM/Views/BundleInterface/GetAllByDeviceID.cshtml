@@ -12,10 +12,13 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                @Html.DisplayNameFor(model => model.ID)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsTagged)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsLayer3)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IpAddress)
@@ -37,10 +40,13 @@
 {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Name)
+                @Html.DisplayFor(modelItem => item.ID)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.IsTagged)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsLayer3)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.IpAddress)
@@ -58,10 +64,11 @@
                 @Html.ActionLink("Edit", "Edit", new { id = item.BundleInterfaceID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.BundleInterfaceID }) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.BundleInterfaceID }) |
+                @Html.ActionLink("Ports", actionName: "GetAllByBundleInterfaceID", controllerName: "BundleInterfacePort", routeValues: new { id = item.BundleInterfaceID }) |
                 @Html.ActionLink("Vlans", actionName: "GetAllByBundleInterfaceID", controllerName: "BundleInterfaceVlan", routeValues: new { id = item.BundleInterfaceID})
             </td>
         </tr>
         }
     </tbody>
 </table>
-<a asp-controller="Device" asp-action="GetAll" asp-route-id="@ViewBag.Device.ID">Back to Devices</a>
+<a asp-controller="Device" asp-action="GetAll">Back to Devices</a>

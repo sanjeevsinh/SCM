@@ -1,0 +1,48 @@
+@model IEnumerable<SCM.Models.ViewModels.BundleInterfacePortViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByBundleInterfaceID";
+}
+
+<h2>Ports for bundle interface @ViewBag.BundleInterface.ID</h2>
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.BundleInterface.BundleInterfaceID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.BundleInterface.ID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Port.Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Port.Name)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.BundleInterface.ID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Port.Type)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Port.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.BundleInterfacePortID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.BundleInterfacePortID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.BundleInterfacePortID })
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="BundleInterface" asp-action="GetAllByDeviceID" asp-route-id="@ViewBag.BundleInterface.DeviceID">Back to Bundle Interfaces</a>
