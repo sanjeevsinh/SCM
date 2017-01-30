@@ -20,6 +20,12 @@ namespace SCM.Models.ViewModels
             CreateMap<BundleInterface, BundleInterfaceViewModel>().ReverseMap();
             CreateMap<BundleInterfacePort, BundleInterfacePortViewModel>().ReverseMap();
             CreateMap<BundleInterfaceVlan, BundleInterfaceVlanViewModel>().ReverseMap();
+            CreateMap<Vpn, VpnViewModel>().ReverseMap();
+            CreateMap<Region, RegionViewModel>().ReverseMap();
+            CreateMap<VpnTopologyType, VpnTopologyTypeViewModel>().ReverseMap();
+            CreateMap<VpnProtocolType, VpnProtocolTypeViewModel>().ReverseMap();
+            CreateMap<VpnTenancyType, VpnTenancyTypeViewModel>().ReverseMap();
+   
         }
     }
 }

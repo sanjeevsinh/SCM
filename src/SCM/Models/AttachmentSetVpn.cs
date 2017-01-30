@@ -6,11 +6,12 @@ using System.Net;
 
 namespace SCM.Models
 {
-    public class VpnVrf
+    public class AttachmentSetVpn
     {
-        public int VrfID { get; set; }
+        public int AttachmentSetVpnID { get; set; }
+        public int AttachmentSetID { get; set; }
         public int VpnID { get; set; }
-        public Vrf Vrf { get; set; }
+        public AttachmentSet AttachmentSet { get; set; }
         public Vpn Vpn { get; set; }
     }
 }

@@ -1,0 +1,66 @@
+@model SCM.Models.ViewModels.VpnViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Device</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Plane)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Plane.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Region)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Region.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.VpnTenancyType)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.VpnTenancyType.TenancyType)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.VpnTopologyType)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.VpnTopologyType.TopologyType)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsExtranet)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsExtranet)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new {  id = Model.VpnID  }) |
+    <a asp-action="GetAll">Back to List</a>
+</div>

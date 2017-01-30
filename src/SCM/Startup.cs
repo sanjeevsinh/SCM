@@ -78,6 +78,7 @@ namespace SCM
             services.AddScoped<IBundleInterfaceService, BundleInterfaceService>();
             services.AddScoped<IBundleInterfacePortService, BundleInterfacePortService>();
             services.AddScoped<IBundleInterfaceVlanService, BundleInterfaceVlanService>();
+            services.AddScoped<IVpnService, VpnService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());
         }

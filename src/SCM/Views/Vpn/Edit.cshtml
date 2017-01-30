@@ -1,0 +1,98 @@
+@model SCM.Models.ViewModels.VpnViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h2>Edit</h2>
+
+<form asp-action="Edit">
+    <div class="form-horizontal">
+        <h4>Device</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="VpnID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Region" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="RegionID" class="form-control" asp-items="ViewBag.RegionID">
+                    <option value="">-- Optionally Select Region --</option>
+                </select>
+                <span asp-validation-for="RegionID" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Plane" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="PlaneID" class="form-control" asp-items="ViewBag.PlaneID">
+                    <option value="">-- Select Plane --</option>
+                </select>
+                <span asp-validation-for="PlaneID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VpnTenancyType" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="VpnTenancyTypeID" class="form-control" asp-items="ViewBag.VpnTenancyTypeID">
+                    <option value="">-- Select Tenancy Type --</option>
+                </select>
+                <span asp-validation-for="VpnTenancyTypeID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VpnTopologyType" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="VpnTopologyTypeID" class="form-control" asp-items="ViewBag.VpnTopologyTypeID">
+                    <option value="">-- Select Topology Type --</option>
+                </select>
+                <span asp-validation-for="VpnTopologyTypeID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Tenant" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
+                    <option value="">-- Select Tenant --</option>
+                </select>
+                <span asp-validation-for="TenantID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <div class="checkbox">
+                    <input asp-for="IsExtranet" />
+                    <label asp-for="IsExtranet"></label>
+                </div>
+                <span asp-validation-for="IsExtranet" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAll">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

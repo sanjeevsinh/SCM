@@ -1,0 +1,72 @@
+@model IEnumerable<SCM.Models.ViewModels.VpnViewModel>
+
+@{
+    ViewData["Title"] = "GetAll";
+}
+
+<h2>VPNs</h2>
+
+<p>
+    <a asp-action="CreateStep1">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Plane)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Region)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VpnTenancyType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VpnTopologyType.VpnProtocolType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VpnTopologyType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tenant)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Plane.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Region.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VpnTenancyType.TenancyType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VpnTopologyType.VpnProtocolType.ProtocolType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VpnTopologyType.TopologyType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tenant.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.VpnID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.VpnID } ) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.VpnID }) |
+                <a asp-controller="VpnVrf" asp-action="GetAllBVpnID" asp-route-id="@item.VpnID">VRFs</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

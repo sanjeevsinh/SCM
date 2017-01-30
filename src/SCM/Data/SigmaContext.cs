@@ -10,6 +10,9 @@ namespace SCM.Data
         {
         }
 
+        public DbSet<AttachmentSet> AttachmentSet { get; set; }
+        public DbSet<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
+        public DbSet<AttachmentSetVpn> AttachmentSetVpns { get; set; }
         public DbSet<VpnProtocolType> VpnProtocolTypes { get; set; }
         public DbSet<VpnTopologyType> VpnTopologyTypes { get; set; }
         public DbSet<VpnTenancyType> VpnTenancyTypes { get; set; }
@@ -29,7 +32,6 @@ namespace SCM.Data
         public DbSet<InterfaceVlan> InterfaceVlans { get; set; }
         public DbSet<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
         public DbSet<Vrf> Vrfs { get; set; }
-        public DbSet<VpnVrf> VpnVrfs { get; set; }
         public DbSet<BgpPeer> BgpPeers { get; set; }
         public DbSet<Tenant> Tenant { get; set; }
         public DbSet<TenantNetwork> TenantNetworks { get; set; }
@@ -39,10 +41,14 @@ namespace SCM.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
 
+            builder.Entity<AttachmentSet>().ToTable("AttachmentSet");
+            builder.Entity<AttachmentSetVpn>().ToTable("AttachmentSetVpn");
+            builder.Entity<AttachmentSetVrf>().ToTable("AttachmentSetVrf");
             builder.Entity<BgpPeer>().ToTable("BgpPeer");
             builder.Entity<BundleInterface>().ToTable("BundleInterface");
             builder.Entity<BundleInterfacePort>().ToTable("BundleInterfacePort");
             builder.Entity<BundleInterfaceVlan>().ToTable("BundleInterfaceVlan");
+            builder.Entity<ContractBandwidth>().ToTable("ContractBandwidth");
             builder.Entity<Device>().ToTable("Device");
             builder.Entity<Interface>().ToTable("Interface");
             builder.Entity<InterfaceVlan>().ToTable("InterfaceVlan");
@@ -59,7 +65,6 @@ namespace SCM.Data
             builder.Entity<TenantNetwork>().ToTable("TenantNetwork");
             builder.Entity<TenantNetworkBgpPeer>().ToTable("TenantNetworkBgpPeer");
             builder.Entity<Vpn>().ToTable("Vpn");
-            builder.Entity<VpnVrf>().ToTable("VpnVrf");
             builder.Entity<VpnProtocolType>().ToTable("VpnProtocolType");
             builder.Entity<VpnTenancyType>().ToTable("VpnTenancyType");
             builder.Entity<VpnTopologyType>().ToTable("VpnTopologyType");
@@ -112,8 +117,11 @@ namespace SCM.Data
             builder.Entity<RouteTarget>()
             .HasIndex(p => new { p.AdministratorSubField, p.AssignedNumberSubField }).IsUnique();
 
-            builder.Entity<VpnVrf>()
-            .HasKey(p => new { p.VpnID, p.VrfID });
+            builder.Entity<AttachmentSetVrf>()
+            .HasKey(p => new { p.AttachmentSetID, p.VrfID });
+
+            builder.Entity<AttachmentSetVpn>()
+            .HasKey(p => new { p.AttachmentSetID, p.VpnID });
 
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();
@@ -129,8 +137,23 @@ namespace SCM.Data
 
             builder.Entity<BundleInterface>()
             .HasIndex(p => new { p.DeviceID, p.ID }).IsUnique();
-            
-            // Prevent cascade delete to the PhysicalPortBandwidth and LogicalBandwidth tables
+
+            // Prevent cascade deletes
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.SubRegion)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSetVrf>()
+                   .HasOne(c => c.Vrf)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSetVpn>()
+                   .HasOne(c => c.Vpn)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Port>()
                    .HasOne(c => c.PortBandwidth)
@@ -144,16 +167,6 @@ namespace SCM.Data
 
             builder.Entity<BundleInterface>()
                    .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<VpnVrf>()
-                   .HasOne(c => c.Vpn)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<VpnVrf>()
-                   .HasOne(c => c.Vrf)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 

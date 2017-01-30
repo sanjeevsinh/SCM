@@ -13,11 +13,12 @@ namespace SCM.Models
         public string Name { get; set; }
         [MaxLength(250)]
         public string Description { get; set; }
-        public bool ForceAssistedAttachment { get; set; }
         public bool IsExtranet { get; set; }
         public int VpnTopologyTypeID { get; set; }
         public int VpnTenancyTypeID { get; set; }
         public int TenantID { get; set; }
+        public int? PlaneID { get; set; }
+        public int? RegionID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Tenant Tenant { get; set; }

@@ -14,7 +14,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A port must be selected")]
         public int PortID { get; set; }
         public byte[] RowVersion { get; set; }
-        public virtual Port Port { get; set; }
-        public virtual BundleInterface BundleInterface { get; set; }
+        public PortViewModel Port { get; set; }
+        public BundleInterfaceViewModel BundleInterface { get; set; }
     }
 }

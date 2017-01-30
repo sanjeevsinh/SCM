@@ -30,15 +30,15 @@ namespace SCM.Models.ViewModels
         public int? VrfID { get; set; }
         [Required(ErrorMessage = "An interface bandwidth must be selected")]
         public int InterfaceBandwidthID { get; set; }
+        public int? EdgeQosPolicyID { get; set; }
         public byte[] RowVersion { get; set; }
-        public virtual Device Device { get; set; }
+        public Device Device { get; set; }
         [Display(Name = "VRF")]
-        public virtual Vrf Vrf { get; set; }
+        public  VrfViewModel Vrf { get; set; }
         [Display(Name = "Interface Bandwidth (Kbps)")]
-        public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
-        public ICollection<BundleInterfacePort> BundleInterfacePort { get; set; }
-        public ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
-
+        public  InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
+        public ICollection<BundleInterfacePortViewModel> BundleInterfacePort { get; set; }
+        public ICollection<BundleInterfaceVlanViewModel> BundleInterfaceVlans { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged == true)
@@ -58,6 +58,19 @@ namespace SCM.Models.ViewModels
                 {
                     yield return new ValidationResult(
                         "A VRF cannot be selected for tagged interfaces.");
+                }
+                if (EdgeQosPolicyID != null)
+                {
+                    yield return new ValidationResult(
+                        "An Edge QoS Policy cannot be selected for tagged interfaces.");
+                }
+            }
+            else
+            {
+                if (EdgeQosPolicyID == null)
+                {
+                    yield return new ValidationResult(
+                        "An Edge QoS Policy must be selected for untagged interfaces.");
                 }
             }
 

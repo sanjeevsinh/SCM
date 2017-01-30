@@ -29,8 +29,8 @@ namespace SCM.Models.ViewModels
         [Timestamp]
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
-        public virtual Vrf Vrf { get; set; }
-        public virtual BundleInterface BundleInterface { get; set; }
+        public VrfViewModel Vrf { get; set; }
+        public  BundleInterfaceViewModel BundleInterface { get; set; }
 
     }
 }

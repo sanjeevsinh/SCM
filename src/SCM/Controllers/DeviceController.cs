@@ -174,10 +174,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateLocationsDropDownList(currentDevice.Location);
-            await PopulatePlanesDropDownList(currentDevice.Plane);
+            await PopulateLocationsDropDownList(device.Location);
+            await PopulatePlanesDropDownList(device.Plane);
 
-            return View(Mapper.Map<DeviceViewModel>(currentDevice));
+            return View(Mapper.Map<DeviceViewModel>(device));
         }
 
         [HttpGet]

@@ -29,9 +29,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A tenant must be selected")]
         public int TenantID { get; set; }
         public byte[] RowVersion { get; set; }
-        public Device Device { get; set; }
-        public Tenant Tenant { get; set; }
-        public ICollection<BgpPeer> BgpPeers { get; set; }
-        public ICollection<VpnVrf> VpnVrfs { get; set; }
+        public DeviceViewModel Device { get; set; }
+        public TenantViewModel Tenant { get; set; }
     }
 }

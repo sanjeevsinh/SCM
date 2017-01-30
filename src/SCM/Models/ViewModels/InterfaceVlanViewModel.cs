@@ -25,14 +25,12 @@ namespace SCM.Models.ViewModels
         [Range(2,4094, ErrorMessage = "The vlan tag must be between 2 and 4094")]
         [Display(Name = "Vlan Tag")]
         public int VlanTag { get; set; }
-        [Required(ErrorMessage = "A VRF must be selected")]
         public int? VrfID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
-        public virtual Interface Interface { get; set; }
+        public InterfaceViewModel Interface { get; set; }
         [Display(Name = "VRF")]
-        public virtual Vrf Vrf { get; set; }
-
+        public VrfViewModel Vrf { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsLayer3)

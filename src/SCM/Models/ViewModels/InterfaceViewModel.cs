@@ -29,9 +29,8 @@ namespace SCM.Models.ViewModels
         [Display(Name = "VRF")]
         public virtual VrfViewModel Vrf { get; set; }
         [Display(Name ="Interface Bandwidth (Kbps)")]
-        public virtual InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
-        public virtual Port Port { get; set; }
-
+        public InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
+        public Port Port { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged == true)

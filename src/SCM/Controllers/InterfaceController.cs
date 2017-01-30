@@ -217,7 +217,7 @@ namespace SCM.Controllers
                     ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentInterface.InterfaceBandwidth.BandwidthKbps}");
                 }
 
-                var proposedVrfID = (int)exceptionEntry.Property("VrfID").CurrentValue;
+                var proposedVrfID = (int?)exceptionEntry.Property("VrfID").CurrentValue;
                 if (currentInterface.VrfID != proposedVrfID)
                 {
                     ModelState.AddModelError("VrfID", $"Current value: {currentInterface.Vrf.Name}");

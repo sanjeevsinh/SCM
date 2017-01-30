@@ -18,7 +18,7 @@ namespace SCM.Models
         public int InterfaceID { get; set; }
         [Range(2,4094)]
         public int VlanTag { get; set; }
-        public int? VrfID { get; set; }
+        public int VrfID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Interface Interface { get; set; }
