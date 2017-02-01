@@ -11,7 +11,9 @@ namespace SCM.Models
         public int AttachmentSetVpnID { get; set; }
         public int AttachmentSetID { get; set; }
         public int VpnID { get; set; }
-        public AttachmentSet AttachmentSet { get; set; }
+        public virtual AttachmentSet AttachmentSet { get; set; }
         public Vpn Vpn { get; set; }
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

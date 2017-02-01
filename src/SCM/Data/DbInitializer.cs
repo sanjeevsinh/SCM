@@ -31,8 +31,6 @@ namespace SCM.Data
                 context.VpnProtocolTypes.Add(v);
             }
 
-            context.SaveChanges();
-
             var vpnTenancyTypes = new[]
             {
                 new VpnTenancyType { TenancyType = "Single" },
@@ -72,8 +70,6 @@ namespace SCM.Data
                 context.Planes.Add(p);
             }
 
-            context.SaveChanges();
-
             var regions = new List<Region>
             {
                 new Region {Name = "EMEA" },
@@ -103,6 +99,19 @@ namespace SCM.Data
                 context.SubRegions.Add(s);
             }
 
+            context.SaveChanges();
+
+            var locations = new List<Location>
+            {
+                new Location {SiteName = "UK2", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID },
+                new Location {SiteName = "FR4", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID }
+            };
+
+            foreach (SubRegion s in subregions)
+            {
+                context.SubRegions.Add(s);
+            }
+
             var portBandwidths = new List<PortBandwidth>
             {
                 new PortBandwidth {BandwidthKbps = 1000 },
@@ -115,6 +124,48 @@ namespace SCM.Data
             {
                 context.PortBandwidth.Add(p);
             }
+
+            var interfaceBandwidths = new List<InterfaceBandwidth>
+            {
+                new InterfaceBandwidth {BandwidthKbps = 1000 },
+                new InterfaceBandwidth {BandwidthKbps = 10000 },
+                new InterfaceBandwidth {BandwidthKbps = 40000 },
+                new InterfaceBandwidth {BandwidthKbps = 100000}
+            };
+
+            foreach (InterfaceBandwidth p in interfaceBandwidths)
+            {
+                context.InterfaceBandwidth.Add(p);
+            }
+
+            var contractBandwidths = new List<ContractBandwidth>
+            {
+                new ContractBandwidth {BandwidthKbps = 10 },
+                new ContractBandwidth {BandwidthKbps = 20 },
+                new ContractBandwidth {BandwidthKbps = 30 },
+                new ContractBandwidth {BandwidthKbps = 40 },
+                new ContractBandwidth {BandwidthKbps = 50 },
+                new ContractBandwidth {BandwidthKbps = 100 }
+            };
+
+            foreach (ContractBandwidth p in contractBandwidths)
+            {
+                context.ContractBandwidths.Add(p);
+            }
+
+            var attachmentRedundancies = new List<AttachmentRedundancy>
+            {
+                new AttachmentRedundancy {Name = "Bronze" },
+                new AttachmentRedundancy {Name = "Silver" },
+                new AttachmentRedundancy {Name = "Gold" },
+                new AttachmentRedundancy {Name = "Custom" },
+            };
+            foreach (AttachmentRedundancy p in attachmentRedundancies)
+            {
+                context.AttachmentRedundancy.Add(p);
+            }
+
+            context.SaveChanges();
         }
     }
 }

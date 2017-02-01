@@ -6,6 +6,7 @@ namespace SCM.Models.ViewModels
 {
     public class VpnProtocolTypeViewModel
     {
+        [Display(AutoGenerateField = false)]
         [Required(ErrorMessage = "A VPN Protocol Type must be selected")]
         public int VpnProtocolTypeID { get; set; }
         [Required]

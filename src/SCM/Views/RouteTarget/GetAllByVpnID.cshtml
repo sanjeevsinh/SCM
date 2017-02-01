@@ -1,0 +1,62 @@
+@model IEnumerable<SCM.Models.ViewModels.RouteTargetViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByVpnID";
+}
+
+<h2>Route Targets for @ViewBag.Vpn.Name</h2>
+
+<p class="text-danger">@ViewData["RouteTargetsErrorMessage"]</p>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Vpn.VpnID"  >Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vpn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AdministratorSubField)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AssignedNumberSubField)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsHubExport)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vpn.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AdministratorSubField)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignedNumberSubField)
+            </td>
+@if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
+{
+            <td>
+                @Html.DisplayFor(modelItem => item.IsHubExport)
+            </td>
+}
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.RouteTargetID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.RouteTargetID }) |
+                @Html.ActionLink("Delete", "Delete", new { id= item.RouteTargetID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div>
+    <a asp-controller="Vpn" asp-action="GetAll">Back to VPNs List</a>
+</div>

@@ -7,8 +7,8 @@ namespace SCM.Models
     public class RouteTarget
     {
         public int RouteTargetID { get; set; }
-        public int AdministratorSubField { get; set; }
-        public int AssignedNumberSubField { get; set; }
+        public string AdministratorSubField { get; set; }
+        public string AssignedNumberSubField { get; set; }
         public bool IsHubExport { get; set; }
         public int VpnID { get; set; }
         [Timestamp]

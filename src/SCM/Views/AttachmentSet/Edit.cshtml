@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.VpnViewModel
+@model SCM.Models.ViewModels.AttachmentSetViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -8,11 +8,12 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>VPN</h4>
+        <h4>Attachment Set</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <input type="hidden" asp-for="VpnID" />
+        <input type="hidden" asp-for="AttachmentSetID" />
         <input type="hidden" asp-for="RowVersion" />
+ 
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -28,39 +29,30 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Region" class="col-md-2 control-label"></label>
+            <label asp-for="SubRegion" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <select asp-for="RegionID" class="form-control" asp-items="ViewBag.RegionID">
-                    <option value="">-- Optionally Select Region --</option>
+                <select asp-for="SubRegionID" class="form-control" asp-items="ViewBag.SubRegionID">
+                    <option value="">-- Optionally Select Sub-Region --</option>
                 </select>
-                <span asp-validation-for="RegionID" class="text-danger" />
+                <span asp-validation-for="SubRegionID" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Plane" class="col-md-2 control-label"></label>
+            <label asp-for="ContractBandwidth" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <select asp-for="PlaneID" class="form-control" asp-items="ViewBag.PlaneID">
-                    <option value="">-- Select Plane --</option>
+                <select asp-for="ContractBandwidthID" class="form-control" asp-items="ViewBag.ContractBandwidthID">
+                    <option value="">-- Select Contract Bandwidth --</option>
                 </select>
-                <span asp-validation-for="PlaneID" class="text-danger"></span>
+                <span asp-validation-for="ContractBandwidthID" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="VpnTenancyType" class="col-md-2 control-label"></label>
+            <label asp-for="AttachmentRedundancy" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <select asp-for="VpnTenancyTypeID" class="form-control" asp-items="ViewBag.VpnTenancyTypeID">
-                    <option value="">-- Select Tenancy Type --</option>
+                <select asp-for="AttachmentRedundancyID" class="form-control" asp-items="ViewBag.AttachmentRedundancyID">
+                    <option value="">-- Select Attachment Redundancy --</option>
                 </select>
-                <span asp-validation-for="VpnTenancyTypeID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="VpnTopologyType" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="VpnTopologyTypeID" class="form-control" asp-items="ViewBag.VpnTopologyTypeID">
-                    <option value="">-- Select Topology Type --</option>
-                </select>
-                <span asp-validation-for="VpnTopologyTypeID" class="text-danger"></span>
+                <span asp-validation-for="AttachmentRedundancyID" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
@@ -72,18 +64,6 @@
                 <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
-@if (Model.VpnTopologyType.VpnProtocolType.ProtocolType == "IP")
-{
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsExtranet" />
-                    <label asp-for="IsExtranet"></label>
-                </div>
-                <span asp-validation-for="IsExtranet" class="text-danger"></span>
-            </div>
-        </div>
-}
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Save" class="btn btn-default" />

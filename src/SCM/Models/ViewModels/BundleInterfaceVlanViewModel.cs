@@ -9,6 +9,7 @@ namespace SCM.Models.ViewModels
 {
     public class BundleInterfaceVlanViewModel
     {
+        [Display(AutoGenerateField = false)]
         public int BundleInterfaceVlanID { get; set; }
         public int BundleInterfaceID { get; set; }
         [Display(Name = "Layer 3 Enabled")]

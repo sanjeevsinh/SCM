@@ -7,6 +7,7 @@ namespace SCM.Models.ViewModels
 
     public class VpnViewModel
     {
+        [Display(AutoGenerateField = false)]
         public int VpnID { get; set; }
         [Required]
         [StringLength(50)]
@@ -27,9 +28,9 @@ namespace SCM.Models.ViewModels
         public TenantViewModel Tenant { get; set; }
         public PlaneViewModel Plane { get; set; }
         public RegionViewModel Region { get; set; }
-        [Display(Name="VPN Topology Type")]
+        [Display(Name="Topology Type")]
         public VpnTopologyTypeViewModel VpnTopologyType { get; set; }
-        [Display(Name = "VPN Tenancy Type")]
+        [Display(Name = "Tenancy Type")]
         public VpnTenancyTypeViewModel VpnTenancyType { get; set; }
     }
 }

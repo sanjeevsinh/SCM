@@ -8,10 +8,15 @@ namespace SCM.Data
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private SigmaContext context;
+        private GenericRepository<AttachmentSet> attachmentSetRepository;
+        private GenericRepository<AttachmentSetVrf> attachmentSetVrfRepository;
+        private GenericRepository<AttachmentSetVpn> attachmentSetVpnRepository;
+        private GenericRepository<AttachmentRedundancy> attachmentRedundancyRepository;
         private GenericRepository<BgpPeer> bgpPeerRepository;
         private GenericRepository<BundleInterface> bundleInterfaceRepository;
         private GenericRepository<BundleInterfacePort> bundleInterfacePortRepository;
         private GenericRepository<BundleInterfaceVlan> bundleInterfaceVlanRepository;
+        private GenericRepository<ContractBandwidth> contractBandwidthRepository;
         private GenericRepository<Device> deviceRepository;
         private GenericRepository<Interface> interfaceRepository;
         private GenericRepository<InterfaceVlan> interfaceVlanRepository;
@@ -34,6 +39,54 @@ namespace SCM.Data
         public UnitOfWork(SigmaContext sigmaContext)
         {
             context = sigmaContext;
+        }
+
+        public GenericRepository<AttachmentSet> AttachmentSetRepository
+        {
+            get
+            {
+                if (this.attachmentSetRepository == null)
+                {
+                    this.attachmentSetRepository = new GenericRepository<AttachmentSet>(context);
+                }
+                return attachmentSetRepository;
+            }
+        }
+
+        public GenericRepository<AttachmentSetVrf> AttachmentSetVrfRepository
+        {
+            get
+            {
+                if (this.attachmentSetVrfRepository == null)
+                {
+                    this.attachmentSetVrfRepository = new GenericRepository<AttachmentSetVrf>(context);
+                }
+                return attachmentSetVrfRepository;
+            }
+        }
+
+        public GenericRepository<AttachmentSetVpn> AttachmentSetVpnRepository
+        {
+            get
+            {
+                if (this.attachmentSetVpnRepository == null)
+                {
+                    this.attachmentSetVpnRepository = new GenericRepository<AttachmentSetVpn>(context);
+                }
+                return attachmentSetVpnRepository;
+            }
+        }
+
+        public GenericRepository<AttachmentRedundancy> AttachmentRedundancyRepository
+        {
+            get
+            {
+                if (this.attachmentRedundancyRepository == null)
+                {
+                    this.attachmentRedundancyRepository = new GenericRepository<AttachmentRedundancy>(context);
+                }
+                return attachmentRedundancyRepository;
+            }
         }
 
         public GenericRepository<BgpPeer> BgpPeerRepository
@@ -80,6 +133,18 @@ namespace SCM.Data
                     this.bundleInterfaceVlanRepository = new GenericRepository<BundleInterfaceVlan>(context);
                 }
                 return bundleInterfaceVlanRepository;
+            }
+        }
+
+        public GenericRepository<ContractBandwidth>  ContractBandwidthRepository
+        {
+            get
+            {
+                if (this.contractBandwidthRepository == null)
+                {
+                    this.contractBandwidthRepository = new GenericRepository<ContractBandwidth>(context);
+                }
+                return contractBandwidthRepository;
             }
         }
 

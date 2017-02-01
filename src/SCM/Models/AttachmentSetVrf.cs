@@ -11,7 +11,9 @@ namespace SCM.Models
         public int AttachmentSetVrfID { get; set; }
         public int AttachmentSetID { get; set; }
         public int VrfID { get; set; }
-        public AttachmentSet AttachmentSet { get; set; }
-        public Vrf Vrf { get; set; }
+        public virtual AttachmentSet AttachmentSet { get; set; }
+        public virtual Vrf Vrf { get; set; }
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

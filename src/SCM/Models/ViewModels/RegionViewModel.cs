@@ -7,6 +7,7 @@ namespace SCM.Models.ViewModels
 {
     public class RegionViewModel
     {
+        [Display(AutoGenerateField = false)]
         public int RegionID { get; set; }
         [Required]
         [StringLength(50)]

@@ -58,13 +58,14 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("VpnProtocolTypeID")] VpnProtocolTypeViewModel protocolType)
+        public async Task<IActionResult> CreateStep2([Bind("VpnProtocolTypeID,ProtocolType")] VpnProtocolTypeViewModel protocolType)
         {
             await PopulatePlanesDropDownList();
             await PopulateTenantsDropDownList();
             await PopulateRegionsDropDownList();
             await PopulateTopologyTypesDropDownList(protocolType.VpnProtocolTypeID);
             await PopulateTenancyTypesDropDownList();
+            ViewBag.VpnProtocolType = protocolType;
             return View();
         }
 
@@ -104,7 +105,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id.Value, includeProperties:"VpnTopologyType");
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id.Value, includeProperties:"VpnTopologyType.VpnProtocolType");
             var vpn = dbResult.SingleOrDefault();
 
             if (vpn == null)
@@ -180,19 +181,19 @@ namespace SCM.Controllers
                 var proposedTenancyTypeID = (int)exceptionEntry.Property("VpnTenancyTypeID").CurrentValue;
                 if (currentVpn.VpnTenancyTypeID != proposedTenancyTypeID)
                 {
-                    ModelState.AddModelError("RegionID", $"Current value: {currentVpn.Region.Name}");
+                    ModelState.AddModelError("VpnTenancyTypeID", $"Current value: {currentVpn.VpnTenancyType.TenancyType}");
                 }
 
                 var proposedTopologyTypeID = (int)exceptionEntry.Property("VpnTopologyTypeID").CurrentValue;
                 if (currentVpn.VpnTopologyTypeID != proposedTopologyTypeID)
                 {
-                    ModelState.AddModelError("RegionID", $"Current value: {currentVpn.VpnTopologyType.TopologyType}");
+                    ModelState.AddModelError("VpnTopologyTypeID", $"Current value: {currentVpn.VpnTopologyType.TopologyType}");
                 }
 
                 var proposedTenantID = (int)exceptionEntry.Property("TenantID").CurrentValue;
                 if (currentVpn.TenantID != proposedTenantID)
                 {
-                    ModelState.AddModelError("RegionID", $"Current value: {currentVpn.Tenant.Name}");
+                    ModelState.AddModelError("TenantID", $"Current value: {currentVpn.Tenant.Name}");
                 }
 
                 var proposedIsExtranet = (bool)exceptionEntry.Property("IsExtranet").CurrentValue;

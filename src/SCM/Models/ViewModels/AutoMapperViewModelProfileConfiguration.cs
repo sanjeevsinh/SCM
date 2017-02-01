@@ -25,7 +25,12 @@ namespace SCM.Models.ViewModels
             CreateMap<VpnTopologyType, VpnTopologyTypeViewModel>().ReverseMap();
             CreateMap<VpnProtocolType, VpnProtocolTypeViewModel>().ReverseMap();
             CreateMap<VpnTenancyType, VpnTenancyTypeViewModel>().ReverseMap();
-   
+            CreateMap<RouteTarget, RouteTargetViewModel>().ReverseMap();
+            CreateMap<AttachmentSet, AttachmentSetViewModel>().ReverseMap();
+            CreateMap<SubRegion, SubRegionViewModel>().ReverseMap();
+            CreateMap<ContractBandwidth, ContractBandwidthViewModel>().ReverseMap();
+            CreateMap<AttachmentRedundancy, AttachmentRedundancyViewModel>().ReverseMap();
+
         }
     }
 }

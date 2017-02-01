@@ -6,6 +6,7 @@ namespace SCM.Models.ViewModels
 {
     public class VpnTenancyTypeViewModel
     {
+        [Display(AutoGenerateField = false)]
         public int VpnTenancyTypeID { get; set; }
         [Required]
         [Display(Name ="Tenancy Type")]

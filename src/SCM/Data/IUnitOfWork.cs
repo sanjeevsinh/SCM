@@ -5,10 +5,15 @@ namespace SCM.Data
 {
     public interface IUnitOfWork
     {
+        GenericRepository<AttachmentSet> AttachmentSetRepository { get; }
+        GenericRepository<AttachmentSetVrf> AttachmentSetVrfRepository { get; }
+        GenericRepository<AttachmentSetVpn> AttachmentSetVpnRepository { get; }
+        GenericRepository<AttachmentRedundancy> AttachmentRedundancyRepository { get; }
         GenericRepository<BgpPeer> BgpPeerRepository { get; }
         GenericRepository<BundleInterface> BundleInterfaceRepository { get; }
         GenericRepository<BundleInterfacePort> BundleInterfacePortRepository { get; }
         GenericRepository<BundleInterfaceVlan> BundleInterfaceVlanRepository { get; }
+        GenericRepository<ContractBandwidth> ContractBandwidthRepository { get; }
         GenericRepository<Device> DeviceRepository { get; }
         GenericRepository<Interface> InterfaceRepository { get; }
         GenericRepository<InterfaceVlan> InterfaceVlanRepository { get; }

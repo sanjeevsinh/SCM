@@ -13,6 +13,8 @@ namespace SCM.Data
         public DbSet<AttachmentSet> AttachmentSet { get; set; }
         public DbSet<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
         public DbSet<AttachmentSetVpn> AttachmentSetVpns { get; set; }
+        public DbSet<AttachmentRedundancy> AttachmentRedundancy { get; set; }
+        public DbSet<ContractBandwidth> ContractBandwidths { get; set; }
         public DbSet<VpnProtocolType> VpnProtocolTypes { get; set; }
         public DbSet<VpnTopologyType> VpnTopologyTypes { get; set; }
         public DbSet<VpnTenancyType> VpnTenancyTypes { get; set; }
@@ -26,7 +28,7 @@ namespace SCM.Data
         public DbSet<MultiPortPort> MultiPortPorts { get; set; }
         public DbSet<Interface> Interfaces { get; set; }
         public DbSet<PortBandwidth> PortBandwidth { get; set; }
-        public DbSet<InterfaceBandwidth> LogicalBandwidth { get; set; }
+        public DbSet<InterfaceBandwidth> InterfaceBandwidth { get; set; }
         public DbSet<BundleInterface> BundleInterfaces { get; set; }
         public DbSet<BundleInterfacePort> BundleInterfacePorts { get; set; }
         public DbSet<InterfaceVlan> InterfaceVlans { get; set; }
@@ -44,6 +46,7 @@ namespace SCM.Data
             builder.Entity<AttachmentSet>().ToTable("AttachmentSet");
             builder.Entity<AttachmentSetVpn>().ToTable("AttachmentSetVpn");
             builder.Entity<AttachmentSetVrf>().ToTable("AttachmentSetVrf");
+            builder.Entity<AttachmentRedundancy>().ToTable("AttachmentRedundancy");
             builder.Entity<BgpPeer>().ToTable("BgpPeer");
             builder.Entity<BundleInterface>().ToTable("BundleInterface");
             builder.Entity<BundleInterfacePort>().ToTable("BundleInterfacePort");
@@ -118,10 +121,16 @@ namespace SCM.Data
             .HasIndex(p => new { p.AdministratorSubField, p.AssignedNumberSubField }).IsUnique();
 
             builder.Entity<AttachmentSetVrf>()
-            .HasKey(p => new { p.AttachmentSetID, p.VrfID });
+            .HasIndex(p => new { p.AttachmentSetID, p.VrfID }).IsUnique();
 
             builder.Entity<AttachmentSetVpn>()
-            .HasKey(p => new { p.AttachmentSetID, p.VpnID });
+            .HasIndex(p => new { p.AttachmentSetID, p.VpnID }).IsUnique();
+
+            builder.Entity<ContractBandwidth>()
+            .HasIndex(p => new { p.BandwidthKbps}).IsUnique();
+
+            builder.Entity<AttachmentRedundancy>()
+            .HasIndex(p => new { p.Name }).IsUnique();
 
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();

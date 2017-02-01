@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.VrfViewModel
+@model SCM.Models.ViewModels.RouteTargetViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -8,19 +8,12 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>VRf</h4>
+        <h4>Route Target</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <input type="hidden" asp-for="VrfID" />
-        <input type="hidden" asp-for="DeviceID" />
+        <input type="hidden" asp-for="RouteTargetID" />
+        <input type="hidden" asp-for="VpnID" />
         <input type="hidden" asp-for="RowVersion" />
-        <div class="form-group">
-            <label asp-for="Name" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-        </div>
         <div class="form-group">
             <label asp-for="AdministratorSubField" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -35,15 +28,17 @@
                 <span asp-validation-for="AssignedNumberSubField" class="text-danger"></span>
             </div>
         </div>
+@if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
+{
         <div class="form-group">
-            <label asp-for="Tenant" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
-                    <option value="">-- Select a Tenant --</option>
-                </select>
-                <span asp-validation-for="TenantID" class="text-danger"></span>
+            <div class="col-md-offset-2 col-md-10">
+                <div class="checkbox">
+                    <input asp-for="IsHubExport" />
+                    <label asp-for="IsHubExport"></label>
+                </div>
             </div>
         </div>
+}
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Save" class="btn btn-default" />
@@ -53,7 +48,7 @@
 </form>
 
 <div>
-    <a asp-action="GetAllByDeviceID" asp-route-id ="@Model.DeviceID">Back to List</a>
+    <a asp-action="GetAllByVpnID" asp-route-id ="@Model.VpnID">Back to List</a>
 </div>
 
 @section Scripts {
