@@ -14,6 +14,5 @@ namespace SCM.Models
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Region Region { get; set; }
-        public ICollection<Location> Locations { get; set; }
     }
 }

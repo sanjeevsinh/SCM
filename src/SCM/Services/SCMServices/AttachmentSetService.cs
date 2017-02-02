@@ -15,7 +15,7 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<AttachmentSet>> GetAllAsync()
         {
-            return await this.UnitOfWork.AttachmentSetRepository.GetAsync(includeProperties: "Tenant,ContractBandwidth,SubRegion.Region,AttachmentRedundancy");
+            return await this.UnitOfWork.AttachmentSetRepository.GetAsync(includeProperties: "Tenant,ContractBandwidth,SubRegion,Region,AttachmentRedundancy");
         }
 
         public async Task<AttachmentSet> GetByIDAsync(int key)

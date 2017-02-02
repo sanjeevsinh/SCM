@@ -7,14 +7,14 @@ using SCM.Data;
 
 namespace SCM.Services.SCMServices
 {
-    public interface IAttachmentSetVrfService
+    public interface IAttachmentSetService
     {
         IUnitOfWork UnitOfWork { get; }
 
-        Task<IEnumerable<AttachmentSetVrf>> GetAllAsync();
-        Task<AttachmentSetVrf> GetByIDAsync(int id);
-        Task<int> AddAsync(AttachmentSetVrf attachmentSetVrf);
-        Task<int> UpdateAsync(AttachmentSetVrf attachmentSetVrf);
-        Task<int> DeleteAsync(AttachmentSetVrf attachmentSetVrf);
+        Task<IEnumerable<AttachmentSet>> GetAllAsync();
+        Task<AttachmentSet> GetByIDAsync(int id);
+        Task<int> AddAsync(AttachmentSet attachmentSet);
+        Task<int> UpdateAsync(AttachmentSet attachmentSet);
+        Task<int> DeleteAsync(AttachmentSet attachmentSet);
     }
 }

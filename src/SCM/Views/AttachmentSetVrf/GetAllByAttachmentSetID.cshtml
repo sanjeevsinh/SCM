@@ -1,0 +1,69 @@
+@model IEnumerable<SCM.Models.ViewModels.AttachmentSetVrfViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByAttachmentSetID";
+}
+
+<h2>VRFs</h2>
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<p class="text-success">@ViewData["ValidationSuccessMessage"]</p>
+
+<p>
+    <a asp-action="CreateStep1" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Add New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentSet)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion.Region)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf.Device.Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf.Device.Plane)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentSet.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SubRegion.Region.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SubRegion.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SiteName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Device.Plane.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetVrfID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetVrfID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentSetVrfID })
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<a asp-controller="AttachmentSet" asp-action="GetAll" >Back to Attachment Sets</a>

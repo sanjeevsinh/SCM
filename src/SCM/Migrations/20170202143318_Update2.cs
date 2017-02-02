@@ -4,48 +4,43 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SCM.Migrations
 {
-    public partial class Update15 : Migration
+    public partial class Update2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
-                table: "Tenant",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string));
-
-            migrationBuilder.AddColumn<byte[]>(
-                name: "RowVersion",
-                table: "Tenant",
-                rowVersion: true,
-                nullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
-                table: "Plane",
+                table: "AttachmentSet",
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
+                oldMaxLength: 50,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Name",
+                table: "AttachmentRedundancy",
+                maxLength: 50,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldMaxLength: 50,
                 oldNullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "RowVersion",
-                table: "Tenant");
-
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
-                table: "Tenant",
-                nullable: false,
+                table: "AttachmentSet",
+                maxLength: 50,
+                nullable: true,
                 oldClrType: typeof(string),
                 oldMaxLength: 50);
 
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
-                table: "Plane",
+                table: "AttachmentRedundancy",
+                maxLength: 50,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldMaxLength: 50);

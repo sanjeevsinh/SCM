@@ -70,7 +70,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
+        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id.Value, includeProperties:"Tenant,SubRegion.Region,ContractBandwidth,AttachmentRedundancy");
+            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id.Value, includeProperties:"Tenant,SubRegion,Region,ContractBandwidth,AttachmentRedundancy");
             var attachmentSet = dbResult.SingleOrDefault();
 
             if (attachmentSet == null)
@@ -121,7 +121,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID,RowVersion")] AttachmentSetViewModel attachmentSet)
+        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,RegionID,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID,RowVersion")] AttachmentSetViewModel attachmentSet)
         {
             if (id != attachmentSet.AttachmentSetID)
             {
@@ -129,7 +129,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, 
-                includeProperties:"SubRegion.Region,Tenant,ContractBandwidth,AttachmentRedundancy", AsTrackable: false);
+                includeProperties:"SubRegion,Region,Tenant,ContractBandwidth,AttachmentRedundancy", AsTrackable: false);
             var currentAttachmentSet = dbResult.SingleOrDefault();
 
             try
@@ -138,7 +138,13 @@ namespace SCM.Controllers
                 {
                     if (currentAttachmentSet == null)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The attachmentSet was deleted by another user.");
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The attachment set was deleted by another user.");
+                        return View(attachmentSet);
+                    }
+
+                    if (currentAttachmentSet.RegionID != attachmentSet.RegionID)
+                    {
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The Region cannot be changed.");
                         return View(attachmentSet);
                     }
 
@@ -161,6 +167,12 @@ namespace SCM.Controllers
                 if (currentAttachmentSet.Description != proposedDescription)
                 {
                     ModelState.AddModelError("Description", $"Current value: {currentAttachmentSet.Description}");
+                }
+
+                var proposedRegionID = (int?)exceptionEntry.Property("RegionID").CurrentValue;
+                if (currentAttachmentSet.RegionID != proposedRegionID)
+                {
+                    ModelState.AddModelError("SubRegionID", $"Current value: {currentAttachmentSet.SubRegion.Name}");
                 }
 
                 var proposedSubRegionID = (int?)exceptionEntry.Property("SubRegionID").CurrentValue;
@@ -205,7 +217,7 @@ namespace SCM.Controllers
             }
 
             await PopulateTenantsDropDownList();
-            await PopulateSubRegionsDropDownList(currentAttachmentSet.SubRegion.RegionID);
+            await PopulateSubRegionsDropDownList(currentAttachmentSet.RegionID);
             await PopulateContractBandwidthsDropDownList();
             await PopulateAttachmentRedundancyDropDownList();
             return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));

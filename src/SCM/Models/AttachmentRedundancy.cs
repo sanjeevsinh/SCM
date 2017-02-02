@@ -10,6 +10,7 @@ namespace SCM.Models
     {
         public int AttachmentRedundancyID { get; set; }
         [MaxLength(50)]
+        [Required]
         public string Name { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }

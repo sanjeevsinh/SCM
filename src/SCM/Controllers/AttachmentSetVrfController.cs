@@ -32,7 +32,22 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id);
+            var attachmentSet = await GetAttachmentSet(id.Value);
+            ViewBag.AttachmentSet = attachmentSet;
+
+            var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
+                includeProperties:"Vrf.Device.Location.SubRegion.Region");
+
+            var vrfsValidationMessage = await AttachmentSetVrfService.ValidateVrfs(attachmentSet);
+            if (vrfsValidationMessage.Length > 0)
+            {
+                ModelState.AddModelError(string.Empty, vrfsValidationMessage);
+            }
+            else
+            {
+                ViewData["ValidationSuccessMessage"] = "The VRFs for this Attachment Set are configured correctly!";
+            }
+
             return View(Mapper.Map<List<AttachmentSetVrfViewModel>>(attachmentSetVrfs));
         }
 
@@ -45,31 +60,47 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet,Vrf");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
             {
                 return NotFound();
             }
+
+            ViewBag.AttachmentSet = await GetAttachmentSet(item.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(item));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(int? id)
+        public async Task<IActionResult> CreateStep1(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            await PopulateVrfsDropDownList(id.Value);
+            var attachmentSet = await AttachmentSetVrfService.UnitOfWork.AttachmentSetRepository.GetByIDAsync(id.Value);
+            await PopulateLocationsDropDownList(attachmentSet);
+            await PopulatePlanesDropDownList();
+            ViewBag.AttachmentSet = attachmentSet;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID")] AttachmentSetVrfViewModel attachmentSetVrf)
+        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSelectionViewModel attachmentSelection)
+        {
+            await PopulateVrfsDropDownList(attachmentSelection);
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSelection.AttachmentSetID);
+            ViewBag.AttachmentSelection = attachmentSelection;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID")] AttachmentSetVrfViewModel attachmentSetVrf,
+            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSelectionViewModel attachmentSelection)
         {
             try
             {
@@ -87,8 +118,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVrfsDropDownList(attachmentSetVrf.VrfID);
-            return View(attachmentSetVrf);
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+            await PopulateVrfsDropDownList(attachmentSelection);
+            ViewBag.AttachmentSelection = attachmentSelection;
+            return View("CreateStep2", attachmentSetVrf);
         }
 
         [HttpGet]
@@ -100,7 +133,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties:"AttachmentSet,Vrf");
+                includeProperties:"AttachmentSet,Vrf.Device.Location");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -108,7 +141,14 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfsDropDownList(attachmentSetVrf.AttachmentSetID);
+            await PopulateVrfsDropDownList(new AttachmentSelectionViewModel
+            {
+                LocationID = attachmentSetVrf.Vrf.Device.LocationID,
+                TenantID = attachmentSetVrf.AttachmentSet.TenantID,
+                PlaneID = attachmentSetVrf.Vrf.Device.PlaneID
+            });
+
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
@@ -122,7 +162,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties:"AttachmentSet,Vrf", AsTrackable: false);
+                includeProperties:"AttachmentSet,Vrf.Device", AsTrackable: false);
             var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
             try
@@ -173,7 +213,14 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVrfsDropDownList(currentAttachmentSetVrf.AttachmentSetID);
+            await PopulateVrfsDropDownList(new AttachmentSelectionViewModel
+            {
+                LocationID = currentAttachmentSetVrf.Vrf.Device.LocationID,
+                TenantID = currentAttachmentSetVrf.AttachmentSet.TenantID,
+                PlaneID = currentAttachmentSetVrf.Vrf.Device.PlaneID
+            });
+
+            ViewBag.AttachmentSet = await GetAttachmentSet(currentAttachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
         }
 
@@ -185,7 +232,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var attachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(id.Value);
+            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, includeProperties: "Vrf");
+            var attachmentSetVrf = dbResult.SingleOrDefault();
             if (attachmentSetVrf == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -206,6 +254,7 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
@@ -232,14 +281,45 @@ namespace SCM.Controllers
             }
         }
 
-        private async Task PopulateVrfsDropDownList(int attachmentSetID, object selectedVrf = null)
+        private async Task PopulatePlanesDropDownList(object selectedPlane = null)
         {
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetID);
-            var attachmentSet = dbResult.SingleOrDefault();
-            if (attachmentSet != null) {
-                var vrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.Vrf.Device.Location.SubRegion.RegionID == attachmentSet.RegionID);
-                ViewBag.AttachmentSetVrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
+            var planes = await AttachmentSetVrfService.UnitOfWork.PlaneRepository.GetAsync();
+            ViewBag.PlaneID = new SelectList(planes, "PlaneID", "Name", selectedPlane);
+        }
+
+        private async Task PopulateLocationsDropDownList(AttachmentSet attachmentSet)
+        {
+
+            IEnumerable<Location> locations = await AttachmentSetVrfService.UnitOfWork.LocationRepository.GetAsync(q => q.SubRegion.RegionID == attachmentSet.RegionID);
+            if (attachmentSet.SubRegionID != null)
+            {
+                locations = locations.Where(q => q.SubRegionID == attachmentSet.SubRegionID);
             }
+ 
+            ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName");
+        }
+
+        private async Task PopulateVrfsDropDownList(AttachmentSelectionViewModel attachmentSelection, object selectedVrf = null)
+        {
+
+            IEnumerable<Vrf> vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSelection.LocationID 
+                && q.TenantID == attachmentSelection.TenantID, includeProperties:"Device");
+
+            if (attachmentSelection.PlaneID != null)
+            {
+                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSelection.PlaneID);
+            }
+     
+            ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
+        }
+
+        private async Task<AttachmentSet> GetAttachmentSet(int attachmentSetID)
+        {
+            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetID,
+                 includeProperties:"AttachmentRedundancy");
+
+            return dbResult.SingleOrDefault();
+           
         }
     }
 }

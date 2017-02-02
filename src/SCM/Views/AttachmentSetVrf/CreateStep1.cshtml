@@ -1,0 +1,48 @@
+@model SCM.Models.ViewModels.AttachmentSelectionViewModel
+
+@{
+    ViewData["Title"] = "CreateStep1";
+}
+
+<h2>Create</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <h4>VRF</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.AttachmentSet.TenantID" />
+        <input type="hidden" asp-for="AttachmentSetID" value="@ViewBag.AttachmentSet.AttachmentSetID" />
+        <div class="form-group">
+            <label asp-for="Location" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="LocationID" class="form-control" asp-items="ViewBag.LocationID">
+                    <option value="">-- Select Location --</option>
+                </select>
+                <span asp-validation-for="LocationID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Plane" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="PlaneID" class="form-control" asp-items="ViewBag.PlaneID">
+                    <option value="">-- Optionally select a Plane --</option>
+                </select>
+                <span asp-validation-for="PlaneID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Next" asp-action="CreateStep2" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

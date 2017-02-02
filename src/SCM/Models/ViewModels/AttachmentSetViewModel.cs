@@ -20,6 +20,8 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         [Required(ErrorMessage = "An Attachment Redundancy option must be selected.")]
         public int AttachmentRedundancyID { get; set; }
+        [Required(ErrorMessage = "A Region option must be selected.")]
+        public int RegionID { get; set; }
         public int? SubRegionID { get; set; }
         [Required(ErrorMessage = "A Contract Bandwidth option must be selected.")]
         public int ContractBandwidthID { get; set; }
@@ -30,6 +32,8 @@ namespace SCM.Models.ViewModels
         public virtual AttachmentRedundancyViewModel AttachmentRedundancy { get; set; }
         [Display(Name = "Tenant")]
         public virtual TenantViewModel Tenant { get; set; }
+        [Display(Name = "Region")]
+        public virtual RegionViewModel Region { get; set; }
         [Display(Name = "Sub-Region")]
         public virtual SubRegionViewModel SubRegion { get; set; }
     }

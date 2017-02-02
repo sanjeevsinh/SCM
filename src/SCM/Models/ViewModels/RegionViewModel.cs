@@ -8,6 +8,7 @@ namespace SCM.Models.ViewModels
     public class RegionViewModel
     {
         [Display(AutoGenerateField = false)]
+        [Required(ErrorMessage = "A Region must be selected.")]
         public int RegionID { get; set; }
         [Required]
         [StringLength(50)]

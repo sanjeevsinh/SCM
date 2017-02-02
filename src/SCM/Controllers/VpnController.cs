@@ -94,7 +94,7 @@ namespace SCM.Controllers
             await PopulateRegionsDropDownList(vpn.Region);
             await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID);
             await PopulateTenancyTypesDropDownList(vpn.VpnTenancyType);
-            return View(vpn);
+            return View("CreateStep2", vpn);
         }
 
         [HttpGet]
@@ -142,6 +142,13 @@ namespace SCM.Controllers
                     if (currentVpn == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The vpn was deleted by another user.");
+                        return View(vpn);
+                    }
+
+                    var topologyType = await VpnService.UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
+                    if (currentVpn.VpnTopologyType.VpnProtocolTypeID != topologyType.VpnProtocolTypeID)
+                    {
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vpn protocol type cannot be changed.");
                         return View(vpn);
                     }
 
