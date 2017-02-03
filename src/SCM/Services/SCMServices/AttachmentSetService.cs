@@ -40,5 +40,46 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetRepository.Delete(attachmentSet);
             return await this.UnitOfWork.SaveAsync();
         }
+        public async Task<ServiceValidationResult> ValidateAttachmentSetChangesAsync(AttachmentSet attachmentSet)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID, 
+                includeProperties: "AttachmentSetVrfs", AsTrackable: false);
+            var currentAttachmentSet = dbResult.SingleOrDefault();
+            if (currentAttachmentSet == null)
+            {
+                validationResult.Add("The Attachment Set was not found.");
+                validationResult.IsValid = false;
+                return validationResult;
+            }
+
+            if (currentAttachmentSet.AttachmentSetVrfs.Count() > 0)
+            {
+                if (attachmentSet.AttachmentRedundancyID != currentAttachmentSet.AttachmentRedundancyID)
+                {
+                    validationResult.Add("The Attachment Redundancy option cannot be changed because VRFs are defined.");
+                    validationResult.IsValid = false;
+                }
+                if (attachmentSet.RegionID != currentAttachmentSet.RegionID)
+                {
+                    validationResult.Add("The Region cannot be changed because VRFs are defined.");
+                    validationResult.IsValid = false;
+                }
+                if (attachmentSet.SubRegionID != currentAttachmentSet.SubRegionID)
+                {
+                    validationResult.Add("The Sub-Region cannot be changed because VRFs are defined.");
+                    validationResult.IsValid = false;
+                }
+                if (attachmentSet.TenantID != currentAttachmentSet.TenantID)
+                {
+                    validationResult.Add("The Tenant cannot be changed because VRFs are defined.");
+                    validationResult.IsValid = false;
+                }
+            }
+
+            return validationResult;
+        }
     }
 }

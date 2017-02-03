@@ -38,10 +38,10 @@ namespace SCM.Controllers
             var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
                 includeProperties:"Vrf.Device.Location.SubRegion.Region");
 
-            var vrfsValidationMessage = await AttachmentSetVrfService.ValidateVrfs(attachmentSet);
-            if (vrfsValidationMessage.Length > 0)
+            var validationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
+            if (!validationResult.IsValid)
             {
-                ModelState.AddModelError(string.Empty, vrfsValidationMessage);
+                ModelState.AddModelError(string.Empty, validationResult.GetMessage());
             }
             else
             {
@@ -89,7 +89,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSelectionViewModel attachmentSelection)
+        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSetVrfSelectionViewModel attachmentSelection)
         {
             await PopulateVrfsDropDownList(attachmentSelection);
             ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSelection.AttachmentSetID);
@@ -100,7 +100,7 @@ namespace SCM.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID")] AttachmentSetVrfViewModel attachmentSetVrf,
-            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSelectionViewModel attachmentSelection)
+            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfSelectionViewModel attachmentSelection)
         {
             try
             {
@@ -141,7 +141,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfsDropDownList(new AttachmentSelectionViewModel
+            await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
             {
                 LocationID = attachmentSetVrf.Vrf.Device.LocationID,
                 TenantID = attachmentSetVrf.AttachmentSet.TenantID,
@@ -213,7 +213,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVrfsDropDownList(new AttachmentSelectionViewModel
+            await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
             {
                 LocationID = currentAttachmentSetVrf.Vrf.Device.LocationID,
                 TenantID = currentAttachmentSetVrf.AttachmentSet.TenantID,
@@ -299,7 +299,7 @@ namespace SCM.Controllers
             ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName");
         }
 
-        private async Task PopulateVrfsDropDownList(AttachmentSelectionViewModel attachmentSelection, object selectedVrf = null)
+        private async Task PopulateVrfsDropDownList(AttachmentSetVrfSelectionViewModel attachmentSelection, object selectedVrf = null)
         {
 
             IEnumerable<Vrf> vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSelection.LocationID 

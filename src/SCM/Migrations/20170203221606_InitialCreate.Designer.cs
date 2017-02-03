@@ -8,7 +8,7 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    [Migration("20170201182747_InitialCreate")]
+    [Migration("20170203221606_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,7 @@ namespace SCM.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(50);
 
                     b.Property<byte[]>("RowVersion")
@@ -50,7 +51,10 @@ namespace SCM.Migrations
                         .HasMaxLength(250);
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(50);
+
+                    b.Property<int>("RegionID");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -66,34 +70,13 @@ namespace SCM.Migrations
 
                     b.HasIndex("ContractBandwidthID");
 
+                    b.HasIndex("RegionID");
+
                     b.HasIndex("SubRegionID");
 
                     b.HasIndex("TenantID");
 
                     b.ToTable("AttachmentSet");
-                });
-
-            modelBuilder.Entity("SCM.Models.AttachmentSetVpn", b =>
-                {
-                    b.Property<int>("AttachmentSetVpnID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("AttachmentSetID");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<int>("VpnID");
-
-                    b.HasKey("AttachmentSetVpnID");
-
-                    b.HasIndex("VpnID");
-
-                    b.HasIndex("AttachmentSetID", "VpnID")
-                        .IsUnique();
-
-                    b.ToTable("AttachmentSetVpn");
                 });
 
             modelBuilder.Entity("SCM.Models.AttachmentSetVrf", b =>
@@ -692,6 +675,29 @@ namespace SCM.Migrations
                     b.ToTable("Vpn");
                 });
 
+            modelBuilder.Entity("SCM.Models.VpnAttachmentSet", b =>
+                {
+                    b.Property<int>("VpnAttachmentSetID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("AttachmentSetID");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<int>("VpnID");
+
+                    b.HasKey("VpnAttachmentSetID");
+
+                    b.HasIndex("VpnID");
+
+                    b.HasIndex("AttachmentSetID", "VpnID")
+                        .IsUnique();
+
+                    b.ToTable("VpnAttachmentSet");
+                });
+
             modelBuilder.Entity("SCM.Models.VpnProtocolType", b =>
                 {
                     b.Property<int>("VpnProtocolTypeID")
@@ -827,6 +833,11 @@ namespace SCM.Migrations
                         .HasForeignKey("ContractBandwidthID")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("SCM.Models.Region", "Region")
+                        .WithMany()
+                        .HasForeignKey("RegionID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("SCM.Models.SubRegion", "SubRegion")
                         .WithMany()
                         .HasForeignKey("SubRegionID");
@@ -837,22 +848,10 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("SCM.Models.AttachmentSetVpn", b =>
-                {
-                    b.HasOne("SCM.Models.AttachmentSet", "AttachmentSet")
-                        .WithMany()
-                        .HasForeignKey("AttachmentSetID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Vpn", "Vpn")
-                        .WithMany()
-                        .HasForeignKey("VpnID");
-                });
-
             modelBuilder.Entity("SCM.Models.AttachmentSetVrf", b =>
                 {
                     b.HasOne("SCM.Models.AttachmentSet", "AttachmentSet")
-                        .WithMany()
+                        .WithMany("AttachmentSetVrfs")
                         .HasForeignKey("AttachmentSetID")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -957,7 +956,7 @@ namespace SCM.Migrations
                         .HasForeignKey("AlternateLocationLocationID");
 
                     b.HasOne("SCM.Models.SubRegion", "SubRegion")
-                        .WithMany("Locations")
+                        .WithMany()
                         .HasForeignKey("SubRegionID")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -1044,6 +1043,18 @@ namespace SCM.Migrations
                         .WithMany("Vpns")
                         .HasForeignKey("VpnTopologyTypeID")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SCM.Models.VpnAttachmentSet", b =>
+                {
+                    b.HasOne("SCM.Models.AttachmentSet", "AttachmentSet")
+                        .WithMany()
+                        .HasForeignKey("AttachmentSetID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SCM.Models.Vpn", "Vpn")
+                        .WithMany()
+                        .HasForeignKey("VpnID");
                 });
 
             modelBuilder.Entity("SCM.Models.VpnTenantNetwork", b =>

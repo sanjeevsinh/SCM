@@ -40,10 +40,12 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetVrfRepository.Delete(attachmentSetVrf);
             return await this.UnitOfWork.SaveAsync();
         }
-        public async Task<string> ValidateVrfs(AttachmentSet attachmentSet)
+        public async Task<ServiceValidationResult> ValidateVrfsAsync(AttachmentSet attachmentSet)
         {
 
-            var validationMessage = string.Empty;
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
             IList<AttachmentSetVrf> attachmentSetVrfs = await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,
                 includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane");
 
@@ -53,7 +55,8 @@ namespace SCM.Services.SCMServices
             {
                 if (attachmentSetVrfs.Count != 1)
                 {
-                    validationMessage += "One, and no more than one, VRF for a Bronze Attachment Set must be defined.";
+                    validationResult.Add("One, and no more than one, VRF for a Bronze Attachment Set must be defined.");
+                    validationResult.IsValid = false;
                 }
             }
             else
@@ -65,8 +68,9 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationMessage += "Two, and no more than two, VRFs for a Silver Attachment Set must be defined.";
-                        return validationMessage;
+                        validationResult.Add("Two, and no more than two, VRFs for a Silver Attachment Set must be defined.");
+                        validationResult.IsValid = false;
+                        return validationResult;
                     }
 
                     var locationA = attachmentSetVrfs[0].Vrf.Device.Location;
@@ -76,12 +80,14 @@ namespace SCM.Services.SCMServices
 
                     if (locationA.LocationID != locationB.LocationID)
                     {
-                        validationMessage += "The Location for each VRF in a Silver Attachment Set must be the same.";
+                        validationResult.Add("The Location for each VRF in a Silver Attachment Set must be the same.");
+                        validationResult.IsValid = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
-                        validationMessage += "The Plane for each VRF in a Silver Attachment Set must be different.";
+                        validationResult.Add("The Plane for each VRF in a Silver Attachment Set must be different.");
+                        validationResult.IsValid = false;
                     }
                 }
 
@@ -90,8 +96,9 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationMessage += "Two, and no more than two, VRFs for a Gold Attachment Set must be defined.";
-                        return validationMessage;
+                        validationResult.Add("Two, and no more than two, VRFs for a Gold Attachment Set must be defined.");
+                        validationResult.IsValid = false;
+                        return validationResult;
                     }
 
                     var locationA = attachmentSetVrfs[0].Vrf.Device.Location;
@@ -103,22 +110,25 @@ namespace SCM.Services.SCMServices
 
                     if (subRegionA.SubRegionID != subRegionB.SubRegionID)
                     {
-                        validationMessage += "The Sub-Region for each VRF in a Gold Attachment Set must be the same.";
+                        validationResult.Add("The Sub-Region for each VRF in a Gold Attachment Set must be the same.");
+                        validationResult.IsValid = false;
                     }
 
                     if (locationA.LocationID == locationB.LocationID)
                     {
-                        validationMessage += "The Location for each VRF in a Gold Attachment Set must be different.";
+                        validationResult.Add("The Location for each VRF in a Gold Attachment Set must be different.");
+                        validationResult.IsValid = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
-                        validationMessage += "The Plane for each VRF in a Gold Attachment Set must be different.";
+                        validationResult.Add("The Plane for each VRF in a Gold Attachment Set must be different.");
+                        validationResult.IsValid = false;
                     }
                 }
             }
 
-            return validationMessage;
+            return validationResult;
         }
     }
 }

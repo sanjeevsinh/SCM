@@ -10,7 +10,7 @@ namespace SCM.Data
         private SigmaContext context;
         private GenericRepository<AttachmentSet> attachmentSetRepository;
         private GenericRepository<AttachmentSetVrf> attachmentSetVrfRepository;
-        private GenericRepository<AttachmentSetVpn> attachmentSetVpnRepository;
+        private GenericRepository<VpnAttachmentSet> vpnAttachmentSetRepository;
         private GenericRepository<AttachmentRedundancy> attachmentRedundancyRepository;
         private GenericRepository<BgpPeer> bgpPeerRepository;
         private GenericRepository<BundleInterface> bundleInterfaceRepository;
@@ -65,15 +65,15 @@ namespace SCM.Data
             }
         }
 
-        public GenericRepository<AttachmentSetVpn> AttachmentSetVpnRepository
+        public GenericRepository<VpnAttachmentSet> VpnAttachmentSetRepository
         {
             get
             {
-                if (this.attachmentSetVpnRepository == null)
+                if (this.vpnAttachmentSetRepository == null)
                 {
-                    this.attachmentSetVpnRepository = new GenericRepository<AttachmentSetVpn>(context);
+                    this.vpnAttachmentSetRepository = new GenericRepository<VpnAttachmentSet>(context);
                 }
-                return attachmentSetVpnRepository;
+                return vpnAttachmentSetRepository;
             }
         }
 

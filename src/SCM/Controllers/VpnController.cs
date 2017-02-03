@@ -39,7 +39,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id, includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id, 
+                includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -73,11 +74,13 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,PlaneID,RegionID,VpnTenancyTypeID,VpnTopologyTypeID,TenantID,IsExtranet")] VpnViewModel vpn)
         {
+            var mappedVpn = Mapper.Map<Vpn>(vpn);
+
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await VpnService.AddAsync(Mapper.Map<Vpn>(vpn));
+                    await VpnService.AddAsync(mappedVpn);
                     return RedirectToAction("GetAll");
                 }
             }
@@ -89,11 +92,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulatePlanesDropDownList(vpn.Plane);
-            await PopulateTenantsDropDownList(vpn.Tenant);
-            await PopulateRegionsDropDownList(vpn.Region);
-            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID);
-            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyType);
+            await PopulateDropDownLists(mappedVpn);
             return View("CreateStep2", vpn);
         }
 
@@ -113,11 +112,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulatePlanesDropDownList(vpn.Plane);
-            await PopulateTenantsDropDownList(vpn.Tenant);
-            await PopulateRegionsDropDownList(vpn.Region);
-            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyType.VpnProtocolTypeID,vpn.VpnTopologyType);
-            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyType);
+            await PopulateDropDownLists(vpn);
 
             return View(Mapper.Map<VpnViewModel>(vpn));
         }
@@ -132,7 +127,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id, 
-                includeProperties:"Plane,Region,VpnTenancyType,VpnTopologyType,Tenant", AsTrackable: false);
+                includeProperties:"Plane,Region,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant", AsTrackable: false);
             var currentVpn = dbResult.SingleOrDefault();
 
             try
@@ -145,14 +140,16 @@ namespace SCM.Controllers
                         return View(vpn);
                     }
 
-                    var topologyType = await VpnService.UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
-                    if (currentVpn.VpnTopologyType.VpnProtocolTypeID != topologyType.VpnProtocolTypeID)
+                    var mappedVpn = Mapper.Map<Vpn>(vpn);
+                    var validationResult = await VpnService.ValidateVpnChangesAsync(mappedVpn);
+                    if (!validationResult.IsValid)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vpn protocol type cannot be changed.");
-                        return View(vpn);
-                    }
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        await PopulateDropDownLists(currentVpn);
+                        return View(Mapper.Map <VpnViewModel>(currentVpn));
+                    } 
 
-                    await VpnService.UpdateAsync(Mapper.Map<Vpn>(vpn));
+                    await VpnService.UpdateAsync(mappedVpn);
                     return RedirectToAction("GetAll");
                 }
             }
@@ -288,6 +285,20 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = vpn.VpnID });
             }
+        }
+
+        /// <summary>
+        /// Helper to populate drop-down lists for the view.
+        /// </summary>
+        /// <param name="vpn"></param>
+        private async Task PopulateDropDownLists(Vpn vpn)
+        {
+
+            await PopulatePlanesDropDownList(vpn.Plane);
+            await PopulateTenantsDropDownList(vpn.Tenant);
+            await PopulateRegionsDropDownList(vpn.Region);
+            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyType.VpnProtocolTypeID, vpn.VpnTopologyType);
+            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyType);
         }
 
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)

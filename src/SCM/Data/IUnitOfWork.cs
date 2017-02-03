@@ -7,7 +7,7 @@ namespace SCM.Data
     {
         GenericRepository<AttachmentSet> AttachmentSetRepository { get; }
         GenericRepository<AttachmentSetVrf> AttachmentSetVrfRepository { get; }
-        GenericRepository<AttachmentSetVpn> AttachmentSetVpnRepository { get; }
+        GenericRepository<VpnAttachmentSet> VpnAttachmentSetRepository { get; }
         GenericRepository<AttachmentRedundancy> AttachmentRedundancyRepository { get; }
         GenericRepository<BgpPeer> BgpPeerRepository { get; }
         GenericRepository<BundleInterface> BundleInterfaceRepository { get; }

@@ -12,7 +12,7 @@ namespace SCM.Data
 
         public DbSet<AttachmentSet> AttachmentSet { get; set; }
         public DbSet<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
-        public DbSet<AttachmentSetVpn> AttachmentSetVpns { get; set; }
+        public DbSet<VpnAttachmentSet> VpnAttachmentSets { get; set; }
         public DbSet<AttachmentRedundancy> AttachmentRedundancy { get; set; }
         public DbSet<ContractBandwidth> ContractBandwidths { get; set; }
         public DbSet<VpnProtocolType> VpnProtocolTypes { get; set; }
@@ -44,7 +44,7 @@ namespace SCM.Data
         {
 
             builder.Entity<AttachmentSet>().ToTable("AttachmentSet");
-            builder.Entity<AttachmentSetVpn>().ToTable("AttachmentSetVpn");
+            builder.Entity<VpnAttachmentSet>().ToTable("VpnAttachmentSet");
             builder.Entity<AttachmentSetVrf>().ToTable("AttachmentSetVrf");
             builder.Entity<AttachmentRedundancy>().ToTable("AttachmentRedundancy");
             builder.Entity<BgpPeer>().ToTable("BgpPeer");
@@ -123,7 +123,7 @@ namespace SCM.Data
             builder.Entity<AttachmentSetVrf>()
             .HasIndex(p => new { p.AttachmentSetID, p.VrfID }).IsUnique();
 
-            builder.Entity<AttachmentSetVpn>()
+            builder.Entity<VpnAttachmentSet>()
             .HasIndex(p => new { p.AttachmentSetID, p.VpnID }).IsUnique();
 
             builder.Entity<ContractBandwidth>()
@@ -159,7 +159,7 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<AttachmentSetVpn>()
+            builder.Entity<VpnAttachmentSet>()
                    .HasOne(c => c.Vpn)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);

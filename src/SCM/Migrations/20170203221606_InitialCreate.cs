@@ -15,7 +15,7 @@ namespace SCM.Migrations
                 {
                     AttachmentRedundancyID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(maxLength: 50, nullable: true),
+                    Name = table.Column<string>(maxLength: 50, nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -215,7 +215,8 @@ namespace SCM.Migrations
                     AttachmentRedundancyID = table.Column<int>(nullable: false),
                     ContractBandwidthID = table.Column<int>(nullable: false),
                     Description = table.Column<string>(maxLength: 250, nullable: true),
-                    Name = table.Column<string>(maxLength: 50, nullable: true),
+                    Name = table.Column<string>(maxLength: 50, nullable: false),
+                    RegionID = table.Column<int>(nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     SubRegionID = table.Column<int>(nullable: true),
                     TenantID = table.Column<int>(nullable: false)
@@ -234,6 +235,12 @@ namespace SCM.Migrations
                         column: x => x.ContractBandwidthID,
                         principalTable: "ContractBandwidth",
                         principalColumn: "ContractBandwidthID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AttachmentSet_Region_RegionID",
+                        column: x => x.RegionID,
+                        principalTable: "Region",
+                        principalColumn: "RegionID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AttachmentSet_SubRegion_SubRegionID",
@@ -359,33 +366,6 @@ namespace SCM.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AttachmentSetVpn",
-                columns: table => new
-                {
-                    AttachmentSetVpnID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AttachmentSetID = table.Column<int>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    VpnID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttachmentSetVpn", x => x.AttachmentSetVpnID);
-                    table.ForeignKey(
-                        name: "FK_AttachmentSetVpn_AttachmentSet_AttachmentSetID",
-                        column: x => x.AttachmentSetID,
-                        principalTable: "AttachmentSet",
-                        principalColumn: "AttachmentSetID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AttachmentSetVpn_Vpn_VpnID",
-                        column: x => x.VpnID,
-                        principalTable: "Vpn",
-                        principalColumn: "VpnID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "RouteTarget",
                 columns: table => new
                 {
@@ -406,6 +386,33 @@ namespace SCM.Migrations
                         principalTable: "Vpn",
                         principalColumn: "VpnID",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VpnAttachmentSet",
+                columns: table => new
+                {
+                    VpnAttachmentSetID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    AttachmentSetID = table.Column<int>(nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    VpnID = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VpnAttachmentSet", x => x.VpnAttachmentSetID);
+                    table.ForeignKey(
+                        name: "FK_VpnAttachmentSet_AttachmentSet_AttachmentSetID",
+                        column: x => x.AttachmentSetID,
+                        principalTable: "AttachmentSet",
+                        principalColumn: "AttachmentSetID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VpnAttachmentSet_Vpn_VpnID",
+                        column: x => x.VpnID,
+                        principalTable: "Vpn",
+                        principalColumn: "VpnID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -784,6 +791,11 @@ namespace SCM.Migrations
                 column: "ContractBandwidthID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AttachmentSet_RegionID",
+                table: "AttachmentSet",
+                column: "RegionID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AttachmentSet_SubRegionID",
                 table: "AttachmentSet",
                 column: "SubRegionID");
@@ -792,17 +804,6 @@ namespace SCM.Migrations
                 name: "IX_AttachmentSet_TenantID",
                 table: "AttachmentSet",
                 column: "TenantID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AttachmentSetVpn_VpnID",
-                table: "AttachmentSetVpn",
-                column: "VpnID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AttachmentSetVpn_AttachmentSetID_VpnID",
-                table: "AttachmentSetVpn",
-                columns: new[] { "AttachmentSetID", "VpnID" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AttachmentSetVrf_VrfID",
@@ -1037,6 +1038,17 @@ namespace SCM.Migrations
                 column: "VpnTopologyTypeID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VpnAttachmentSet_VpnID",
+                table: "VpnAttachmentSet",
+                column: "VpnID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VpnAttachmentSet_AttachmentSetID_VpnID",
+                table: "VpnAttachmentSet",
+                columns: new[] { "AttachmentSetID", "VpnID" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VpnProtocolType_ProtocolType",
                 table: "VpnProtocolType",
                 column: "ProtocolType",
@@ -1090,9 +1102,6 @@ namespace SCM.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AttachmentSetVpn");
-
-            migrationBuilder.DropTable(
                 name: "AttachmentSetVrf");
 
             migrationBuilder.DropTable(
@@ -1114,10 +1123,10 @@ namespace SCM.Migrations
                 name: "TenantNetworkBgpPeer");
 
             migrationBuilder.DropTable(
-                name: "VpnTenantNetwork");
+                name: "VpnAttachmentSet");
 
             migrationBuilder.DropTable(
-                name: "AttachmentSet");
+                name: "VpnTenantNetwork");
 
             migrationBuilder.DropTable(
                 name: "BundleInterface");
@@ -1132,16 +1141,13 @@ namespace SCM.Migrations
                 name: "BgpPeer");
 
             migrationBuilder.DropTable(
+                name: "AttachmentSet");
+
+            migrationBuilder.DropTable(
                 name: "TenantNetwork");
 
             migrationBuilder.DropTable(
                 name: "Vpn");
-
-            migrationBuilder.DropTable(
-                name: "AttachmentRedundancy");
-
-            migrationBuilder.DropTable(
-                name: "ContractBandwidth");
 
             migrationBuilder.DropTable(
                 name: "Port");
@@ -1151,6 +1157,12 @@ namespace SCM.Migrations
 
             migrationBuilder.DropTable(
                 name: "Vrfs");
+
+            migrationBuilder.DropTable(
+                name: "AttachmentRedundancy");
+
+            migrationBuilder.DropTable(
+                name: "ContractBandwidth");
 
             migrationBuilder.DropTable(
                 name: "VpnTenancyType");

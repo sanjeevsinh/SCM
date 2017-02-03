@@ -26,5 +26,6 @@ namespace SCM.Models
         public virtual Tenant Tenant { get; set; }
         public virtual Region Region { get; set; }
         public virtual SubRegion SubRegion { get; set; }
+        public ICollection<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using System.Net;
 
 namespace SCM.Models.ViewModels
 {
-    public class AttachmentSelectionViewModel
+    public class AttachmentSetVrfSelectionViewModel
     {
         [Required(ErrorMessage = "An Attachment Set must be selected.")]
         public int AttachmentSetID { get; set; }
@@ -17,5 +17,6 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         public LocationViewModel Location { get; set; }
         public PlaneViewModel Plane { get; set; }
+        public TenantViewModel Tenant { get; set; }
     }
 }

@@ -16,6 +16,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(AttachmentSetVrf attachmentSetVrf);
         Task<int> UpdateAsync(AttachmentSetVrf attachmentSetVrf);
         Task<int> DeleteAsync(AttachmentSetVrf attachmentSetVrf);
-        Task<string> ValidateVrfs(AttachmentSet attachmentSet);
+        Task<ServiceValidationResult> ValidateVrfsAsync(AttachmentSet attachmentSet);
     }
 }

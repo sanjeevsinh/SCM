@@ -88,10 +88,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateTenantsDropDownList();
-            await PopulateSubRegionsDropDownList(attachmentSet.SubRegion.RegionID);
-            await PopulateContractBandwidthsDropDownList();
-            await PopulateAttachmentRedundancyDropDownList();
+            await PopulateDropDownLists(Mapper.Map<AttachmentSet>(attachmentSet));
             return View(attachmentSet);
         }
 
@@ -111,10 +108,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantsDropDownList();
-            await PopulateSubRegionsDropDownList(attachmentSet.SubRegion.RegionID);
-            await PopulateContractBandwidthsDropDownList();
-            await PopulateAttachmentRedundancyDropDownList();
+            await PopulateDropDownLists(attachmentSet);
 
             return View(Mapper.Map<AttachmentSetViewModel>(attachmentSet));
         }
@@ -139,13 +133,20 @@ namespace SCM.Controllers
                     if (currentAttachmentSet == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The attachment set was deleted by another user.");
-                        return View(attachmentSet);
+
+                        await PopulateDropDownLists(currentAttachmentSet);
+                        return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
                     }
 
-                    if (currentAttachmentSet.RegionID != attachmentSet.RegionID)
+                    var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
+                    var validationResult = await AttachmentSetService.ValidateAttachmentSetChangesAsync(mappedAttachmentSet);
+
+                    if (!validationResult.IsValid)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The Region cannot be changed.");
-                        return View(attachmentSet);
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+
+                        await PopulateDropDownLists(currentAttachmentSet);
+                        return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
                     }
 
                     await AttachmentSetService.UpdateAsync(Mapper.Map<AttachmentSet>(attachmentSet));
@@ -216,10 +217,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateTenantsDropDownList();
-            await PopulateSubRegionsDropDownList(currentAttachmentSet.RegionID);
-            await PopulateContractBandwidthsDropDownList();
-            await PopulateAttachmentRedundancyDropDownList();
+            await PopulateDropDownLists(currentAttachmentSet);
             return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
         }
 
@@ -276,6 +274,20 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = attachmentSet.AttachmentSetID });
             }
+        }
+
+        /// <summary>
+        /// Helper to populate the drop-down lists for the view.
+        /// </summary>
+        /// <param name="attachmentSet"></param>
+        /// <returns></returns>
+        private async Task PopulateDropDownLists(AttachmentSet attachmentSet)
+        {
+            await PopulateTenantsDropDownList();
+            await PopulateSubRegionsDropDownList(attachmentSet.RegionID);
+            await PopulateContractBandwidthsDropDownList();
+            await PopulateAttachmentRedundancyDropDownList();
+
         }
 
         private async Task PopulateAttachmentRedundancyDropDownList(object selectedAttachmentRedundancy = null)

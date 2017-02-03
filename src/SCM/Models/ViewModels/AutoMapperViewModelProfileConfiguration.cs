@@ -31,7 +31,7 @@ namespace SCM.Models.ViewModels
             CreateMap<ContractBandwidth, ContractBandwidthViewModel>().ReverseMap();
             CreateMap<AttachmentRedundancy, AttachmentRedundancyViewModel>().ReverseMap();
             CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>().ReverseMap();
-
+            CreateMap<VpnAttachmentSet, VpnAttachmentSetViewModel>().ReverseMap();
         }
     }
 }

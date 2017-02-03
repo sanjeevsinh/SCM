@@ -6,7 +6,8 @@
 
 <h2>Route Targets for @ViewBag.Vpn.Name</h2>
 
-<p class="text-danger">@ViewData["RouteTargetsErrorMessage"]</p>
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<p class="text-success">@ViewData["ValidationSuccessMessage"]</p>
 
 <p>
     <a asp-action="Create" asp-route-id="@ViewBag.Vpn.VpnID"  >Create New</a>

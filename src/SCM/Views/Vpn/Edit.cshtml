@@ -72,8 +72,16 @@
                 <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
-@if (Model.VpnTopologyType.VpnProtocolType.ProtocolType == "IP")
-{
+@{
+    var topologyType = Model.VpnTopologyType;
+    if (topologyType != null)
+    {
+        var protocolType = topologyType.VpnProtocolType;
+        if (protocolType != null)
+        {
+            if (protocolType.ProtocolType == "IP")
+            {
+
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <div class="checkbox">
@@ -83,7 +91,10 @@
                 <span asp-validation-for="IsExtranet" class="text-danger"></span>
             </div>
         </div>
-}
+                }
+            }
+        }
+    }
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Save" class="btn btn-default" />

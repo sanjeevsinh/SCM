@@ -64,7 +64,8 @@
                 @Html.ActionLink("Edit", "Edit", new { id = item.VpnID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VpnID } ) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.VpnID }) |
-                <a asp-controller="RouteTarget" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Route Targets</a>
+                <a asp-controller="RouteTarget" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Route Targets</a> |
+                <a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Attachment Sets</a>
             </td>
         </tr>
 }

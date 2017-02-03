@@ -40,5 +40,55 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.VpnRepository.Delete(vpn);
             return await this.UnitOfWork.SaveAsync();
         }
+        public async Task<ServiceValidationResult> ValidateVpnChangesAsync(Vpn vpn)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            var dbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpn.VpnID, AsTrackable: false);
+            var currentVpn = dbResult.SingleOrDefault();
+
+            var attachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnID == vpn.VpnID);
+            if (currentVpn == null)
+            {
+                validationResult.Add("The VPN was not found.");
+                validationResult.IsValid = false;
+
+                return validationResult;
+            }
+
+            if (attachmentSets.Count() > 0)
+            {
+                if (vpn.PlaneID != currentVpn.PlaneID)
+                {
+                    validationResult.Add("The Plane cannot be changed because Attachment Sets are associated with this VPN.");
+                    validationResult.IsValid = false;
+                }
+                if (vpn.RegionID != currentVpn.RegionID)
+                {
+                    validationResult.Add("The Region cannot be changed because Attachment Sets are associated with this VPN.");
+                    validationResult.IsValid = false;
+                }
+                if (vpn.TenantID != currentVpn.TenantID)
+                {
+                    validationResult.Add("The Tenant Owner cannot be changed because Attachment Sets are associated with this VPN.");
+                    validationResult.IsValid = false;
+                }
+                if (vpn.VpnTopologyTypeID != currentVpn.VpnTopologyTypeID)
+                {
+                    validationResult.Add("The Topology Type cannot be changed because Attachment Sets are associated with this VPN.");
+                    validationResult.IsValid = false;
+                }
+                if (vpn.VpnTenancyTypeID != currentVpn.VpnTenancyTypeID)
+                {
+                    validationResult.Add("The Tenancy Type cannot be changed because Attachment Sets are associated with this VPN.");
+                    validationResult.IsValid = false;
+                }
+
+                return validationResult;
+            }
+
+            return validationResult;
+        }
     }
 }

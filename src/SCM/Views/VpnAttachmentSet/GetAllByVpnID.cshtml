@@ -1,0 +1,51 @@
+@model IEnumerable<SCM.Models.ViewModels.VpnAttachmentSetViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByVpnID";
+}
+
+<h2>Attachment Sets for VPN @ViewBag.Vpn.Name</h2>
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<p class="text-success">@ViewData["ValidationSuccessMessage"]</p>
+
+<p>
+    <a asp-action="CreateStep1" asp-route-id="@ViewBag.Vpn.VpnID">Add New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vpn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentSet)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentSet.Tenant)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vpn.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentSet.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentSet.Tenant.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.VpnAttachmentSetID })
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<a asp-controller="Vpn" asp-action="GetAll" >Back to VPNs</a>

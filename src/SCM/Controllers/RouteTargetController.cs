@@ -34,7 +34,15 @@ namespace SCM.Controllers
 
             var routeTargets = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.VpnID == id);
             await PopulateVpnItem(id.Value);
-            await ValidateRouteTargets(id.Value);
+            var validateResult = await RouteTargetService.ValidateRouteTargetsAsync(id.Value);
+            if (!validateResult.IsValid)
+            {
+                ModelState.AddModelError(string.Empty,validateResult.GetMessage());
+            }
+            else
+            {
+                ViewData["ValidationSuccessMessage"] = "The Route Targets for this VPN are configured correctly!";
+            }
 
             return View(Mapper.Map<List<RouteTargetViewModel>>(routeTargets));
         }
@@ -248,62 +256,6 @@ namespace SCM.Controllers
             var vpn = dbResult.SingleOrDefault();
 
             ViewBag.Vpn = vpn;
-        }
-
-        /// <summary>
-        /// Validate route targets are correctly defined for the current vpn.
-        /// </summary>
-        /// <param name="vpnID"></param>
-        /// <returns></returns>
-        private async Task ValidateRouteTargets(int vpnID)
-        {
-            var dbResult = await RouteTargetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, includeProperties: "VpnTopologyType.VpnProtocolType,RouteTargets");
-            var vpn = dbResult.SingleOrDefault();
-
-            if (vpn != null)
-            {
-                var protocolType = vpn.VpnTopologyType.VpnProtocolType.ProtocolType;
-                var topologyType = vpn.VpnTopologyType.TopologyType;
-                var countOfRouteTargets = vpn.RouteTargets.Count();
-                var countOfExportRouteTarget = vpn.RouteTargets.Where(r => r.IsHubExport == true).Count();
-
-                if (protocolType == "Ethernet")
-                {
-                    if (countOfExportRouteTarget > 0)
-                    {
-                        ViewData["RouteTargetsErrorMessage"] += "A Hub Export route target cannot be defined for Ethernet VPN types.";
-                    }
-                }
-                else
-                {
-                    if (topologyType == "Any-to-Any")
-                    {
-                        if (countOfRouteTargets != 1)
-                        {
-                            ViewData["RouteTargetsErrorMessage"] = "Any-to-Any IP VPNs require only one route target.";
-                        }
-
-                        if (countOfExportRouteTarget > 0)
-                        {
-                            ViewData["RouteTargetsErrorMessage"] = "Hub Export cannot be set for Any-to-Any IP VPN types.";
-                        }
-                    }
-                    else if (topologyType == "Hub-and-Spoke")
-                    {
-                        if (countOfRouteTargets != 2)
-                        {
-                            ViewData["RouteTargetsErrorMessage"] = "Hub-and-Spoke IP VPNs require two route targets.";
-                        }
-
-                       
-                        if (countOfExportRouteTarget != 1)
-                        {
-                            ViewData["RouteTargetsErrorMessage"] += "Hub-and-Spoke IP VPNs require one export route target." +
-                                countOfExportRouteTarget + " are defined.";
-                        }
-                    }
-                }
-            }
         }
     }
 }

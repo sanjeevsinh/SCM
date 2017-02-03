@@ -6,13 +6,13 @@ using System.Net;
 
 namespace SCM.Models
 {
-    public class AttachmentSetVpn
+    public class VpnAttachmentSet
     {
-        public int AttachmentSetVpnID { get; set; }
+        public int VpnAttachmentSetID { get; set; }
         public int AttachmentSetID { get; set; }
         public int VpnID { get; set; }
         public virtual AttachmentSet AttachmentSet { get; set; }
-        public Vpn Vpn { get; set; }
+        public virtual Vpn Vpn { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
     }

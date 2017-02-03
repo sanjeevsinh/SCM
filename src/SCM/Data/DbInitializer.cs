@@ -103,13 +103,15 @@ namespace SCM.Data
 
             var locations = new List<Location>
             {
-                new Location {SiteName = "UK2", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID },
-                new Location {SiteName = "FR4", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID }
+                new Location {SiteName = "UK2", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID, Tier = 1 },
+                new Location {SiteName = "THW", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID, Tier = 1 },
+                new Location {SiteName = "FR4", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID, Tier = 1},
+                new Location {SiteName = "FR5", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID, Tier = 1}
             };
 
-            foreach (SubRegion s in subregions)
+            foreach (Location l in locations)
             {
-                context.SubRegions.Add(s);
+                context.Locations.Add(l);
             }
 
             var portBandwidths = new List<PortBandwidth>
