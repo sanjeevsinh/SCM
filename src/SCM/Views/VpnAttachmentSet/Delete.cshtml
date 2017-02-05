@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.AttachmentSetVrfViewModel
+@model SCM.Models.ViewModels.VpnAttachmentSetViewModel
 
 @{
     ViewData["Title"] = "Remove";
@@ -8,16 +8,16 @@
 
 <p class="text-danger">@ViewData["ConcurrencyErrorMessage"]</p>
 
-<h3>Are you sure you want to remove this VRF from the Attachment Set?</h3>
+<h3>Are you sure you want to remove this Attachment Set from the VPN?</h3>
 <div>
     <h4>VRF</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf)
+            @Html.DisplayNameFor(model => model.Vpn)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Name)
+            @Html.DisplayFor(model => model.Vpn.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.AttachmentSet)
@@ -28,12 +28,12 @@
     </dl>
     
     <form asp-action="Delete">
-        <input type="hidden" asp-for="AttachmentSetVrfID" />
-        <input type="hidden" asp-for="AttachmentSetID" />
+        <input type="hidden" asp-for="VpnAttachmentSetID" />
+        <input type="hidden" asp-for="VpnID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
             <input type="submit" value="Remove" class="btn btn-default" /> |
-            <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+            <a asp-action="GetAllByVpnID" asp-route-id="@Model.Vpn.VpnID">Back to Attachment Sets</a>
         </div>
     </form>
 </div>

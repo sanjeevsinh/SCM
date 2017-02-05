@@ -42,10 +42,13 @@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.VpnAttachmentSetID })
+                @Html.ActionLink("Delete", "Delete", new { id = item.VpnAttachmentSetID }) |
+                @Html.ActionLink("Tenant Networks", "GetAllByVpnAttachmentSetID", "VpnTenantNetwork", new { id = item.VpnAttachmentSetID })
             </td>
         </tr>
     }
     </tbody>
 </table>
-<a asp-controller="Vpn" asp-action="GetAll" >Back to VPNs</a>
+<div>
+    <a asp-controller="Vpn" asp-action="GetAll" >Back to VPNs</a>
+</div>

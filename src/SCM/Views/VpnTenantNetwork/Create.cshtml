@@ -1,0 +1,38 @@
+@model SCM.Models.ViewModels.VpnTenantNetworkViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Add a Tenant Network to VPN @ViewBag.VpnAttachmentSet.Vpn.Name</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <h4>Tenant Network</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="VpnAttachmentSetID" value="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID" />
+        <div class="form-group">
+            <label asp-for="TenantNetwork" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="TenantNetworkID" class="form-control" asp-items="ViewBag.TenantNetworkID">
+                    <option value="">-- Select Tenant Network --</option>
+                </select>
+                <span asp-validation-for="TenantNetworkID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Add" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

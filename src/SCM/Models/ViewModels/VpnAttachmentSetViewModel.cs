@@ -15,7 +15,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A VPN must be selected.")]
         public int VpnID { get; set; }
         [Display(Name = "Attachment Set")]
-        public virtual AttachmentSetViewModel AttachmentSet { get; set; }
+        public AttachmentSetViewModel AttachmentSet { get; set; }
         [Display(Name = "VPN")]
         public VpnViewModel Vpn { get; set; }
         public byte[] RowVersion { get; set; }

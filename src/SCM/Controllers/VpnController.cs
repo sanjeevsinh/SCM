@@ -224,11 +224,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulatePlanesDropDownList(currentVpn.Plane);
-            await PopulateTenantsDropDownList(currentVpn.Tenant);
-            await PopulateRegionsDropDownList(currentVpn.Region);
-            await PopulateTopologyTypesDropDownList(currentVpn.VpnTopologyType.VpnProtocolTypeID,currentVpn.VpnTopologyType);
-            await PopulateTenancyTypesDropDownList(currentVpn.VpnTenancyType);
+            await PopulateDropDownLists(currentVpn);
             return View(Mapper.Map<VpnViewModel>(currentVpn));
         }
 

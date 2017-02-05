@@ -4,11 +4,11 @@
     ViewData["Title"] = "CreateStep1";
 }
 
-<h2>Create</h2>
+<h2>Add</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>VRF</h4>
+        <h4>Select a Tenant for VPN @ViewBag.Vpn.Name</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.Vpn.VpnID" />

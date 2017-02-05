@@ -1,0 +1,36 @@
+@model SCM.Models.ViewModels.TenantNetworkViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Tenant Network</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IpPrefix)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpPrefix)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Length)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Length)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantNetworkID }) |
+    <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+</div>

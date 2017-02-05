@@ -45,7 +45,8 @@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.VrfID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VrfID }) |
-                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID })
+                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID }) |
+                <a asp-controller="BgpPeer" asp-action="GetAllByVrfID" asp-route-id="@item.VrfID">BGP Peers</a>
             </td>
         </tr>
 }

@@ -1,0 +1,45 @@
+@model SCM.Models.ViewModels.TenantNetworkViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h2>Edit</h2>
+
+<form asp-action="Edit">
+    <div class="form-horizontal">
+        <h4>Tenant Network</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="TenantNetworkID" />
+        <input type="hidden" asp-for="TenantID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-group">
+            <label asp-for="IpPrefix" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IpPrefix" class="form-control" />
+                <span asp-validation-for="IpPrefix" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Length" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Length" class="form-control" />
+                <span asp-validation-for="Length" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

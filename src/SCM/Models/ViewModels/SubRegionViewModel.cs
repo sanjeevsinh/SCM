@@ -12,7 +12,6 @@ namespace SCM.Models.ViewModels
         public string Name { get; set; }
         public int RegionID { get; set; }
         public byte[] RowVersion { get; set; }
-        public virtual RegionViewModel Region { get; set; }
-        public ICollection<LocationViewModel> Locations { get; set; }
+        public RegionViewModel Region { get; set; }
     }
 }

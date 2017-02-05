@@ -60,7 +60,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -99,7 +99,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID")] AttachmentSetVrfViewModel attachmentSetVrf,
+        public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID,Preference")] AttachmentSetVrfViewModel attachmentSetVrf,
             [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfSelectionViewModel attachmentSelection)
         {
             try
@@ -154,7 +154,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetVrfID,AttachmentSetID,VrfID,RowVersion")] AttachmentSetVrfViewModel attachmentSetVrf)
+        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetVrfID,AttachmentSetID,VrfID,Preference,RowVersion")] AttachmentSetVrfViewModel attachmentSetVrf)
         {
             if (id != attachmentSetVrf.AttachmentSetVrfID)
             {

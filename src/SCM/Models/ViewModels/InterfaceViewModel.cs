@@ -27,7 +27,7 @@ namespace SCM.Models.ViewModels
         public int? VrfID { get; set; }
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
-        public virtual VrfViewModel Vrf { get; set; }
+        public VrfViewModel Vrf { get; set; }
         [Display(Name ="Interface Bandwidth (Kbps)")]
         public InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
         public Port Port { get; set; }

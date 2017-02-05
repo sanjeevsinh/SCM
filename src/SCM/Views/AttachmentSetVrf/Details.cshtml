@@ -17,6 +17,12 @@
             @Html.DisplayFor(model => model.Vrf.Name)
         </dd>
         <dt>
+            @Html.DisplayNameFor(model => model.Preference)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Preference)
+        </dd>
+        <dt>
             @Html.DisplayNameFor(model => model.AttachmentSet)
         </dt>
         <dd>
@@ -27,6 +33,30 @@
         </dt>
         <dd>
             @Html.DisplayFor(model => model.AttachmentSet.Tenant.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion.Region)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Device.Location.SubRegion.Region.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Device.Location.SubRegion.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.Device.Location)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Device.Location.SiteName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.Device.Plane)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Device.Plane.Name)
         </dd>
     </dl>
 </div>

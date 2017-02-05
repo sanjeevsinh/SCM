@@ -37,7 +37,7 @@ namespace SCM.Data
         public DbSet<BgpPeer> BgpPeers { get; set; }
         public DbSet<Tenant> Tenant { get; set; }
         public DbSet<TenantNetwork> TenantNetworks { get; set; }
-        public DbSet<TenantNetworkBgpPeer> TenantNetworkBgpPeers { get; set; }
+        public DbSet<VpnTenantNetwork> VpnTenantNetworks { get; set; }
         public DbSet<Plane> Planes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -66,8 +66,8 @@ namespace SCM.Data
             builder.Entity<SubRegion>().ToTable("SubRegion");
             builder.Entity<Tenant>().ToTable("Tenant");
             builder.Entity<TenantNetwork>().ToTable("TenantNetwork");
-            builder.Entity<TenantNetworkBgpPeer>().ToTable("TenantNetworkBgpPeer");
             builder.Entity<Vpn>().ToTable("Vpn");
+            builder.Entity<VpnTenantNetwork>().ToTable("VpnTenantNetwork");
             builder.Entity<VpnProtocolType>().ToTable("VpnProtocolType");
             builder.Entity<VpnTenancyType>().ToTable("VpnTenancyType");
             builder.Entity<VpnTopologyType>().ToTable("VpnTopologyType");
@@ -127,7 +127,7 @@ namespace SCM.Data
             .HasIndex(p => new { p.AttachmentSetID, p.VpnID }).IsUnique();
 
             builder.Entity<ContractBandwidth>()
-            .HasIndex(p => new { p.BandwidthKbps}).IsUnique();
+            .HasIndex(p => new { p.BandwidthKbps }).IsUnique();
 
             builder.Entity<AttachmentRedundancy>()
             .HasIndex(p => new { p.Name }).IsUnique();
@@ -135,17 +135,20 @@ namespace SCM.Data
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();
 
-            builder.Entity<TenantNetworkBgpPeer>()
-            .HasIndex(p => new { p.BgpPeerID, p.TenantNetworkID }).IsUnique();
+            builder.Entity<TenantNetwork>()
+            .HasIndex(p => new { p.TenantID, p.IpPrefix, p.Length }).IsUnique();
 
             builder.Entity<Plane>()
             .HasIndex(p => p.Name).IsUnique();
 
             builder.Entity<VpnTenantNetwork>()
-            .HasIndex(p => new { p.TenantNetworkID, p.VpnID }).IsUnique();
+            .HasIndex(p => new { p.TenantNetworkID, p.VpnAttachmentSetID }).IsUnique();
 
             builder.Entity<BundleInterface>()
             .HasIndex(p => new { p.DeviceID, p.ID }).IsUnique();
+
+            builder.Entity<BgpPeer>()
+            .HasIndex(p => new { p.VrfID, p.IpAddress }).IsUnique();
 
             // Prevent cascade deletes
 
@@ -191,6 +194,11 @@ namespace SCM.Data
 
             builder.Entity<BundleInterface>()
                    .HasOne(c => c.Device)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<VpnTenantNetwork>()
+                   .HasOne(c => c.VpnAttachmentSet)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
         }

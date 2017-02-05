@@ -32,6 +32,9 @@ namespace SCM.Models.ViewModels
             CreateMap<AttachmentRedundancy, AttachmentRedundancyViewModel>().ReverseMap();
             CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>().ReverseMap();
             CreateMap<VpnAttachmentSet, VpnAttachmentSetViewModel>().ReverseMap();
+            CreateMap<BgpPeer, BgpPeerViewModel>().ReverseMap();
+            CreateMap<TenantNetwork, TenantNetworkViewModel>().ReverseMap();
+            CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
         }
     }
 }

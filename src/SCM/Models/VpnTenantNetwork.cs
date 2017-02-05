@@ -10,8 +10,10 @@ namespace SCM.Models
     {
         public int VpnTenantNetworkID { get; set; }
         public int TenantNetworkID { get; set; }
-        public int VpnID { get; set; }
-        public TenantNetwork TenantNetwork { get; set; }
-        public Vpn Vpn { get; set; }
+        public int VpnAttachmentSetID { get; set; }
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+        public virtual TenantNetwork TenantNetwork { get; set; }
+        public virtual VpnAttachmentSet VpnAttachmentSet { get; set; }
     }
 }

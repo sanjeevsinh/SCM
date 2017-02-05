@@ -37,8 +37,6 @@ namespace SCM.Models.ViewModels
         public  VrfViewModel Vrf { get; set; }
         [Display(Name = "Interface Bandwidth (Kbps)")]
         public  InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
-        public ICollection<BundleInterfacePortViewModel> BundleInterfacePort { get; set; }
-        public ICollection<BundleInterfaceVlanViewModel> BundleInterfaceVlans { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged == true)

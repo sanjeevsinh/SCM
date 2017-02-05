@@ -30,6 +30,7 @@ namespace SCM.Data
         private GenericRepository<Tenant> tenantRepository;
         private GenericRepository<TenantNetwork> tenantNetworkRepository;
         private GenericRepository<Vpn> vpnRepository;
+        private GenericRepository<VpnTenantNetwork> vpnTenantNetworkRepository;
         private GenericRepository<VpnProtocolType> vpnProtocolTypeRepository;
         private GenericRepository<VpnTenancyType> vpnTenancyTypeRepository;
         private GenericRepository<VpnTopologyType> vpnTopologyTypeRepository;
@@ -299,6 +300,18 @@ namespace SCM.Data
                     this.vpnRepository = new GenericRepository<Vpn>(context);
                 }
                 return vpnRepository;
+            }
+        }
+
+        public GenericRepository<VpnTenantNetwork> VpnTenantNetworkRepository
+        {
+            get
+            {
+                if (this.vpnTenantNetworkRepository == null)
+                {
+                    this.vpnTenantNetworkRepository = new GenericRepository<VpnTenantNetwork>(context);
+                }
+                return vpnTenantNetworkRepository;
             }
         }
 

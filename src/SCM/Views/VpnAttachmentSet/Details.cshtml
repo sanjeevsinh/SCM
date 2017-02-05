@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.AttachmentSetVrfViewModel
+@model SCM.Models.ViewModels.VpnAttachmentSetViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -7,20 +7,32 @@
 <h2>Details</h2>
 
 <div>
-    <h4>VRF</h4>
+    <h4>Attachment Set for VPN @Model.Vpn.Name</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf)
+            @Html.DisplayNameFor(model => model.Vpn)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Name)
+            @Html.DisplayFor(model => model.Vpn.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.AttachmentSet)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.AttachmentSet.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AttachmentSet.ContractBandwidth)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AttachmentSet.ContractBandwidth.BandwidthKbps)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AttachmentSet.Description)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AttachmentSet.Description)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.AttachmentSet.Tenant)
@@ -31,6 +43,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.AttachmentSetVrfID }) |
-    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnAttachmentSetID }) |
+    <a asp-action="GetAllByVpnID" asp-route-id="@ViewBag.Vpn.VpnID">Back to Attachment Sets</a>
 </div>

@@ -26,7 +26,6 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Vlan Tag")]
         public int VlanTag { get; set; }
         public int? VrfID { get; set; }
-        [Timestamp]
         public byte[] RowVersion { get; set; }
         public InterfaceViewModel Interface { get; set; }
         [Display(Name = "VRF")]

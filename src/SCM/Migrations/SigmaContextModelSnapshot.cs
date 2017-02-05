@@ -85,6 +85,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("AttachmentSetID");
 
+                    b.Property<int?>("Preference");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
@@ -111,17 +113,18 @@ namespace SCM.Migrations
                     b.Property<string>("IpAddress")
                         .HasMaxLength(15);
 
-                    b.Property<int>("MaximumRoutes");
+                    b.Property<int?>("MaximumRoutes");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
 
-                    b.Property<int?>("VrfID");
+                    b.Property<int>("VrfID");
 
                     b.HasKey("BgpPeerID");
 
-                    b.HasIndex("VrfID");
+                    b.HasIndex("VrfID", "IpAddress")
+                        .IsUnique();
 
                     b.ToTable("BgpPeer");
                 });
@@ -603,32 +606,14 @@ namespace SCM.Migrations
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
 
-                    b.Property<int>("TenantNetworkVpnID");
+                    b.Property<int>("TenantID");
 
                     b.HasKey("TenantNetworkID");
 
-                    b.ToTable("TenantNetwork");
-                });
-
-            modelBuilder.Entity("SCM.Models.TenantNetworkBgpPeer", b =>
-                {
-                    b.Property<int>("TenantNetworkBgpPeerID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("BgpPeerID");
-
-                    b.Property<int>("TenantNetworkID");
-
-                    b.Property<int?>("Weight");
-
-                    b.HasKey("TenantNetworkBgpPeerID");
-
-                    b.HasIndex("TenantNetworkID");
-
-                    b.HasIndex("BgpPeerID", "TenantNetworkID")
+                    b.HasIndex("TenantID", "IpPrefix", "Length")
                         .IsUnique();
 
-                    b.ToTable("TenantNetworkBgpPeer");
+                    b.ToTable("TenantNetwork");
                 });
 
             modelBuilder.Entity("SCM.Models.Vpn", b =>
@@ -744,15 +729,19 @@ namespace SCM.Migrations
                     b.Property<int>("VpnTenantNetworkID")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
                     b.Property<int>("TenantNetworkID");
 
-                    b.Property<int>("VpnID");
+                    b.Property<int>("VpnAttachmentSetID");
 
                     b.HasKey("VpnTenantNetworkID");
 
-                    b.HasIndex("VpnID");
+                    b.HasIndex("VpnAttachmentSetID");
 
-                    b.HasIndex("TenantNetworkID", "VpnID")
+                    b.HasIndex("TenantNetworkID", "VpnAttachmentSetID")
                         .IsUnique();
 
                     b.ToTable("VpnTenantNetwork");
@@ -863,7 +852,8 @@ namespace SCM.Migrations
                 {
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("BgpPeers")
-                        .HasForeignKey("VrfID");
+                        .HasForeignKey("VrfID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.BundleInterface", b =>
@@ -1005,16 +995,11 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("SCM.Models.TenantNetworkBgpPeer", b =>
+            modelBuilder.Entity("SCM.Models.TenantNetwork", b =>
                 {
-                    b.HasOne("SCM.Models.BgpPeer", "BgpPeer")
+                    b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany()
-                        .HasForeignKey("BgpPeerID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.TenantNetwork", "TenantNetwork")
-                        .WithMany()
-                        .HasForeignKey("TenantNetworkID")
+                        .HasForeignKey("TenantID")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -1059,14 +1044,13 @@ namespace SCM.Migrations
             modelBuilder.Entity("SCM.Models.VpnTenantNetwork", b =>
                 {
                     b.HasOne("SCM.Models.TenantNetwork", "TenantNetwork")
-                        .WithMany("VpnTenantNetworks")
+                        .WithMany()
                         .HasForeignKey("TenantNetworkID")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("SCM.Models.Vpn", "Vpn")
-                        .WithMany("VpnTenantNetworks")
-                        .HasForeignKey("VpnID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                    b.HasOne("SCM.Models.VpnAttachmentSet", "VpnAttachmentSet")
+                        .WithMany()
+                        .HasForeignKey("VpnAttachmentSetID");
                 });
 
             modelBuilder.Entity("SCM.Models.VpnTopologyType", b =>

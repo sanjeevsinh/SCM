@@ -50,7 +50,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vpn");
+                includeProperties: "AttachmentSet.Tenant,AttachmentSet.ContractBandwidth,Vpn");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -70,7 +70,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantsDropDownList();
+            await PopulateTenantsDropDownList(id.Value);
             var vpn = await GetVpn(id.Value);
             ViewBag.Vpn = vpn;
             return View();
@@ -108,8 +108,8 @@ namespace SCM.Controllers
             }
 
             ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
-            ViewBag.AttachmentSetVpnSelection = vpnAttachmentSetSelection;
-            await PopulateTenantsDropDownList(vpnAttachmentSetSelection);
+            ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
+            await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
             return View("CreateStep2", vpnAttachmentSet);
         }
 
@@ -141,7 +141,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetVpnID,AttachmentSetID,VpnID,RowVersion")] VpnAttachmentSetViewModel vpnAttachmentSet)
+        public async Task<ActionResult> Edit(int id, [Bind("VpnAttachmentSetID,AttachmentSetID,VpnID,RowVersion")] VpnAttachmentSetViewModel vpnAttachmentSet)
         {
             if (id != vpnAttachmentSet.VpnAttachmentSetID)
             {
@@ -218,13 +218,13 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value);
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value, includeProperties:"AttachmentSet");
             var vpnAttachmentSet = dbResult.SingleOrDefault();
             if (vpnAttachmentSet == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByVpnID");
+                    return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
                 }
 
                 return NotFound();
@@ -258,7 +258,9 @@ namespace SCM.Controllers
                 {
                     await VpnAttachmentSetService.DeleteAsync(Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet));
                 }
-                return RedirectToAction("GetAllByAttachmentSetID", new { id = vpnAttachmentSet.AttachmentSetID });
+
+                
+                return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
@@ -277,9 +279,23 @@ namespace SCM.Controllers
             ViewBag.AttachmentSetID = new SelectList(attachmentSets, "AttachmentSetID", "Name", selectedAttachmentSet);
         }
 
-        private async Task PopulateTenantsDropDownList(object selectedTenant = null)
+        private async Task PopulateTenantsDropDownList(int vpnID, object selectedTenant = null)
         {
-            var tenants = await VpnAttachmentSetService.UnitOfWork.TenantRepository.GetAsync();
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, 
+                includeProperties: "VpnTenancyType");
+
+            var vpn = dbResult.Single();
+            IEnumerable<Tenant> tenants;
+
+            if (vpn.VpnTenancyType.TenancyType == "Multi")
+            {
+                tenants = await VpnAttachmentSetService.UnitOfWork.TenantRepository.GetAsync();
+            }
+            else
+            {
+                tenants = await VpnAttachmentSetService.UnitOfWork.TenantRepository.GetAsync(q => q.TenantID == vpn.TenantID);
+            }
+
             ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
         }
 

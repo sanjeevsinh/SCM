@@ -1,0 +1,54 @@
+@model IEnumerable<SCM.Models.ViewModels.BgpPeerViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByVrfID";
+}
+
+<h2>BGP Peers for VRF @ViewBag.Vrf.Name</h2>
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Vrf.VrfID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AutonomousSystem)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaximumRoutes)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AutonomousSystem)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaximumRoutes)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.BgpPeerID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.BgpPeerID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.BgpPeerID })
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="Vrf" asp-action="GetAllByDeviceID" asp-route-id="@ViewBag.Vrf.DeviceID">Back to VRFs</a>

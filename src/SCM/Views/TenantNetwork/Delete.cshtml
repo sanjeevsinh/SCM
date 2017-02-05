@@ -1,0 +1,45 @@
+@model SCM.Models.ViewModels.TenantNetworkViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h2>Delete</h2>
+
+<p class="text-danger">@ViewData["ConcurrencyErrorMessage"]</p>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Tenant Network</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IpPrefix)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpPrefix)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Length)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Length)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="TenantNetworkID" />
+        <input type="hidden" asp-for="TenantID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+        </div>
+    </form>
+</div>

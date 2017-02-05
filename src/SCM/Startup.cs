@@ -83,6 +83,9 @@ namespace SCM
             services.AddScoped<IAttachmentSetService, AttachmentSetService>();
             services.AddScoped<IAttachmentSetVrfService, AttachmentSetVrfService>();
             services.AddScoped<IVpnAttachmentSetService, VpnAttachmentSetService>();
+            services.AddScoped<IBgpPeerService, BgpPeerService>();
+            services.AddScoped<ITenantNetworkService, TenantNetworkService>();
+            services.AddScoped<IVpnTenantNetworkService, VpnTenantNetworkService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());
         }

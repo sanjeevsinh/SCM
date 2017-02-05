@@ -1,0 +1,43 @@
+@model SCM.Models.ViewModels.TenantNetworkViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create a new Tenant Network</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <h4>Tenant Network</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.Tenant.TenantID" />
+        <div class="form-group">
+            <label asp-for="IpPrefix" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IpPrefix" class="form-control" />
+                <span asp-validation-for="IpPrefix" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Length" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Length" class="form-control" />
+                <span asp-validation-for="Length" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAll">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
