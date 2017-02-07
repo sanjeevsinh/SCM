@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using SCM.Data;
 using SCM.Models;
 using SCM.Models.ViewModels;
+using SCM.Models.NetModels;
 using SCM.Services;
 using SCM.Services.SCMServices;
 using AutoMapper;
@@ -42,6 +43,7 @@ namespace SCM
             MapperConfiguration = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile(new AutoMapperViewModelProfileConfiguration());
+                cfg.AddProfile(new AutoMapperNetModelProfileConfiguration());
             });
         }
 

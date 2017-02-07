@@ -16,14 +16,12 @@ namespace SCM.Models.ViewModels
         public string Name { get; set; }
         [Display(Name = "Administrator Sub-Field")]
         [Required]
-        [RegularExpression(@"^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-8][0-9]{4}|9[0-8][0-9]{3}|99[0-8][0-9]{2}|999[0-8][0-9]|9999[0-9])$",
-            ErrorMessage = "The administrator subfield must be in the format (1 - 65535):(1 - 99999), e.g. 8718:100")]
-        public string AdministratorSubField { get; set; }
+        [Range(1, 4294967295)]
+        public int AdministratorSubField { get; set; }
         [Display(Name = "Assigned Number Sub-Field")]
         [Required]
-        [RegularExpression(@"^([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-8][0-9]{4}|9[0-8][0-9]{3}|99[0-8][0-9]{2}|999[0-8][0-9]|9999[0-9])?$",
-            ErrorMessage = "The assigned number subfield must be in the format (1 - 65535):(1 - 99999), e.g. 8718:100")]
-        public string AssignedNumberSubField { get; set; }
+        [Range(1, 4294967295)]
+        public int AssignedNumberSubField { get; set; }
         [Required]
         public int DeviceID { get; set; }
         [Required(ErrorMessage = "A tenant must be selected")]

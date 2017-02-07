@@ -41,6 +41,24 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
+        public async Task<ServiceValidationResult> ValidateRouteTargetsAddRemoveAsync(RouteTarget routeTarget)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnID == routeTarget.VpnID, 
+                includeProperties:"AttachmentSet", AsTrackable:false);
+
+            if (vpnAttachmentSets.Count > 0)
+            {
+                validationResult.Add("A Route Target cannot be added or deleted because the following Attachment Sets are bound to the VPN:");
+                validationResult.Add(string.Join(",", vpnAttachmentSets.Select(a => a.AttachmentSet.Name).ToArray()) + ". ");
+                validationResult.IsValid = false;
+            }
+
+            return validationResult;
+        }
+
         /// <summary>
         /// Validate route targets are correctly defined for the current vpn.
         /// </summary>

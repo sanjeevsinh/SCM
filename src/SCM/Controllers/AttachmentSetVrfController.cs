@@ -106,6 +106,20 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateAddRemoveVrfAsync(mappedAttachmentSetVrf);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+
+                        ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+                        ViewBag.AttachmentSelection = attachmentSelection;
+                        await PopulateVrfsDropDownList(attachmentSelection);
+       
+                        return View("CreateStep2", attachmentSetVrf);
+                    }
+
                     await AttachmentSetVrfService.AddAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
                     return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
                 }
@@ -246,7 +260,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -264,13 +278,23 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID, AsTrackable:false);
+                var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
+                    includeProperties:"AttachmentSet,Vrf", AsTrackable:false);
                 var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
                 if (currentAttachmentSetVrf != null)
                 {
+                    var validationResult = await AttachmentSetVrfService.ValidateAddRemoveVrfAsync(currentAttachmentSetVrf);
+                    if (!validationResult.IsValid)
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetMessage();
+                        ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
+                        return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
+                    }
+
                     await AttachmentSetVrfService.DeleteAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
                 }
+
                 return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
             }
 

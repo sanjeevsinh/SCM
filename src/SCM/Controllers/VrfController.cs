@@ -168,13 +168,13 @@ namespace SCM.Controllers
                     ModelState.AddModelError("Name", $"Current value: {currentVrf.Name}");
                 }
 
-                var proposedAdministratorSubField = (string)exceptionEntry.Property("AdministratorSubField").CurrentValue;
+                var proposedAdministratorSubField = (int)exceptionEntry.Property("AdministratorSubField").CurrentValue;
                 if (currentVrf.AdministratorSubField != proposedAdministratorSubField)
                 {
                     ModelState.AddModelError("AdministratorSubField", $"Current value: {currentVrf.AdministratorSubField}");
                 }
 
-                var proposedAssignedNumberSubField = (string)exceptionEntry.Property("AssignedNumberSubField").CurrentValue;
+                var proposedAssignedNumberSubField = (int)exceptionEntry.Property("AssignedNumberSubField").CurrentValue;
                 if (currentVrf.AssignedNumberSubField != proposedAssignedNumberSubField)
                 {
                     ModelState.AddModelError("AssignedNumberSubField", $"Current value: {currentVrf.AssignedNumberSubField}");

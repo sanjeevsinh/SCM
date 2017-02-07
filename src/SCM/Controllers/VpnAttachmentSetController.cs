@@ -95,7 +95,21 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await VpnAttachmentSetService.AddAsync(Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet));
+                    var mappedAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
+                    var validationResult = await VpnAttachmentSetService.ValidateVpnAttachmentSetAsync(mappedAttachmentSet);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
+                        ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
+                        await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
+
+                        return View("CreateStep2", vpnAttachmentSet);
+                    }
+
+                    await VpnAttachmentSetService.AddAsync(Mapper.Map<VpnAttachmentSet>(mappedAttachmentSet));
+
                     return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
                 }
             }
@@ -110,6 +124,7 @@ namespace SCM.Controllers
             ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
             ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
             await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
+
             return View("CreateStep2", vpnAttachmentSet);
         }
 
@@ -287,6 +302,7 @@ namespace SCM.Controllers
             var vpn = dbResult.Single();
             IEnumerable<Tenant> tenants;
 
+            // Get all Tenants if the VPN is multi-tenant, other get only the tenant owner
             if (vpn.VpnTenancyType.TenancyType == "Multi")
             {
                 tenants = await VpnAttachmentSetService.UnitOfWork.TenantRepository.GetAsync();

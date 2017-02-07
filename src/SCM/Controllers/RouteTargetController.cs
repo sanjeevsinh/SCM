@@ -87,7 +87,17 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await RouteTargetService.AddAsync(Mapper.Map<RouteTarget>(routeTarget));
+                    var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
+                    var validationResult = await RouteTargetService.ValidateRouteTargetsAddRemoveAsync(mappedRouteTarget);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        await PopulateVpnItem(routeTarget.VpnID);
+                        return View(routeTarget);
+                    }
+
+                    await RouteTargetService.AddAsync(mappedRouteTarget);
                     return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
                 }
             }
@@ -155,13 +165,13 @@ namespace SCM.Controllers
             {
                 var exceptionEntry = ex.Entries.Single();
 
-                var proposedAdministratorSubField = (string)exceptionEntry.Property("AdministratorSubField").CurrentValue;
+                var proposedAdministratorSubField = (int)exceptionEntry.Property("AdministratorSubField").CurrentValue;
                 if (currentRouteTarget.AdministratorSubField != proposedAdministratorSubField)
                 {
                     ModelState.AddModelError("AdministratorSubField", $"Current value: {currentRouteTarget.AdministratorSubField}");
                 }
 
-                var proposedAssignedNumberSubField = (string)exceptionEntry.Property("AssignedNumberSubField").CurrentValue;
+                var proposedAssignedNumberSubField = (int)exceptionEntry.Property("AssignedNumberSubField").CurrentValue;
                 if (currentRouteTarget.AssignedNumberSubField != proposedAssignedNumberSubField)
                 {
                     ModelState.AddModelError("AssignedNumberSubField", $"Current value: {currentRouteTarget.AssignedNumberSubField}");
@@ -239,7 +249,16 @@ namespace SCM.Controllers
 
                 if (currentRouteTarget != null)
                 {
-                    await RouteTargetService.DeleteAsync(Mapper.Map<RouteTarget>(routeTarget));
+                    var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
+                    var validationResult = await RouteTargetService.ValidateRouteTargetsAddRemoveAsync(mappedRouteTarget);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        await PopulateVpnItem(routeTarget.VpnID);
+                        return View(routeTarget);
+                    }
+                    await RouteTargetService.DeleteAsync(mappedRouteTarget);
                 }
                 return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
             }
@@ -250,6 +269,7 @@ namespace SCM.Controllers
                 return RedirectToAction("Delete", new { concurrencyError = true, id = routeTarget.RouteTargetID });
             }
         }
+
         private async Task PopulateVpnItem(int vpnID)
         {
             var dbResult = await RouteTargetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, includeProperties: "VpnTopologyType.VpnProtocolType");

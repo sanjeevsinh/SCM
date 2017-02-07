@@ -40,6 +40,30 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetVrfRepository.Delete(attachmentSetVrf);
             return await this.UnitOfWork.SaveAsync();
         }
+
+        /// <summary>
+        /// Validates that a VRF can be added to or removed from an Attachment Set.
+        /// </summary>
+        /// <param name="attachmentSetVrf"></param>
+        /// <returns></returns>
+        public async Task<ServiceValidationResult> ValidateAddRemoveVrfAsync(AttachmentSetVrf attachmentSetVrf)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID, 
+                includeProperties:"Vpn", AsTrackable: false);
+            if (vpnAttachmentSets.Count() > 0)
+            {
+                validationResult.Add("VRFs cannot be added or removed because the Attachment Set is used in the following VPNs: ");
+                validationResult.Add(string.Join(",", vpnAttachmentSets.Select(v => v.Vpn.Name).ToArray()) + ". ");
+                validationResult.Add("Remove the Attachment Set from the VPNs first.");
+                validationResult.IsValid = false;
+            }
+
+            return validationResult;
+        }
+ 
         public async Task<ServiceValidationResult> ValidateVrfsAsync(AttachmentSet attachmentSet)
         {
 
@@ -68,7 +92,8 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationResult.Add("Two, and no more than two, VRFs for a Silver Attachment Set must be defined.");
+                        validationResult.Add("Two, and no more than two, VRFs for a Silver Attachment Set must be defined."
+                            + "Each VRF must be in the same location.");
                         validationResult.IsValid = false;
                         return validationResult;
                     }
@@ -96,7 +121,8 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationResult.Add("Two, and no more than two, VRFs for a Gold Attachment Set must be defined.");
+                        validationResult.Add("Two, and no more than two, VRFs for a Gold Attachment Set must be defined. "
+                            + "Each VRF must be in a different location.");
                         validationResult.IsValid = false;
                         return validationResult;
                     }
@@ -123,6 +149,15 @@ namespace SCM.Services.SCMServices
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
                         validationResult.Add("The Plane for each VRF in a Gold Attachment Set must be different.");
+                        validationResult.IsValid = false;
+                    }
+                }
+                else if (attachmentRedundancy == "Custom")
+                {
+
+                    if (attachmentSetVrfs.Count == 0)
+                    {
+                        validationResult.Add("At least one VRF is required for a Custom Attachment Set.");
                         validationResult.IsValid = false;
                     }
                 }

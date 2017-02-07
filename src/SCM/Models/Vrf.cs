@@ -13,11 +13,9 @@ namespace SCM.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        [MaxLength(16)]
-        public string AdministratorSubField { get; set; }
+        public int AdministratorSubField { get; set; }
         [Required]
-        [MaxLength(16)]
-        public string AssignedNumberSubField { get; set; }
+        public int AssignedNumberSubField { get; set; }
         public int DeviceID { get; set; }
         public int TenantID { get; set; }
         [Timestamp]
