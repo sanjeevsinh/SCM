@@ -18,6 +18,8 @@ namespace SCM.Models.ViewModels
         [Range(1,32, ErrorMessage ="A prefix length between 1 and 32 must be entered.")]
         [Display(Name = "Prefix Length")]
         public int Length { get; set; }
+        [Display(Name = "Allow Extranet")]
+        public bool AllowExtranet { get; set; }
         [Required(ErrorMessage = "A Tenant must be selected.")]
         public int TenantID { get; set; }
         public byte[] RowVersion { get; set; }

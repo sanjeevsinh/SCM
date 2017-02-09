@@ -71,7 +71,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TenantID,IpPrefix,Length")] TenantNetworkViewModel tenantNetwork)
+        public async Task<IActionResult> Create([Bind("TenantID,IpPrefix,Length,AllowExtranet")] TenantNetworkViewModel tenantNetwork)
         {
             try
             {
@@ -113,7 +113,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("TenantNetworkID,TenantID,IpPrefix,Length,RowVersion")] TenantNetworkViewModel tenantNetwork)
+        public async Task<ActionResult> Edit(int id, [Bind("TenantNetworkID,TenantID,IpPrefix,Length,AllowExtranet,RowVersion")] TenantNetworkViewModel tenantNetwork)
         {
             if (id != tenantNetwork.TenantNetworkID)
             {
@@ -153,6 +153,12 @@ namespace SCM.Controllers
                 if (currentTenantNetwork.Length != proposedLength)
                 {
                     ModelState.AddModelError("Length", $"Current value: {currentTenantNetwork.Length}");
+                }
+
+                var proposedAllowExtranet = (bool)exceptionEntry.Property("AllowExtranet").CurrentValue;
+                if (currentTenantNetwork.AllowExtranet != proposedAllowExtranet)
+                {
+                    ModelState.AddModelError("AllowExtranet", $"Current value: {currentTenantNetwork.AllowExtranet}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "

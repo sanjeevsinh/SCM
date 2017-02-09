@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170209104249_Update15")]
+    partial class Update15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -598,8 +599,6 @@ namespace SCM.Migrations
                 {
                     b.Property<int>("TenantNetworkID")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<bool>("AllowExtranet");
 
                     b.Property<string>("IpPrefix")
                         .HasMaxLength(15);

@@ -19,6 +19,9 @@
                 @Html.DisplayNameFor(model => model.Length)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.AllowExtranet)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Tenant)
             </th>
             <th></th>
@@ -32,6 +35,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Length)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AllowExtranet)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Tenant.Name)

@@ -16,7 +16,7 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(RouteTarget routeTarget);
         Task<int> UpdateAsync(RouteTarget routeTarget);
         Task<int> DeleteAsync(RouteTarget routeTarget);
-        Task<ServiceValidationResult> ValidateRouteTargetsAddRemoveAsync(RouteTarget routeTarget);
+        Task<ServiceValidationResult> ValidateRouteTargetChangesAsync(RouteTarget routeTarget);
         Task<ServiceValidationResult> ValidateRouteTargetsAsync(int vpnID);
     }
 }

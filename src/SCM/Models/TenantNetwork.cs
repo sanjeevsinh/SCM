@@ -14,6 +14,7 @@ namespace SCM.Models
         [Required]
         [Range(1,32)]
         public int Length { get; set; }
+        public bool AllowExtranet { get; set; }
         public int TenantID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }

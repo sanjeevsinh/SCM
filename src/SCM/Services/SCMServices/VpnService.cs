@@ -40,6 +40,31 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.VpnRepository.Delete(vpn);
             return await this.UnitOfWork.SaveAsync();
         }
+
+        /// <summary>
+        /// Validate a new VPN
+        /// </summary>
+        /// <param name="vpn"></param>
+        /// <returns></returns>
+        public async Task<ServiceValidationResult> ValidateVpnAsync(Vpn vpn)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            if (vpn.IsExtranet)
+            {
+                var vpnTopologyType = await UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
+
+                if (vpnTopologyType.TopologyType != "Hub-and-Spoke")
+                {
+                    validationResult.Add("Extranet is supported only for Hub-and-Spoke IP VPN topologies.");
+                    validationResult.IsValid = false;
+                }
+            }
+
+            return validationResult;
+        }
+
         public async Task<ServiceValidationResult> ValidateVpnChangesAsync(Vpn vpn)
         {
             var validationResult = new ServiceValidationResult();

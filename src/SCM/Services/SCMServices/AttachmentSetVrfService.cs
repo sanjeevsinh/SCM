@@ -42,11 +42,11 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
-        /// Validates that a VRF can be added to or removed from an Attachment Set.
+        /// Validates that a VRF can be changed, added to or removed from an Attachment Set.
         /// </summary>
         /// <param name="attachmentSetVrf"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateAddRemoveVrfAsync(AttachmentSetVrf attachmentSetVrf)
+        public async Task<ServiceValidationResult> ValidateVrfChangesAsync(AttachmentSetVrf attachmentSetVrf)
         {
             var validationResult = new ServiceValidationResult();
             validationResult.IsValid = true;
@@ -55,7 +55,7 @@ namespace SCM.Services.SCMServices
                 includeProperties:"Vpn", AsTrackable: false);
             if (vpnAttachmentSets.Count() > 0)
             {
-                validationResult.Add("VRFs cannot be added or removed because the Attachment Set is used in the following VPNs: ");
+                validationResult.Add("VRFs cannot be added, removed or changed because the Attachment Set is bound to the following VPNs: ");
                 validationResult.Add(string.Join(",", vpnAttachmentSets.Select(v => v.Vpn.Name).ToArray()) + ". ");
                 validationResult.Add("Remove the Attachment Set from the VPNs first.");
                 validationResult.IsValid = false;

@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170209100419_Update14")]
+    partial class Update14
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -273,6 +274,25 @@ namespace SCM.Migrations
                     b.HasIndex("PlaneID");
 
                     b.ToTable("Device");
+                });
+
+            modelBuilder.Entity("SCM.Models.Extranet", b =>
+                {
+                    b.Property<int>("ExtranetID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("ExtranetVpnID");
+
+                    b.Property<int>("MemberVpnID");
+
+                    b.HasKey("ExtranetID");
+
+                    b.HasIndex("MemberVpnID");
+
+                    b.HasIndex("ExtranetVpnID", "MemberVpnID")
+                        .IsUnique();
+
+                    b.ToTable("Extranet");
                 });
 
             modelBuilder.Entity("SCM.Models.Interface", b =>
@@ -599,8 +619,6 @@ namespace SCM.Migrations
                     b.Property<int>("TenantNetworkID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<bool>("AllowExtranet");
-
                     b.Property<string>("IpPrefix")
                         .HasMaxLength(15);
 
@@ -743,10 +761,10 @@ namespace SCM.Migrations
 
                     b.HasKey("VpnTenantNetworkID");
 
-                    b.HasIndex("VpnAttachmentSetID");
-
-                    b.HasIndex("TenantNetworkID", "VpnAttachmentSetID")
+                    b.HasIndex("TenantNetworkID")
                         .IsUnique();
+
+                    b.HasIndex("VpnAttachmentSetID");
 
                     b.ToTable("VpnTenantNetwork");
                 });
@@ -911,6 +929,17 @@ namespace SCM.Migrations
                         .WithMany()
                         .HasForeignKey("PlaneID")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SCM.Models.Extranet", b =>
+                {
+                    b.HasOne("SCM.Models.Vpn", "ExtranetVpn")
+                        .WithMany()
+                        .HasForeignKey("ExtranetVpnID");
+
+                    b.HasOne("SCM.Models.Vpn", "MemberVpn")
+                        .WithMany()
+                        .HasForeignKey("MemberVpnID");
                 });
 
             modelBuilder.Entity("SCM.Models.Interface", b =>

@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170208145409_Update11")]
+    partial class Update11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -599,8 +600,6 @@ namespace SCM.Migrations
                     b.Property<int>("TenantNetworkID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<bool>("AllowExtranet");
-
                     b.Property<string>("IpPrefix")
                         .HasMaxLength(15);
 
@@ -743,10 +742,10 @@ namespace SCM.Migrations
 
                     b.HasKey("VpnTenantNetworkID");
 
-                    b.HasIndex("VpnAttachmentSetID");
-
-                    b.HasIndex("TenantNetworkID", "VpnAttachmentSetID")
+                    b.HasIndex("TenantNetworkID")
                         .IsUnique();
+
+                    b.HasIndex("VpnAttachmentSetID");
 
                     b.ToTable("VpnTenantNetwork");
                 });
@@ -800,9 +799,6 @@ namespace SCM.Migrations
                     b.HasKey("VrfID");
 
                     b.HasIndex("DeviceID");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.HasIndex("TenantID");
 

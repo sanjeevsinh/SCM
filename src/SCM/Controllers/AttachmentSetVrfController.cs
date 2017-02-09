@@ -107,7 +107,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
-                    var validationResult = await AttachmentSetVrfService.ValidateAddRemoveVrfAsync(mappedAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(mappedAttachmentSetVrf);
 
                     if (!validationResult.IsValid)
                     {
@@ -187,6 +187,22 @@ namespace SCM.Controllers
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The VRF was deleted by another user.");
                         return View(attachmentSetVrf);
+                    }
+
+                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
+
+                        await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
+                        {
+                            LocationID = currentAttachmentSetVrf.Vrf.Device.LocationID,
+                            TenantID = currentAttachmentSetVrf.AttachmentSet.TenantID,
+                            PlaneID = currentAttachmentSetVrf.Vrf.Device.PlaneID
+                        });
+
+                        return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
                     }
 
                     await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
@@ -284,7 +300,7 @@ namespace SCM.Controllers
 
                 if (currentAttachmentSetVrf != null)
                 {
-                    var validationResult = await AttachmentSetVrfService.ValidateAddRemoveVrfAsync(currentAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
                     if (!validationResult.IsValid)
                     {
                         ViewData["ErrorMessage"] = validationResult.GetMessage();

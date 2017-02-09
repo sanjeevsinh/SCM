@@ -73,13 +73,20 @@ namespace SCM.Data
             builder.Entity<VpnTopologyType>().ToTable("VpnTopologyType");
             builder.Entity<Plane>().ToTable("Plane");
 
-            // Set Indexes
+            // Set Indexes to ensure data uniqueness
+
+
+            // Ports which are members of a bundle interface must be unique
 
             builder.Entity<BundleInterfacePort>()
            .HasIndex(p => new { p.PortID }).IsUnique();
 
+            // VPN protocol type options must be unique
+
             builder.Entity<VpnProtocolType>()
             .HasIndex(p => new { p.ProtocolType }).IsUnique();
+
+            // VPN tenancy and topology options must be unique
 
             builder.Entity<VpnTenancyType>()
             .HasIndex(p => new { p.TenancyType }).IsUnique();
@@ -87,8 +94,17 @@ namespace SCM.Data
             builder.Entity<VpnTopologyType>()
             .HasIndex(p => new { p.TopologyType, p.VpnProtocolTypeID }).IsUnique();
 
+            // Route Distinguisher allocations must be unique
+
             builder.Entity<Vrf>()
             .HasIndex(p => new { p.AdministratorSubField, p.AssignedNumberSubField }).IsUnique();
+
+            // Vrf names must be unique
+
+            builder.Entity<Vrf>()
+            .HasIndex(p => new { p.Name }).IsUnique();
+
+            // Vlans which are created under an Interface or Bundle Interface must be unique
 
             builder.Entity<InterfaceVlan>()
             .HasIndex(p => new { p.InterfaceID, p.VlanTag }).IsUnique();
@@ -96,50 +112,81 @@ namespace SCM.Data
             builder.Entity<BundleInterfaceVlan>()
             .HasIndex(p => new { p.BundleInterfaceID, p.VlanTag }).IsUnique();
 
+            // Device names must be unique
+
             builder.Entity<Device>()
             .HasIndex(p => p.Name).IsUnique();
+
+            // Location names must be unique
 
             builder.Entity<Location>()
             .HasIndex(p => p.SiteName).IsUnique();
 
+            // Interface bandwidth options must be unique
+
             builder.Entity<InterfaceBandwidth>()
             .HasIndex(p => p.BandwidthKbps).IsUnique();
+
+            // Port bandwidth options must be unique
 
             builder.Entity<PortBandwidth>()
             .HasIndex(p => p.BandwidthKbps).IsUnique();
 
+            // Ports must be unique per Device
+
             builder.Entity<Port>()
             .HasIndex(p => new { p.Type, p.Name, p.DeviceID }).IsUnique();
+
+            // Region and Sub-Region names must be unique
 
             builder.Entity<Region>()
             .HasIndex(p => p.Name).IsUnique();
 
             builder.Entity<SubRegion>()
             .HasIndex(p => p.Name).IsUnique();
+            
+            // Route Targets must be unique
 
             builder.Entity<RouteTarget>()
             .HasIndex(p => new { p.AdministratorSubField, p.AssignedNumberSubField }).IsUnique();
 
+            // Mappings of VRFs to Attachment Sets must be unique
+
             builder.Entity<AttachmentSetVrf>()
             .HasIndex(p => new { p.AttachmentSetID, p.VrfID }).IsUnique();
+
+            // Mappings of Attachment Sets to VPNs must be unique
 
             builder.Entity<VpnAttachmentSet>()
             .HasIndex(p => new { p.AttachmentSetID, p.VpnID }).IsUnique();
 
+            // Contract bandwidth options must be unique
+
             builder.Entity<ContractBandwidth>()
             .HasIndex(p => new { p.BandwidthKbps }).IsUnique();
 
+            // Attachment Redundancy names must be unique (e.g. Gold)
+
             builder.Entity<AttachmentRedundancy>()
             .HasIndex(p => new { p.Name }).IsUnique();
-
+            
+            // Tenants must be unique
+            
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();
+
+            // Prevent duplicate network registered to the same Tenant
 
             builder.Entity<TenantNetwork>()
             .HasIndex(p => new { p.TenantID, p.IpPrefix, p.Length }).IsUnique();
 
+            // Planes must be unique
+
             builder.Entity<Plane>()
             .HasIndex(p => p.Name).IsUnique();
+
+            // Ensure a Tenant Network is bound to a single VPN Attachment Set by preventing multiple records 
+            // for the same Tenant Network
 
             builder.Entity<VpnTenantNetwork>()
             .HasIndex(p => new { p.TenantNetworkID, p.VpnAttachmentSetID }).IsUnique();

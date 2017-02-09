@@ -88,7 +88,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
-                    var validationResult = await RouteTargetService.ValidateRouteTargetsAddRemoveAsync(mappedRouteTarget);
+                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
 
                     if (!validationResult.IsValid)
                     {
@@ -156,7 +156,19 @@ namespace SCM.Controllers
                         return View(routeTarget);
                     }
 
-                    await RouteTargetService.UpdateAsync(Mapper.Map<RouteTarget>(routeTarget));
+                    var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
+                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        await PopulateVpnItem(currentRouteTarget.VpnID);
+
+                        return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));
+
+                    }
+
+                    await RouteTargetService.UpdateAsync(mappedRouteTarget);
                     return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
                 }
             }
@@ -250,7 +262,7 @@ namespace SCM.Controllers
                 if (currentRouteTarget != null)
                 {
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
-                    var validationResult = await RouteTargetService.ValidateRouteTargetsAddRemoveAsync(mappedRouteTarget);
+                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
 
                     if (!validationResult.IsValid)
                     {

@@ -59,14 +59,14 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("VpnProtocolTypeID,ProtocolType")] VpnProtocolTypeViewModel protocolType)
+        public async Task<IActionResult> CreateStep2([Bind("VpnProtocolTypeID")] VpnProtocolTypeViewModel protocolType)
         {
             await PopulatePlanesDropDownList();
             await PopulateTenantsDropDownList();
             await PopulateRegionsDropDownList();
-            await PopulateTopologyTypesDropDownList(protocolType.VpnProtocolTypeID);
+            await PopulateTopologyTypesDropDownListByProtocolType(protocolType.VpnProtocolTypeID);
             await PopulateTenancyTypesDropDownList();
-            ViewBag.VpnProtocolType = protocolType;
+            ViewBag.VpnProtocolType = await GetProtocolTypeItem(protocolType.VpnProtocolTypeID);
             return View();
         }
 
@@ -80,6 +80,22 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    var validationResult = await VpnService.ValidateVpnAsync(mappedVpn);
+                    if (!validationResult.IsValid)
+                    {
+
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        ViewBag.VpnProtocolType = await GetProtocolTypeByTopologyType(vpn.VpnTopologyTypeID);
+
+                        await PopulatePlanesDropDownList(vpn.PlaneID);
+                        await PopulateTenantsDropDownList(vpn.TenantID);
+                        await PopulateRegionsDropDownList(vpn.RegionID);
+                        await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID, vpn.VpnTopologyTypeID);
+                        await PopulateTenancyTypesDropDownList(vpn.VpnTenancyTypeID);
+
+                        return View("CreateStep2", vpn);
+                    }
+
                     await VpnService.AddAsync(mappedVpn);
                     return RedirectToAction("GetAll");
                 }
@@ -92,7 +108,15 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateDropDownLists(mappedVpn);
+            ViewBag.VpnProtocolType = await GetProtocolTypeByTopologyType(vpn.VpnTopologyTypeID);
+
+
+            await PopulatePlanesDropDownList(vpn.PlaneID);
+            await PopulateTenantsDropDownList(vpn.TenantID);
+            await PopulateRegionsDropDownList(vpn.RegionID);
+            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID, vpn.VpnTopologyTypeID);
+            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyTypeID);
+
             return View("CreateStep2", vpn);
         }
 
@@ -112,7 +136,11 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateDropDownLists(vpn);
+            await PopulatePlanesDropDownList(vpn.PlaneID);
+            await PopulateTenantsDropDownList(vpn.TenantID);
+            await PopulateRegionsDropDownList(vpn.RegionID);
+            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID, vpn.VpnTopologyTypeID);
+            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyTypeID);
 
             return View(Mapper.Map<VpnViewModel>(vpn));
         }
@@ -145,7 +173,13 @@ namespace SCM.Controllers
                     if (!validationResult.IsValid)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        await PopulateDropDownLists(currentVpn);
+
+                        await PopulatePlanesDropDownList(currentVpn.PlaneID);
+                        await PopulateTenantsDropDownList(currentVpn.TenantID);
+                        await PopulateRegionsDropDownList(currentVpn.RegionID);
+                        await PopulateTopologyTypesDropDownList(currentVpn.VpnTopologyTypeID, currentVpn.VpnTopologyTypeID);
+                        await PopulateTenancyTypesDropDownList(currentVpn.VpnTenancyTypeID);
+
                         return View(Mapper.Map <VpnViewModel>(currentVpn));
                     } 
 
@@ -224,7 +258,12 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateDropDownLists(currentVpn);
+            await PopulatePlanesDropDownList(currentVpn.PlaneID);
+            await PopulateTenantsDropDownList(currentVpn.TenantID);
+            await PopulateRegionsDropDownList(currentVpn.RegionID);
+            await PopulateTopologyTypesDropDownList(currentVpn.VpnTopologyTypeID, vpn.VpnTopologyTypeID);
+            await PopulateTenancyTypesDropDownList(currentVpn.VpnTenancyTypeID);
+
             return View(Mapper.Map<VpnViewModel>(currentVpn));
         }
 
@@ -283,20 +322,6 @@ namespace SCM.Controllers
             }
         }
 
-        /// <summary>
-        /// Helper to populate drop-down lists for the view.
-        /// </summary>
-        /// <param name="vpn"></param>
-        private async Task PopulateDropDownLists(Vpn vpn)
-        {
-
-            await PopulatePlanesDropDownList(vpn.Plane);
-            await PopulateTenantsDropDownList(vpn.Tenant);
-            await PopulateRegionsDropDownList(vpn.Region);
-            await PopulateTopologyTypesDropDownList(vpn.VpnTopologyType.VpnProtocolTypeID, vpn.VpnTopologyType);
-            await PopulateTenancyTypesDropDownList(vpn.VpnTenancyType);
-        }
-
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)
         {
             var planes = await VpnService.UnitOfWork.PlaneRepository.GetAsync();
@@ -315,10 +340,16 @@ namespace SCM.Controllers
             ViewBag.VpnTenancyTypeID = new SelectList(tenancyTypes, "VpnTenancyTypeID", "TenancyType", selectedTenancyType);
         }
 
-        private async Task PopulateTopologyTypesDropDownList(int protocolTypeID, object selectedTopologyType = null)
+        private async Task PopulateTopologyTypesDropDownListByProtocolType(int protocolTypeID, object selectedTopologyType = null)
         {
             var topologyTypes = await VpnService.UnitOfWork.VpnTopologyTypeRepository.GetAsync(q => q.VpnProtocolTypeID == protocolTypeID);
             ViewBag.VpnTopologyTypeID = new SelectList(topologyTypes, "VpnTopologyTypeID", "TopologyType", selectedTopologyType);
+        }
+
+        private async Task PopulateTopologyTypesDropDownList(int topologyTypeID, object selectedTopologyType = null)
+        {
+            var topologyType = await VpnService.UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(topologyTypeID);
+            await PopulateTopologyTypesDropDownListByProtocolType(topologyType.VpnProtocolTypeID);
         }
 
         private async Task PopulateTenantsDropDownList(object selectedTenant = null)
@@ -331,6 +362,18 @@ namespace SCM.Controllers
         {
             var protocolTypes = await VpnService.UnitOfWork.VpnProtocolTypeRepository.GetAsync();
             ViewBag.VpnProtocolTypeID = new SelectList(protocolTypes, "VpnProtocolTypeID", "ProtocolType", selectedProtocolType);
+        }
+
+        private async Task<VpnProtocolType> GetProtocolTypeItem(int protocolTypeID)
+        {
+            return await VpnService.UnitOfWork.VpnProtocolTypeRepository.GetByIDAsync(protocolTypeID);
+        }
+
+        private async Task<VpnProtocolType> GetProtocolTypeByTopologyType(int topologyTypeID)
+        {
+            var dbResult = await VpnService.UnitOfWork.VpnTopologyTypeRepository.GetAsync(q => q.VpnTopologyTypeID == topologyTypeID, includeProperties:"VpnProtocolType");
+            return dbResult.Single().VpnProtocolType;
+
         }
     }
 }
