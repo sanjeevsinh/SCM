@@ -44,7 +44,7 @@
 </form>
 
 <div>
-    <a asp-action="GetAll">Back to List</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to List</a>
 </div>
 
 @section Scripts {

@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170210084554_Update17")]
+    partial class Update17
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -136,6 +137,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
+                    b.Property<int>("ID");
+
                     b.Property<int>("InterfaceBandwidthID");
 
                     b.Property<string>("IpAddress")
@@ -144,10 +147,6 @@ namespace SCM.Migrations
                     b.Property<bool>("IsLayer3");
 
                     b.Property<bool>("IsTagged");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(15);
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -164,7 +163,7 @@ namespace SCM.Migrations
 
                     b.HasIndex("VrfID");
 
-                    b.HasIndex("DeviceID", "Name")
+                    b.HasIndex("DeviceID", "ID")
                         .IsUnique();
 
                     b.ToTable("BundleInterface");
@@ -214,7 +213,7 @@ namespace SCM.Migrations
 
                     b.Property<int>("VlanTag");
 
-                    b.Property<int?>("VrfID");
+                    b.Property<int>("VrfID");
 
                     b.HasKey("BundleInterfaceVlanID");
 
@@ -348,7 +347,7 @@ namespace SCM.Migrations
 
                     b.Property<int>("VlanTag");
 
-                    b.Property<int?>("VrfID");
+                    b.Property<int>("VrfID");
 
                     b.HasKey("InterfaceVlanID");
 
@@ -424,8 +423,7 @@ namespace SCM.Migrations
 
                     b.HasIndex("MultiPortID");
 
-                    b.HasIndex("PortID")
-                        .IsUnique();
+                    b.HasIndex("PortID");
 
                     b.ToTable("MultiPortPort");
                 });
@@ -617,9 +615,7 @@ namespace SCM.Migrations
 
                     b.HasKey("TenantNetworkID");
 
-                    b.HasIndex("TenantID");
-
-                    b.HasIndex("IpPrefix", "Length")
+                    b.HasIndex("TenantID", "IpPrefix", "Length")
                         .IsUnique();
 
                     b.ToTable("TenantNetwork");
@@ -817,7 +813,7 @@ namespace SCM.Migrations
                     b.HasIndex("AdministratorSubField", "AssignedNumberSubField")
                         .IsUnique();
 
-                    b.ToTable("Vrf");
+                    b.ToTable("Vrfs");
                 });
 
             modelBuilder.Entity("SCM.Models.AttachmentSet", b =>
@@ -878,7 +874,7 @@ namespace SCM.Migrations
                         .HasForeignKey("InterfaceBandwidthID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("BundleInterfaces")
+                        .WithMany()
                         .HasForeignKey("VrfID");
                 });
 
@@ -903,8 +899,9 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("BundleInterfaceVlans")
-                        .HasForeignKey("VrfID");
+                        .WithMany()
+                        .HasForeignKey("VrfID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.Device", b =>
@@ -932,7 +929,7 @@ namespace SCM.Migrations
                         .HasForeignKey("InterfaceBandwidthID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("Interfaces")
+                        .WithMany()
                         .HasForeignKey("VrfID");
                 });
 
@@ -944,7 +941,7 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("InterfaceVlans")
+                        .WithMany()
                         .HasForeignKey("VrfID");
                 });
 
@@ -968,8 +965,8 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Port", "Port")
-                        .WithOne("MultiPortPort")
-                        .HasForeignKey("SCM.Models.MultiPortPort", "PortID")
+                        .WithMany()
+                        .HasForeignKey("PortID")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

@@ -24,5 +24,6 @@ namespace SCM.Models
         public virtual Tenant Tenant { get; set; }
         public virtual PortBandwidth PortBandwidth { get; set; }
         public virtual BundleInterfacePort BundleInterfacePort { get; set; }
+        public virtual MultiPortPort MultiPortPort { get; set; }
     }
 }

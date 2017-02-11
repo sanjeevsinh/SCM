@@ -88,14 +88,24 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
+        public async Task<IActionResult> Create([Bind("Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await BundleInterfaceService.AddAsync(Mapper.Map<BundleInterface>(bundleIface));
-                    return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
+                    var mappedBundleIface = Mapper.Map<BundleInterface>(bundleIface);
+                    var validationResult = await BundleInterfaceService.ValidateBundleInterface(mappedBundleIface);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                    }
+                    else
+                    {
+                        await BundleInterfaceService.AddAsync(mappedBundleIface);
+                        return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
+                    }
                 }
             }
             catch (DbUpdateException)
@@ -135,7 +145,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,ID,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
+        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
         {
             if (id != bundleIface.BundleInterfaceID)
             {
@@ -144,20 +154,24 @@ namespace SCM.Controllers
 
             var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(filter: d => d.BundleInterfaceID == id,
                AsTrackable: false);
-            var currentBundleInterface = dbResult.SingleOrDefault();
+            var currentBundleIface = dbResult.SingleOrDefault();
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentBundleInterface == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The interface was deleted by another user.");
-                        return View(bundleIface);
-                    }
+                    var mappedBundleIface = Mapper.Map<BundleInterface>(bundleIface);
+                    var validationResult = await BundleInterfaceService.ValidateBundleInterfaceChanges(mappedBundleIface, currentBundleIface);
 
-                    await BundleInterfaceService.UpdateAsync(Mapper.Map<BundleInterface>(bundleIface));
-                    return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                    }
+                    else
+                    {
+                        await BundleInterfaceService.UpdateAsync(mappedBundleIface);
+                        return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
+                    }
                 }
             }
 
@@ -165,34 +179,40 @@ namespace SCM.Controllers
             {
                 var exceptionEntry = ex.Entries.Single();
 
-                var proposedIpAddress = (string)exceptionEntry.Property("IpAddress").CurrentValue;
-                if (currentBundleInterface.IpAddress != proposedIpAddress)
+                var proposedName = (string)exceptionEntry.Property("Name").CurrentValue;
+                if (currentBundleIface.Name != proposedName)
                 {
-                    ModelState.AddModelError("IpAddress", $"Current value: {currentBundleInterface.IpAddress}");
+                    ModelState.AddModelError("Name", $"Current value: {currentBundleIface.Name}");
+                }
+
+                var proposedIpAddress = (string)exceptionEntry.Property("IpAddress").CurrentValue;
+                if (currentBundleIface.IpAddress != proposedIpAddress)
+                {
+                    ModelState.AddModelError("IpAddress", $"Current value: {currentBundleIface.IpAddress}");
                 }
 
                 var proposedSubnetMask = (string)exceptionEntry.Property("SubnetMask").CurrentValue;
-                if (currentBundleInterface.SubnetMask != proposedSubnetMask)
+                if (currentBundleIface.SubnetMask != proposedSubnetMask)
                 {
-                    ModelState.AddModelError("SubnetMask", $"Current value: {currentBundleInterface.SubnetMask}");
+                    ModelState.AddModelError("SubnetMask", $"Current value: {currentBundleIface.SubnetMask}");
                 }
 
                 var proposedInterfaceBandwidthID = (int)exceptionEntry.Property("InterfaceBandwidthID").CurrentValue;
-                if (currentBundleInterface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
+                if (currentBundleIface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
                 {
-                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleInterface.InterfaceBandwidth.BandwidthKbps}");
+                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleIface.InterfaceBandwidth.BandwidthKbps}");
                 }
 
                 var proposedVrfID = (int?)exceptionEntry.Property("VrfID").CurrentValue;
-                if (currentBundleInterface.VrfID != proposedVrfID)
+                if (currentBundleIface.VrfID != proposedVrfID)
                 {
-                    ModelState.AddModelError("VrfID", $"Current value: {currentBundleInterface.Vrf.Name}");
+                    ModelState.AddModelError("VrfID", $"Current value: {currentBundleIface.Vrf.Name}");
                 }
 
                 var proposedIsTagged = (bool)exceptionEntry.Property("IsTagged").CurrentValue;
-                if (currentBundleInterface.IsTagged != proposedIsTagged)
+                if (currentBundleIface.IsTagged != proposedIsTagged)
                 {
-                    ModelState.AddModelError("IsTagged", $"Current value: {currentBundleInterface.IsTagged}");
+                    ModelState.AddModelError("IsTagged", $"Current value: {currentBundleIface.IsTagged}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
@@ -212,10 +232,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateDeviceItem(currentBundleInterface.DeviceID);
+            await PopulateDeviceItem(currentBundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
-            await PopulateVrfsDropDownList(currentBundleInterface.DeviceID);
-            return View(Mapper.Map<BundleInterfaceViewModel>(currentBundleInterface));
+            await PopulateVrfsDropDownList(currentBundleIface.DeviceID);
+            return View(Mapper.Map<BundleInterfaceViewModel>(currentBundleIface));
         }
 
         [HttpGet]

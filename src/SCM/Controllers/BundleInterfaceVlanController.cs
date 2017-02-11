@@ -94,14 +94,16 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var mapped = Mapper.Map<BundleInterfaceVlan>(bundleIfaceVlan);
-                    if (!await ValidateBundleInterfaceVlan(mapped.BundleInterfaceID))
+                    var mappedBundleIfaceVlan = Mapper.Map<BundleInterfaceVlan>(bundleIfaceVlan);
+                    var validationResult = await BundleInterfaceVlanService.ValidateBundleInterfaceVlan(mappedBundleIfaceVlan);
+
+                    if (!validationResult.IsValid) 
                     {
-                        ModelState.AddModelError(string.Empty, "A vlan cannot be created on an untagged bundle interface.");
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
                     else
                     {
-                        await BundleInterfaceVlanService.AddAsync(mapped);
+                        await BundleInterfaceVlanService.AddAsync(mappedBundleIfaceVlan);
                         return RedirectToAction("GetAllByBundleInterfaceID", new { id = bundleIfaceVlan.BundleInterfaceID });
                     }
                 }
@@ -150,21 +152,25 @@ namespace SCM.Controllers
 
             var dbResult = await BundleInterfaceVlanService.UnitOfWork.BundleInterfaceVlanRepository.GetAsync(filter: d => d.BundleInterfaceVlanID == id,
                includeProperties:"Vrf", AsTrackable: false);
-            var currentBundleInterfaceVlan = dbResult.SingleOrDefault();
+            var currentBundleIfaceVlan = dbResult.SingleOrDefault();
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentBundleInterfaceVlan == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vlan was deleted by another user.");
-                        await PopulateBundleInterfaceItem(bundleIfaceVlan.BundleInterfaceID);
-                        return View(bundleIfaceVlan);
-                    }
+                    var mappedBundleIfaceVlan = Mapper.Map<BundleInterfaceVlan>(bundleIfaceVlan);
+                    var validationResult = await BundleInterfaceVlanService.ValidateBundleInterfaceVlanChanges(mappedBundleIfaceVlan,
+                        currentBundleIfaceVlan);
 
-                    await BundleInterfaceVlanService.UpdateAsync(Mapper.Map<BundleInterfaceVlan>(bundleIfaceVlan));
-                    return RedirectToAction("GetAllByBundleInterfaceID", new { id = bundleIfaceVlan.BundleInterfaceID });
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                    }
+                    else
+                    {
+                        await BundleInterfaceVlanService.UpdateAsync(mappedBundleIfaceVlan);
+                        return RedirectToAction("GetAllByBundleInterfaceID", new { id = bundleIfaceVlan.BundleInterfaceID });
+                    }
                 }
             }
 
@@ -173,27 +179,27 @@ namespace SCM.Controllers
                 var exceptionEntry = ex.Entries.Single();
 
                 var proposedIpAddress = (string)exceptionEntry.Property("IpAddress").CurrentValue;
-                if (currentBundleInterfaceVlan.IpAddress != proposedIpAddress)
+                if (currentBundleIfaceVlan.IpAddress != proposedIpAddress)
                 {
-                    ModelState.AddModelError("IpAddress", $"Current value: {currentBundleInterfaceVlan.IpAddress}");
+                    ModelState.AddModelError("IpAddress", $"Current value: {currentBundleIfaceVlan.IpAddress}");
                 }
 
                 var proposedSubnetMask = (string)exceptionEntry.Property("SubnetMask").CurrentValue;
-                if (currentBundleInterfaceVlan.SubnetMask != proposedSubnetMask)
+                if (currentBundleIfaceVlan.SubnetMask != proposedSubnetMask)
                 {
-                    ModelState.AddModelError("SubnetMask", $"Current value: {currentBundleInterfaceVlan.SubnetMask}");
+                    ModelState.AddModelError("SubnetMask", $"Current value: {currentBundleIfaceVlan.SubnetMask}");
                 }
 
                 var proposedVlanTag = (int)exceptionEntry.Property("VlanTag").CurrentValue;
-                if (currentBundleInterfaceVlan.VlanTag != proposedVlanTag)
+                if (currentBundleIfaceVlan.VlanTag != proposedVlanTag)
                 {
-                    ModelState.AddModelError("VlanTag", $"Current value: {currentBundleInterfaceVlan.VlanTag}");
+                    ModelState.AddModelError("VlanTag", $"Current value: {currentBundleIfaceVlan.VlanTag}");
                 }
 
                 var proposedVrfID = (int)exceptionEntry.Property("VrfID").CurrentValue;
-                if (currentBundleInterfaceVlan.VrfID != proposedVrfID)
+                if (currentBundleIfaceVlan.VrfID != proposedVrfID)
                 {
-                    ModelState.AddModelError("VrfID", $"Current value: {currentBundleInterfaceVlan.Vrf.Name}");
+                    ModelState.AddModelError("VrfID", $"Current value: {currentBundleIfaceVlan.Vrf.Name}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
@@ -213,9 +219,9 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateBundleInterfaceItem(currentBundleInterfaceVlan.BundleInterfaceID);
-            await PopulateVrfsDropDownList(currentBundleInterfaceVlan.BundleInterfaceID);
-            return View(Mapper.Map<BundleInterfaceVlanViewModel>(currentBundleInterfaceVlan));
+            await PopulateBundleInterfaceItem(currentBundleIfaceVlan.BundleInterfaceID);
+            await PopulateVrfsDropDownList(currentBundleIfaceVlan.BundleInterfaceID);
+            return View(Mapper.Map<BundleInterfaceVlanViewModel>(currentBundleIfaceVlan));
         }
 
         [HttpGet]
@@ -276,7 +282,7 @@ namespace SCM.Controllers
         }
         private async Task PopulateBundleInterfaceItem(int bundleIfaceID)
         {
-            var dbResult = await BundleInterfaceVlanService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.ID == bundleIfaceID, includeProperties:"Device");
+            var dbResult = await BundleInterfaceVlanService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == bundleIfaceID, includeProperties:"Device");
             var bundleIface = dbResult.Single();
             ViewBag.BundleInterface = bundleIface;
         }

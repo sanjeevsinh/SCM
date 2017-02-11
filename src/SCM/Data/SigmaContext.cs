@@ -72,6 +72,7 @@ namespace SCM.Data
             builder.Entity<VpnTenancyType>().ToTable("VpnTenancyType");
             builder.Entity<VpnTopologyType>().ToTable("VpnTopologyType");
             builder.Entity<Plane>().ToTable("Plane");
+            builder.Entity<Vrf>().ToTable("Vrf");
 
             // Set Indexes to ensure data uniqueness
 
@@ -93,6 +94,10 @@ namespace SCM.Data
 
             builder.Entity<VpnTopologyType>()
             .HasIndex(p => new { p.TopologyType, p.VpnProtocolTypeID }).IsUnique();
+
+            // VPN names must be unique
+            builder.Entity<Vpn>()
+            .HasIndex(p => new { p.Name }).IsUnique();
 
             // Route Distinguisher allocations must be unique
 
@@ -175,10 +180,10 @@ namespace SCM.Data
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();
 
-            // Prevent duplicate network registered to the same Tenant
+            // Prevent duplicate Tenant Networks
 
             builder.Entity<TenantNetwork>()
-            .HasIndex(p => new { p.TenantID, p.IpPrefix, p.Length }).IsUnique();
+            .HasIndex(p => new { p.IpPrefix, p.Length }).IsUnique();
 
             // Planes must be unique
 
@@ -192,7 +197,7 @@ namespace SCM.Data
             .HasIndex(p => new { p.TenantNetworkID, p.VpnAttachmentSetID }).IsUnique();
 
             builder.Entity<BundleInterface>()
-            .HasIndex(p => new { p.DeviceID, p.ID }).IsUnique();
+            .HasIndex(p => new { p.DeviceID, p.Name }).IsUnique();
 
             builder.Entity<BgpPeer>()
             .HasIndex(p => new { p.VrfID, p.IpAddress }).IsUnique();
@@ -226,11 +231,6 @@ namespace SCM.Data
 
             builder.Entity<BundleInterface>()
                    .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<InterfaceVlan>()
-                   .HasOne(c => c.Vrf)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 

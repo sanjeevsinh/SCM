@@ -21,9 +21,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.AllowExtranet)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tenant)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -38,9 +35,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.AllowExtranet)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tenant.Name)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id=item.TenantNetworkID }) |

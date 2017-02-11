@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170211190928_Update21")]
+    partial class Update21
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -136,6 +137,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
+                    b.Property<int>("ID");
+
                     b.Property<int>("InterfaceBandwidthID");
 
                     b.Property<string>("IpAddress")
@@ -144,10 +147,6 @@ namespace SCM.Migrations
                     b.Property<bool>("IsLayer3");
 
                     b.Property<bool>("IsTagged");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(15);
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -164,7 +163,7 @@ namespace SCM.Migrations
 
                     b.HasIndex("VrfID");
 
-                    b.HasIndex("DeviceID", "Name")
+                    b.HasIndex("DeviceID", "ID")
                         .IsUnique();
 
                     b.ToTable("BundleInterface");
@@ -350,9 +349,13 @@ namespace SCM.Migrations
 
                     b.Property<int?>("VrfID");
 
+                    b.Property<int?>("VrfID1");
+
                     b.HasKey("InterfaceVlanID");
 
                     b.HasIndex("VrfID");
+
+                    b.HasIndex("VrfID1");
 
                     b.HasIndex("InterfaceID", "VlanTag")
                         .IsUnique();
@@ -944,8 +947,12 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("InterfaceVlans")
+                        .WithMany()
                         .HasForeignKey("VrfID");
+
+                    b.HasOne("SCM.Models.Vrf")
+                        .WithMany("InterfaceVlans")
+                        .HasForeignKey("VrfID1");
                 });
 
             modelBuilder.Entity("SCM.Models.Location", b =>

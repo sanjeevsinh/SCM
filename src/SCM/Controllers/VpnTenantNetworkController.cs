@@ -86,11 +86,29 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TenantNetworkID,VpnAttachmentSetID")] VpnTenantNetworkViewModel vpnTenantNetwork)
         {
+            var vpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantNetwork.VpnAttachmentSetID);
+            if (vpnAttachmentSet == null)
+            {
+                return NotFound();
+            }
+
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await VpnTenantNetworkService.AddAsync(Mapper.Map<VpnTenantNetwork>(vpnTenantNetwork));
+                    var mappedVpnTenantNetwork = Mapper.Map<VpnTenantNetwork>(vpnTenantNetwork);
+                    var validationResult = await VpnTenantNetworkService.ValidateVpnTenantNetworkAsync(mappedVpnTenantNetwork);
+
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        ViewBag.VpnAttachmentSet = vpnAttachmentSet;
+                        await PopulateTenantNetworksDropDownList(vpnTenantNetwork.VpnAttachmentSetID);
+
+                        return View(vpnTenantNetwork);
+                    }
+
+                    await VpnTenantNetworkService.AddAsync(mappedVpnTenantNetwork);
                     return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantNetwork.VpnAttachmentSetID });
                 }
             }
@@ -100,12 +118,6 @@ namespace SCM.Controllers
                 ModelState.AddModelError("", "Unable to save changes. " +
                     "Try again, and if the problem persists " +
                     "see your system administrator.");
-            }
-
-            var vpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantNetwork.VpnAttachmentSetID);
-            if (vpnAttachmentSet == null)
-            {
-                return NotFound();
             }
 
             ViewBag.VpnAttachmentSet = vpnAttachmentSet;

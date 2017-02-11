@@ -4,7 +4,7 @@
     ViewData["Title"] = "GetAllByBundleInterfaceID";
 }
 
-<h2>Ports for bundle interface @ViewBag.BundleInterface.ID</h2>
+<h2>Ports for bundle interface @ViewBag.BundleInterface.Name</h2>
 <p>
     <a asp-action="Create" asp-route-id="@ViewBag.BundleInterface.BundleInterfaceID">Create New</a>
 </p>
@@ -12,7 +12,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.BundleInterface.ID)
+                @Html.DisplayNameFor(model => model.BundleInterface.Name)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Port.Type)
@@ -28,7 +28,7 @@
 {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.BundleInterface.ID)
+                @Html.DisplayFor(modelItem => item.BundleInterface.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Port.Type)

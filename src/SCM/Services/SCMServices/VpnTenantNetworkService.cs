@@ -41,15 +41,28 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
+        /// <summary>
+        /// Validates a Tenant Network for binding to a VPN Attachment Set.
+        /// </summary>
+        /// <param name="vpnTenantNetwork"></param>
+        /// <returns></returns>
         public async Task<ServiceValidationResult> ValidateVpnTenantNetworkAsync (VpnTenantNetwork vpnTenantNetwork)
         {
 
             var validationResult = new ServiceValidationResult();
             validationResult.IsValid = true;
                   
-            var dbRsesult = UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantNetwork.VpnAttachmentSetID,
+            var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantNetwork.VpnAttachmentSetID,
                 includeProperties:"Vpn", AsTrackable:false);
-            var vpn = await UnitOfWork.VpnRepository.GetByIDAsync(vpnTenantNetwork.VpnAttachmentSet.VpnID);
+            var vpnAttachmentSet = dbResult.SingleOrDefault();
+
+            if (vpnAttachmentSet == null)
+            {
+                validationResult.Add("The Attachment Set was not found.");
+                validationResult.IsValid = false;
+            }
+
+            var vpn = vpnAttachmentSet.Vpn;
 
             if (vpn.IsExtranet)
             {
@@ -60,17 +73,21 @@ namespace SCM.Services.SCMServices
                     validationResult.IsValid = false;
                 }
             }
-
-            var existingVpnTenantNetworkResult = await UnitOfWork.VpnTenantNetworkRepository.GetAsync(q => q.TenantNetworkID == vpnTenantNetwork.TenantNetworkID, 
-                includeProperties: "TenantNetwork,VpnAttachmentSet.Vpn", AsTrackable: false);
-            var existingVpnTenantNetwork = existingVpnTenantNetworkResult.SingleOrDefault();
-
-            if (existingVpnTenantNetwork != null)
+            else
             {
-                validationResult.Add("Tenant Network " + existingVpnTenantNetwork.TenantNetwork.IpPrefix 
-                    + "/" + existingVpnTenantNetwork.TenantNetwork.Length 
-                    + " is already bound to VPN " + vpnTenantNetwork.VpnAttachmentSet.Vpn.Name + ".");
-                validationResult.IsValid = false;
+
+                var existingVpnTenantNetworkResult = await UnitOfWork.VpnTenantNetworkRepository.GetAsync(q => q.TenantNetworkID == vpnTenantNetwork.TenantNetworkID,
+                    includeProperties: "TenantNetwork,VpnAttachmentSet.Vpn", AsTrackable: false);
+                var existingVpnTenantNetwork = existingVpnTenantNetworkResult.SingleOrDefault();
+
+                if (existingVpnTenantNetwork != null)
+                {
+
+                    validationResult.Add("Tenant Network " + existingVpnTenantNetwork.TenantNetwork.IpPrefix
+                        + "/" + existingVpnTenantNetwork.TenantNetwork.Length
+                        + " is already bound to VPN " + existingVpnTenantNetwork.VpnAttachmentSet.Vpn.Name + ".");
+                    validationResult.IsValid = false;
+                }
             }
 
             return validationResult;

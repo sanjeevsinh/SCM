@@ -72,21 +72,26 @@ namespace SCM.Services.SCMServices
 
             if (vpn.Plane == null)
             {
-                var redPlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Red").Count();
-                var bluePlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Blue").Count();
 
-                if (redPlaneAttachmentCount == 0)
+                if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Gold")
                 {
-                    validationResult.Add("This Attachment Set does not contain any attachments into the Red Plane. "
-                        + " There must be at least one Red Plane attachment in the set.");
-                    validationResult.IsValid = false;
-                }
 
-                if (bluePlaneAttachmentCount == 0)
-                {
-                    validationResult.Add("This Attachment Set does not contain any attachments into the Blue Plane. "
-                        + " There must be at least one Blue Plane attachment in the set.");
-                    validationResult.IsValid = false;
+                    var redPlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Red").Count();
+                    var bluePlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Blue").Count();
+
+                    if (redPlaneAttachmentCount == 0)
+                    {
+                        validationResult.Add("This Attachment Set does not contain any attachments into the Red Plane. "
+                            + " There must be at least one Red Plane attachment in the set.");
+                        validationResult.IsValid = false;
+                    }
+
+                    if (bluePlaneAttachmentCount == 0)
+                    {
+                        validationResult.Add("This Attachment Set does not contain any attachments into the Blue Plane. "
+                            + " There must be at least one Blue Plane attachment in the set.");
+                        validationResult.IsValid = false;
+                    }
                 }
             }
             else 
@@ -100,6 +105,7 @@ namespace SCM.Services.SCMServices
 
                 else if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Custom")
                 {
+
                     if (attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == vpn.Plane.Name).Count() != attachmentSet.AttachmentSetVrfs.Count())
                     {
                         validationResult.Add("One or more VRFs in the Attachment Set are not located in the required Plane ('" + vpn.Plane.Name + "') for the VPN.");

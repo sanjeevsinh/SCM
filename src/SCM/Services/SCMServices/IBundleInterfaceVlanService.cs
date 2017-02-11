@@ -14,5 +14,8 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(BundleInterfaceVlan bundleIfaceVlan);
         Task<int> UpdateAsync(BundleInterfaceVlan bundleIfaceVlan);
         Task<int> DeleteAsync(BundleInterfaceVlan bundleIfaceVlan);
+        Task<ServiceValidationResult> ValidateBundleInterfaceVlan(BundleInterfaceVlan bundleIfaceVlan);
+        Task<ServiceValidationResult> ValidateBundleInterfaceVlanChanges(BundleInterfaceVlan bundleIfaceVlan,
+            BundleInterfaceVlan currentBundleIfaceVlan);
     }
 }

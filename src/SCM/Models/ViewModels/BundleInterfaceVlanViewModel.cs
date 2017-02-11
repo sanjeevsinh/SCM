@@ -7,7 +7,7 @@ using System.Net;
 
 namespace SCM.Models.ViewModels
 {
-    public class BundleInterfaceVlanViewModel
+    public class BundleInterfaceVlanViewModel : IValidatableObject
     {
         [Display(AutoGenerateField = false)]
         public int BundleInterfaceVlanID { get; set; }
@@ -31,7 +31,43 @@ namespace SCM.Models.ViewModels
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
-        public  BundleInterfaceViewModel BundleInterface { get; set; }
+        public BundleInterfaceViewModel BundleInterface { get; set; }
 
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (IsLayer3)
+            {
+                if (string.IsNullOrEmpty(IpAddress))
+                {
+                    yield return new ValidationResult(
+                        "An IP address must be specified.");
+                }
+
+                if (string.IsNullOrEmpty(SubnetMask))
+                {
+                    yield return new ValidationResult(
+                        "A subnet mask must be specified.");
+                }
+                if (VrfID == null)
+                {
+                    yield return new ValidationResult(
+                        "A VRF must be selected.");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(IpAddress))
+                {
+                    yield return new ValidationResult(
+                        "An IP address cannot be specified.");
+                }
+
+                if (!string.IsNullOrEmpty(SubnetMask))
+                {
+                    yield return new ValidationResult(
+                        "A subnet mask cannot be specified.");
+                }
+            }
+        }
     }
 }

@@ -35,5 +35,99 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.BundleInterfaceRepository.Delete(bundleIfacePort);
             return await this.UnitOfWork.SaveAsync();
         }
-    }
+        /// <summary>
+        /// Validates a new bundle interface.
+        /// </summary>
+        /// <param name="iface"></param>
+        /// <returns></returns>
+        public async Task<ServiceValidationResult> ValidateBundleInterface(BundleInterface bundleIface)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            var dbVrfResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == bundleIface.VrfID,
+                includeProperties: "Interfaces.Port,BundleInterfaces,InterfaceVlans.Interface.Port,BundleInterfaceVlans.BundleInterface",
+                AsTrackable: false);
+            var vrf = dbVrfResult.SingleOrDefault();
+
+            if (vrf != null)
+            {
+
+                if (vrf.Interfaces.Count() > 0)
+                {
+                    var intface = vrf.Interfaces.Single();
+                    validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to interface "
+                        + intface.Port.Type + intface.Port.Name);
+
+                    validationResult.IsValid = false;
+                }
+
+                else if (vrf.BundleInterfaces.Count() > 0)
+                {
+                    var bundleIntface = vrf.BundleInterfaces.Single();
+                    if (bundleIface.BundleInterfaceID != bundleIntface.BundleInterfaceID)
+                    {
+                        validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to bundle interface "
+                            + bundleIntface.Name);
+
+                        validationResult.IsValid = false;
+                    }
+                }
+
+                else if (vrf.InterfaceVlans.Count() > 0)
+                {
+                    var ifaceVlan = vrf.InterfaceVlans.Single();
+                    validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
+                        + ifaceVlan.VlanTag + " of interface " + ifaceVlan.Interface.Port.Type + ifaceVlan.Interface.Port.Name);
+
+                    validationResult.IsValid = false;
+                }
+
+                else if (vrf.BundleInterfaceVlans.Count() > 0)
+                {
+                    var bundleIfaceVlan = vrf.BundleInterfaceVlans.Single();
+                    validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
+                        + bundleIfaceVlan.VlanTag + " of bundle interface " + bundleIfaceVlan.BundleInterface.Name);
+
+                    validationResult.IsValid = false;
+                }
+            }
+
+            return validationResult;
+        }
+        /// <summary>
+        /// Validate changes to a bundle interface
+        /// </summary>
+        /// <param name="bundleIface"></param>
+        /// <returns></returns>
+        public async Task<ServiceValidationResult> ValidateBundleInterfaceChanges(BundleInterface bundleIface, 
+            BundleInterface currentBundleIface)
+        {
+
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            if (currentBundleIface == null)
+            {
+                validationResult.Add("Unable to save changes. The bundle interface was deleted by another user.");
+                validationResult.IsValid = false;
+
+                return validationResult;
+            }
+
+            if (!bundleIface.IsTagged)
+            {
+                if (currentBundleIface.IsTagged && currentBundleIface.BundleInterfaceVlans.Count > 0)
+                {
+                    validationResult.Add("You cannot change this interface to untagged because "
+                    + "there are vlans configured. Delete the vlans first.");
+                    validationResult.IsValid = false;
+
+                    return validationResult;
+                }
+            }
+
+            return await ValidateBundleInterface(bundleIface);
+        }
+    }  
 }

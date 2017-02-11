@@ -10,7 +10,8 @@ namespace SCM.Models
     {
         public int BundleInterfaceID { get; set; }
         [Required]
-        public int ID { get; set; }
+        [MaxLength(15)]
+        public string Name { get; set; }
         public int InterfaceBandwidthID { get; set; }
         public bool IsTagged { get; set; }
         public bool IsLayer3 { get; set; }

@@ -81,7 +81,7 @@ namespace SCM.Controllers
                     return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
                 }
             }
-            catch (DbUpdateException /** ex **/ )
+            catch (DbUpdateException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.
                 ModelState.AddModelError("", "Unable to save changes. " +
@@ -170,7 +170,7 @@ namespace SCM.Controllers
                 ModelState.Remove("RowVersion");
             }
 
-            catch (DbUpdateException /* ex */)
+            catch (DbUpdateException /* ex */ )
             {
                 //Log the error (uncomment ex variable name and write a log.
                 ModelState.AddModelError("", "Unable to save changes. " +

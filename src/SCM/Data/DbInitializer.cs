@@ -131,6 +131,7 @@ namespace SCM.Data
             {
                 new InterfaceBandwidth {BandwidthKbps = 1000 },
                 new InterfaceBandwidth {BandwidthKbps = 10000 },
+                new InterfaceBandwidth {BandwidthKbps = 20000 },
                 new InterfaceBandwidth {BandwidthKbps = 40000 },
                 new InterfaceBandwidth {BandwidthKbps = 100000}
             };

@@ -14,8 +14,8 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Layer 3 Enabled")]
         public bool IsLayer3 { get; set; }
         [Required]
-        [Range(1,4000)]
-        public int ID { get; set; }
+        [StringLength(15)]
+        public string Name { get; set; }
         [Display(Name = "Tagged")]
         public bool IsTagged { get; set; }
         [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -30,7 +30,6 @@ namespace SCM.Models.ViewModels
         public int? VrfID { get; set; }
         [Required(ErrorMessage = "An interface bandwidth must be selected")]
         public int InterfaceBandwidthID { get; set; }
-        public int? EdgeQosPolicyID { get; set; }
         public byte[] RowVersion { get; set; }
         public Device Device { get; set; }
         [Display(Name = "VRF")]
@@ -56,19 +55,6 @@ namespace SCM.Models.ViewModels
                 {
                     yield return new ValidationResult(
                         "A VRF cannot be selected for tagged interfaces.");
-                }
-                if (EdgeQosPolicyID != null)
-                {
-                    yield return new ValidationResult(
-                        "An Edge QoS Policy cannot be selected for tagged interfaces.");
-                }
-            }
-            else
-            {
-                if (EdgeQosPolicyID == null)
-                {
-                    yield return new ValidationResult(
-                        "An Edge QoS Policy must be selected for untagged interfaces.");
                 }
             }
 

@@ -74,30 +74,22 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,PlaneID,RegionID,VpnTenancyTypeID,VpnTopologyTypeID,TenantID,IsExtranet")] VpnViewModel vpn)
         {
-            var mappedVpn = Mapper.Map<Vpn>(vpn);
-
             try
             {
                 if (ModelState.IsValid)
                 {
+                    var mappedVpn = Mapper.Map<Vpn>(vpn);
                     var validationResult = await VpnService.ValidateVpnAsync(mappedVpn);
+
                     if (!validationResult.IsValid)
                     {
-
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        ViewBag.VpnProtocolType = await GetProtocolTypeByTopologyType(vpn.VpnTopologyTypeID);
-
-                        await PopulatePlanesDropDownList(vpn.PlaneID);
-                        await PopulateTenantsDropDownList(vpn.TenantID);
-                        await PopulateRegionsDropDownList(vpn.RegionID);
-                        await PopulateTopologyTypesDropDownList(vpn.VpnTopologyTypeID, vpn.VpnTopologyTypeID);
-                        await PopulateTenancyTypesDropDownList(vpn.VpnTenancyTypeID);
-
-                        return View("CreateStep2", vpn);
                     }
-
-                    await VpnService.AddAsync(mappedVpn);
-                    return RedirectToAction("GetAll");
+                    else
+                    {
+                        await VpnService.AddAsync(mappedVpn);
+                        return RedirectToAction("GetAll");
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -162,29 +154,18 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentVpn == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vpn was deleted by another user.");
-                        return View(vpn);
-                    }
-
                     var mappedVpn = Mapper.Map<Vpn>(vpn);
-                    var validationResult = await VpnService.ValidateVpnChangesAsync(mappedVpn);
+                    var validationResult = await VpnService.ValidateVpnChangesAsync(mappedVpn, currentVpn);
+
                     if (!validationResult.IsValid)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-
-                        await PopulatePlanesDropDownList(currentVpn.PlaneID);
-                        await PopulateTenantsDropDownList(currentVpn.TenantID);
-                        await PopulateRegionsDropDownList(currentVpn.RegionID);
-                        await PopulateTopologyTypesDropDownList(currentVpn.VpnTopologyTypeID, currentVpn.VpnTopologyTypeID);
-                        await PopulateTenancyTypesDropDownList(currentVpn.VpnTenancyTypeID);
-
-                        return View(Mapper.Map <VpnViewModel>(currentVpn));
-                    } 
-
-                    await VpnService.UpdateAsync(mappedVpn);
-                    return RedirectToAction("GetAll");
+                    }
+                    else
+                    {
+                        await VpnService.UpdateAsync(mappedVpn);
+                        return RedirectToAction("GetAll");
+                    }
                 }
             }
 

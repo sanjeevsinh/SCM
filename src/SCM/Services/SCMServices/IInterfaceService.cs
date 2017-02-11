@@ -14,5 +14,7 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(Interface iface);
         Task<int> UpdateAsync(Interface iface);
         Task<int> DeleteAsync(Interface iface);
+        Task<ServiceValidationResult> ValidateInterface(Interface iface);
+        Task<ServiceValidationResult> ValidateInterfaceChanges(Interface iface, Interface currentIface);
     }
 }

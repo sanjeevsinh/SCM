@@ -42,7 +42,7 @@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.VpnAttachmentSetID }) |
+                @Html.ActionLink("Remove", "Delete", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Tenant Networks", "GetAllByVpnAttachmentSetID", "VpnTenantNetwork", new { id = item.VpnAttachmentSetID })
             </td>
         </tr>

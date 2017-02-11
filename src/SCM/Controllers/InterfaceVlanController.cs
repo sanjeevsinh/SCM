@@ -94,14 +94,16 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var mapped = Mapper.Map<InterfaceVlan>(ifaceVlan);
-                    if (!await ValidateInterfaceVlan(mapped.InterfaceID))
+                    var mappedIfaceVlan = Mapper.Map<InterfaceVlan>(ifaceVlan);
+                    var validationResult = await InterfaceVlanService.ValidateInterfaceVlan(mappedIfaceVlan);
+
+                    if (!validationResult.IsValid)
                     {
-                        ModelState.AddModelError(string.Empty, "A vlan cannot be created on an untagged interface.");
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
                     else
                     {
-                        await InterfaceVlanService.AddAsync(mapped);
+                        await InterfaceVlanService.AddAsync(mappedIfaceVlan);
                         return RedirectToAction("GetAllByInterfaceID", new { id = ifaceVlan.InterfaceID });
                     }
                 }
@@ -150,21 +152,24 @@ namespace SCM.Controllers
 
             var dbResult = await InterfaceVlanService.UnitOfWork.InterfaceVlanRepository.GetAsync(filter: d => d.InterfaceVlanID == id,
                includeProperties:"Vrf", AsTrackable: false);
-            var currentInterfaceVlan = dbResult.SingleOrDefault();
+            var currentIfaceVlan = dbResult.SingleOrDefault();
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentInterfaceVlan == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The vlan was deleted by another user.");
-                        await PopulateInterfaceItem(ifaceVlan.InterfaceID);
-                        return View(ifaceVlan);
-                    }
+                    var mappedIfaceVlan = Mapper.Map<InterfaceVlan>(ifaceVlan);
+                    var validationResult = await InterfaceVlanService.ValidateInterfaceVlanChanges(mappedIfaceVlan, currentIfaceVlan);
 
-                    await InterfaceVlanService.UpdateAsync(Mapper.Map<InterfaceVlan>(ifaceVlan));
-                    return RedirectToAction("GetAllByInterfaceID", new { id = ifaceVlan.InterfaceID });
+                    if (!validationResult.IsValid)
+                    {
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                    }
+                    else
+                    {
+                        await InterfaceVlanService.UpdateAsync(Mapper.Map<InterfaceVlan>(ifaceVlan));
+                        return RedirectToAction("GetAllByInterfaceID", new { id = ifaceVlan.InterfaceID });
+                    }
                 }
             }
 
@@ -173,27 +178,27 @@ namespace SCM.Controllers
                 var exceptionEntry = ex.Entries.Single();
 
                 var proposedIpAddress = (string)exceptionEntry.Property("IpAddress").CurrentValue;
-                if (currentInterfaceVlan.IpAddress != proposedIpAddress)
+                if (currentIfaceVlan.IpAddress != proposedIpAddress)
                 {
-                    ModelState.AddModelError("IpAddress", $"Current value: {currentInterfaceVlan.IpAddress}");
+                    ModelState.AddModelError("IpAddress", $"Current value: {currentIfaceVlan.IpAddress}");
                 }
 
                 var proposedSubnetMask = (string)exceptionEntry.Property("SubnetMask").CurrentValue;
-                if (currentInterfaceVlan.SubnetMask != proposedSubnetMask)
+                if (currentIfaceVlan.SubnetMask != proposedSubnetMask)
                 {
-                    ModelState.AddModelError("SubnetMask", $"Current value: {currentInterfaceVlan.SubnetMask}");
+                    ModelState.AddModelError("SubnetMask", $"Current value: {currentIfaceVlan.SubnetMask}");
                 }
 
                 var proposedVlanTag = (int)exceptionEntry.Property("VlanTag").CurrentValue;
-                if (currentInterfaceVlan.VlanTag != proposedVlanTag)
+                if (currentIfaceVlan.VlanTag != proposedVlanTag)
                 {
-                    ModelState.AddModelError("VlanTag", $"Current value: {currentInterfaceVlan.VlanTag}");
+                    ModelState.AddModelError("VlanTag", $"Current value: {currentIfaceVlan.VlanTag}");
                 }
 
                 var proposedVrfID = (int)exceptionEntry.Property("VrfID").CurrentValue;
-                if (currentInterfaceVlan.VrfID != proposedVrfID)
+                if (currentIfaceVlan.VrfID != proposedVrfID)
                 {
-                    ModelState.AddModelError("VrfID", $"Current value: {currentInterfaceVlan.Vrf.Name}");
+                    ModelState.AddModelError("VrfID", $"Current value: {currentIfaceVlan.Vrf.Name}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
@@ -213,9 +218,9 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateInterfaceItem(currentInterfaceVlan.InterfaceID);
-            await PopulateVrfsDropDownList(currentInterfaceVlan.InterfaceID);
-            return View(Mapper.Map<InterfaceVlanViewModel>(currentInterfaceVlan));
+            await PopulateInterfaceItem(currentIfaceVlan.InterfaceID);
+            await PopulateVrfsDropDownList(currentIfaceVlan.InterfaceID);
+            return View(Mapper.Map<InterfaceVlanViewModel>(currentIfaceVlan));
         }
 
         [HttpGet]
@@ -292,18 +297,6 @@ namespace SCM.Controllers
                 var vrfs = await InterfaceVlanService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == iface.Port.DeviceID);
                 ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
             }
-        }
-        
-        /// <summary>
-        /// Validates that an interface is tagged. If the interface is not tagged then vlans
-        /// cannot be created.
-        /// </summary>
-        /// <param name="ifaceVlan"></param>
-        /// <returns></returns>
-        private async Task<bool> ValidateInterfaceVlan(int ifaceID)
-        {
-            var iface = await InterfaceVlanService.UnitOfWork.InterfaceRepository.GetByIDAsync(ifaceID);
-            return iface.IsTagged;
         }
     }
 }
