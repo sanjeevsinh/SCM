@@ -234,13 +234,13 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Location>()
-                   .HasOne(c => c.AlternateLocation)
+            builder.Entity<BundleInterfacePort>()
+                   .HasOne(c => c.Port)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<BundleInterface>()
-                   .HasOne(c => c.Device)
+            builder.Entity<Location>()
+                   .HasOne(c => c.AlternateLocation)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 

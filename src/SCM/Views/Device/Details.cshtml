@@ -6,6 +6,8 @@
 
 <h2>Details</h2>
 
+<p class="text-danger">@ViewData["SyncErrorMessage"]</p>
+
 <div>
     <h4>Device</h4>
     <hr />
@@ -36,7 +38,11 @@
         </dd>
     </dl>
 </div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new {  id = Model.ID  }) |
-    <a asp-action="GetAll">Back to List</a>
-</div>
+<form asp-action="Sync">
+    <input type="hidden" asp-for="ID" />
+    <div class="form-actions no-color">
+        <input type="submit" value="Sync to Network" class="btn btn-default" /> |
+        @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+        <a asp-action="GetAll">Back to List</a>
+    </div>
+</form>

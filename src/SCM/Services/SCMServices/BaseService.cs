@@ -1,4 +1,5 @@
-﻿using SCM.Data;
+﻿using AutoMapper;
+using SCM.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,16 @@ namespace SCM.Services.SCMServices
     public abstract class BaseService
     {
         public IUnitOfWork UnitOfWork { get; set; }
+        public IMapper Mapper { get; set; }
+
         public BaseService(IUnitOfWork unitOfWork)
         {
             UnitOfWork = unitOfWork;
+        }
+        public BaseService(IUnitOfWork unitOfWork, IMapper mapper)
+        {
+            UnitOfWork = unitOfWork;
+            Mapper = mapper;
         }
     }
 }

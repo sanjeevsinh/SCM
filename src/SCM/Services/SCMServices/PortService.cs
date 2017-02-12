@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using SCM.Data;
 using SCM.Models;
+using SCM.Models.NetModels;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace SCM.Services.SCMServices
 {
     public class PortService : BaseService, IPortService
     {
-        public PortService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public PortService(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
         }
 

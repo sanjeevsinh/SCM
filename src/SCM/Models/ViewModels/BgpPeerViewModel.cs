@@ -22,6 +22,7 @@ namespace SCM.Models.ViewModels
         public int? MaximumRoutes { get; set; }
         public int VrfID { get; set; }
         public byte[] RowVersion { get; set; }
+        [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
     }
 }

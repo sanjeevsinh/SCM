@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Data;
+using SCM.Models.NetModels;
+using AutoMapper;
 
 namespace SCM.Services.SCMServices
 {
     public class DeviceService : BaseService, IDeviceService
     {
-        public DeviceService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public DeviceService(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
         }
 
@@ -40,6 +42,33 @@ namespace SCM.Services.SCMServices
         {
             this.UnitOfWork.DeviceRepository.Delete(device);
             return await this.UnitOfWork.SaveAsync();
+        }
+
+        public async Task<ServiceNetworkSyncResult<PeAttachmentNetModel>> SyncToNetwork(int deviceID)
+        {
+            var syncResult = new ServiceNetworkSyncResult<PeAttachmentNetModel>();
+            syncResult.IsSuccess = true;
+
+            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, 
+                includeProperties: "Ports.Interface.InterfaceBandwidth," 
+                    + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,Ports.Interface.Vrf.BgpPeers,BundleInterfaces.Vrf.BgpPeers,"
+                    + "BundleInterfaces.InterfaceBandwidth,BundleInterfaces.BundleInterfacePorts," 
+                    + "BundleInterfaces.BundleInterfaceVlans.Vrf.BgpPeers");
+
+            var device = deviceDbResult.SingleOrDefault();
+            if (device == null)
+            {
+                syncResult.Add("The Device was not found.");
+                syncResult.IsSuccess = false;
+            }
+            else
+            {
+                var peAttachment = Mapper.Map<PeAttachmentNetModel>(device);
+                syncResult.NetModel = peAttachment;
+            }
+
+            return syncResult;
+
         }
     }
 }

@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170212162252_Update24")]
+    partial class Update24
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -187,7 +188,8 @@ namespace SCM.Migrations
 
                     b.HasIndex("BundleInterfaceID");
 
-                    b.HasIndex("PortID");
+                    b.HasIndex("PortID")
+                        .IsUnique();
 
                     b.ToTable("BundleInterfacePort");
                 });
@@ -451,8 +453,6 @@ namespace SCM.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("BundleInterfacePortID");
-
                     b.Property<int>("DeviceID");
 
                     b.Property<string>("Name")
@@ -472,8 +472,6 @@ namespace SCM.Migrations
                         .HasMaxLength(50);
 
                     b.HasKey("ID");
-
-                    b.HasIndex("BundleInterfacePortID");
 
                     b.HasIndex("DeviceID");
 
@@ -873,9 +871,8 @@ namespace SCM.Migrations
             modelBuilder.Entity("SCM.Models.BundleInterface", b =>
                 {
                     b.HasOne("SCM.Models.Device", "Device")
-                        .WithMany("BundleInterfaces")
-                        .HasForeignKey("DeviceID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .WithMany()
+                        .HasForeignKey("DeviceID");
 
                     b.HasOne("SCM.Models.InterfaceBandwidth", "InterfaceBandwidth")
                         .WithMany()
@@ -894,8 +891,9 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Port", "Port")
-                        .WithMany()
-                        .HasForeignKey("PortID");
+                        .WithOne("BundleInterfacePort")
+                        .HasForeignKey("SCM.Models.BundleInterfacePort", "PortID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.BundleInterfaceVlan", b =>
@@ -978,10 +976,6 @@ namespace SCM.Migrations
 
             modelBuilder.Entity("SCM.Models.Port", b =>
                 {
-                    b.HasOne("SCM.Models.BundleInterfacePort", "BundleInterfacePort")
-                        .WithMany()
-                        .HasForeignKey("BundleInterfacePortID");
-
                     b.HasOne("SCM.Models.Device", "Device")
                         .WithMany("Ports")
                         .HasForeignKey("DeviceID")

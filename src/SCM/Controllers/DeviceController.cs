@@ -47,6 +47,23 @@ namespace SCM.Controllers
             return View(Mapper.Map<DeviceViewModel>(item));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Sync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var syncResult = await DeviceService.SyncToNetwork(id.Value);
+            if (!syncResult.IsSuccess)
+            {
+                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+            }
+
+            return Json(syncResult.NetModel);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Create()
         {
