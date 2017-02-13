@@ -200,7 +200,7 @@ namespace SCM.Controllers
                 var proposedInterfaceBandwidthID = (int)exceptionEntry.Property("InterfaceBandwidthID").CurrentValue;
                 if (currentBundleIface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
                 {
-                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleIface.InterfaceBandwidth.BandwidthKbps}");
+                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleIface.InterfaceBandwidth.BandwidthGbps}");
                 }
 
                 var proposedVrfID = (int?)exceptionEntry.Property("VrfID").CurrentValue;

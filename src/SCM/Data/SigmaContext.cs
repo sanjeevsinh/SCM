@@ -130,12 +130,12 @@ namespace SCM.Data
             // Interface bandwidth options must be unique
 
             builder.Entity<InterfaceBandwidth>()
-            .HasIndex(p => p.BandwidthKbps).IsUnique();
+            .HasIndex(p => p.BandwidthGbps).IsUnique();
 
             // Port bandwidth options must be unique
 
             builder.Entity<PortBandwidth>()
-            .HasIndex(p => p.BandwidthKbps).IsUnique();
+            .HasIndex(p => p.BandwidthGbps).IsUnique();
 
             // Ports must be unique per Device
 

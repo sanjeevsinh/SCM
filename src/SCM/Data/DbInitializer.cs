@@ -116,10 +116,10 @@ namespace SCM.Data
 
             var portBandwidths = new List<PortBandwidth>
             {
-                new PortBandwidth {BandwidthKbps = 1000 },
-                new PortBandwidth {BandwidthKbps = 10000 },
-                new PortBandwidth {BandwidthKbps = 40000 },
-                new PortBandwidth {BandwidthKbps = 100000}
+                new PortBandwidth {BandwidthGbps = 1 },
+                new PortBandwidth {BandwidthGbps = 10 },
+                new PortBandwidth {BandwidthGbps = 40 },
+                new PortBandwidth {BandwidthGbps = 100}
             };
 
             foreach (PortBandwidth p in portBandwidths)
@@ -129,11 +129,11 @@ namespace SCM.Data
 
             var interfaceBandwidths = new List<InterfaceBandwidth>
             {
-                new InterfaceBandwidth {BandwidthKbps = 1000 },
-                new InterfaceBandwidth {BandwidthKbps = 10000 },
-                new InterfaceBandwidth {BandwidthKbps = 20000 },
-                new InterfaceBandwidth {BandwidthKbps = 40000 },
-                new InterfaceBandwidth {BandwidthKbps = 100000}
+                new InterfaceBandwidth {BandwidthGbps = 1 },
+                new InterfaceBandwidth {BandwidthGbps = 10 },
+                new InterfaceBandwidth {BandwidthGbps = 20 },
+                new InterfaceBandwidth {BandwidthGbps = 40 },
+                new InterfaceBandwidth {BandwidthGbps = 100 }
             };
 
             foreach (InterfaceBandwidth p in interfaceBandwidths)

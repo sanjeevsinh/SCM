@@ -61,7 +61,7 @@ namespace SCM.Controllers
                 ViewData["SyncErrorMessage"] = syncResult.GetMessage();
             }
 
-            return Json(syncResult.NetModel);
+            return Content(syncResult.XmlResult, "text/xml");
         }
 
         [HttpGet]

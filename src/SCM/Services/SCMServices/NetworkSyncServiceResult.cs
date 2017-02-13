@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using System.IO;
+using System.Text;
 
 namespace SCM.Services.SCMServices
 {
-    public class ServiceNetworkSyncResult<T>
+    public class NetworkSyncServiceResult
     {
         private List<string> Messages = new List<string>();
 
@@ -20,6 +23,6 @@ namespace SCM.Services.SCMServices
             Messages.Add(message);
         }
 
-        public T NetModel { get; set; } 
+        public string XmlResult { get; set; }
     }
 }

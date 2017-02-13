@@ -11,6 +11,7 @@ namespace SCM.Services.SCMServices
     {
         public IUnitOfWork UnitOfWork { get; set; }
         public IMapper Mapper { get; set; }
+        public INetworkSyncService NetSync { get; set; }
 
         public BaseService(IUnitOfWork unitOfWork)
         {
@@ -20,6 +21,13 @@ namespace SCM.Services.SCMServices
         {
             UnitOfWork = unitOfWork;
             Mapper = mapper;
+        }
+
+        public BaseService(IUnitOfWork unitOfWork, IMapper mapper, INetworkSyncService netsync)
+        {
+            UnitOfWork = unitOfWork;
+            Mapper = mapper;
+            NetSync = netsync;
         }
     }
 }

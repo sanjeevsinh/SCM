@@ -204,7 +204,7 @@ namespace SCM.Controllers
                 var proposedInterfaceBandwidthID = (int)exceptionEntry.Property("InterfaceBandwidthID").CurrentValue;
                 if (currentIface.InterfaceBandwidthID != proposedInterfaceBandwidthID)
                 {
-                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentIface.InterfaceBandwidth.BandwidthKbps}");
+                    ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentIface.InterfaceBandwidth.BandwidthGbps}");
                 }
 
                 var proposedVrfID = (int?)exceptionEntry.Property("VrfID").CurrentValue;
@@ -306,7 +306,7 @@ namespace SCM.Controllers
         private async Task PopulateInterfaceBandwidthsDropDownList(object selectedInterfaceBandwidth = null)
         {
             var interfaceBandwidths = await InterfaceService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
-            ViewBag.InterfaceBandwidthID = new SelectList(interfaceBandwidths, "InterfaceBandwidthID", "BandwidthKbps", selectedInterfaceBandwidth);
+            ViewBag.InterfaceBandwidthID = new SelectList(interfaceBandwidths, "InterfaceBandwidthID", "BandwidthGbps", selectedInterfaceBandwidth);
         }
         private async Task PopulateVrfsDropDownList(int portID, object selectedVrf = null)
         {

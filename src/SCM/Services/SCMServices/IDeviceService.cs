@@ -16,6 +16,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(Device device);
         Task<int> UpdateAsync(Device device);
         Task<int> DeleteAsync(Device device);
-        Task<ServiceNetworkSyncResult<PeAttachmentNetModel>> SyncToNetwork(int deviceID);
+        Task<NetworkSyncServiceResult> SyncToNetwork(int deviceID);
     }
 }

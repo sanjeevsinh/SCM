@@ -28,7 +28,7 @@ namespace SCM.Models.ViewModels
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
-        [Display(Name ="Interface Bandwidth (Kbps)")]
+        [Display(Name ="Interface Bandwidth (Gbps)")]
         public InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
         public Port Port { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

@@ -9,7 +9,7 @@ namespace SCM.Models.ViewModels
     {
         [Display(AutoGenerateField = false)]
         public int PortBandwidthID { get; set; }
-        public int BandwidthKbps { get; set; }
+        public int BandwidthGbps { get; set; }
         public byte[] RowVersion { get; set; }
     }
 }

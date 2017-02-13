@@ -12,7 +12,7 @@ namespace SCM.Models.ViewModels
         public int ID { get; set; }
         [StringLength(50)]
         [Required(AllowEmptyStrings = false, ErrorMessage = "A device name must be specified")]
-        [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "The device name must contain letters and numbers only and no whitespace.")]
+        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The device name must contain letters, numbers, or dashes (-) only and no whitespace.")]
         public string Name { get; set; }
         [StringLength(250)]
         public string Description { get; set; }

@@ -11,7 +11,7 @@ namespace SCM.Services.SCMServices
 {
     public class DeviceService : BaseService, IDeviceService
     {
-        public DeviceService(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
+        public DeviceService(IUnitOfWork unitOfWork, IMapper mapper, INetworkSyncService netsync) : base(unitOfWork, mapper, netsync)
         {
         }
 
@@ -44,9 +44,9 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceNetworkSyncResult<PeAttachmentNetModel>> SyncToNetwork(int deviceID)
+        public async Task<NetworkSyncServiceResult> SyncToNetwork(int deviceID)
         {
-            var syncResult = new ServiceNetworkSyncResult<PeAttachmentNetModel>();
+            var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, 
@@ -63,12 +63,13 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-                var peAttachment = Mapper.Map<PeAttachmentNetModel>(device);
-                syncResult.NetModel = peAttachment;
+                var attachmentServiceModelData = new AttachmentServiceNetModel();
+                attachmentServiceModelData.PEs = Mapper.Map<List<PeAttachmentNetModel>>(deviceDbResult);
+
+                syncResult = await NetSync.SyncToNetwork(attachmentServiceModelData, "/attachment");
             }
 
             return syncResult;
-
         }
     }
 }

@@ -24,7 +24,7 @@ namespace SCM.Models.ViewModels
         public TenantViewModel Tenant { get; set; }
         [Required(ErrorMessage = "A port bandwidth must be selected")]
         public int PortBandwidthID { get; set; }
-        [Display(Name="Port Bandwidth (Kbps)")]
+        [Display(Name="Port Bandwidth (Gbps)")]
         public PortBandwidthViewModel PortBandwidth { get; set; }
     }
 }

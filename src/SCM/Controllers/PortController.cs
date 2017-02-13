@@ -202,7 +202,7 @@ namespace SCM.Controllers
                 var proposedPortBandwidthID = (int)exceptionEntry.Property("PortBandwidthID").CurrentValue;
                 if (currentPort.PortBandwidthID != proposedPortBandwidthID)
                 {
-                    ModelState.AddModelError("PortBandwidthID", $"Current value: {currentPort.PortBandwidth.BandwidthKbps}");
+                    ModelState.AddModelError("PortBandwidthID", $"Current value: {currentPort.PortBandwidth.BandwidthGbps}");
                 }
 
                 var proposedTenantID = (int)exceptionEntry.Property("TenantID").CurrentValue;
@@ -299,7 +299,7 @@ namespace SCM.Controllers
         private async Task PopulatePortBandwidthsDropDownList(object selectedPortBandwidth = null)
         {
             var portBandwidths = await PortService.UnitOfWork.PortBandwidthRepository.GetAsync();
-            ViewBag.PortBandwidthID = new SelectList(portBandwidths, "PortBandwidthID", "BandwidthKbps", selectedPortBandwidth);
+            ViewBag.PortBandwidthID = new SelectList(portBandwidths, "PortBandwidthID", "BandwidthGbps", selectedPortBandwidth);
         }
         private async Task PopulateTenantsDropDownList(object selectedTenant = null)
         {

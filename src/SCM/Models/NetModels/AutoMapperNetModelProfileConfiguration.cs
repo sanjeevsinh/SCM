@@ -13,20 +13,20 @@ namespace SCM.Models.NetModels
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interface.Port.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Interface.Port.Name))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Interface.IsLayer3))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthKbps))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Interface));
 
             CreateMap<BundleInterface, UntaggedAttachmentBundleInterfaceNetModel>()
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
                 .ForMember(dest => dest.BundleInterfaceID, conf => conf.MapFrom(src => src.Name))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthKbps))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src));
 
             CreateMap<BundleInterface, TaggedAttachmentBundleInterfaceNetModel>()
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
                 .ForMember(dest => dest.BundleInterfaceID, conf => conf.MapFrom(src => src.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthKbps))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.BundleInterfaceVlans));
 
             CreateMap<BundleInterfacePort, BundleInterfaceMemberNetModel>()
@@ -36,13 +36,8 @@ namespace SCM.Models.NetModels
             CreateMap<Port, TaggedAttachmentInterfaceNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interface.Port.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Interface.Port.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthKbps))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Interface.InterfaceVlans));
-
-            CreateMap<Vrf, VrfNetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Name))
-                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.AdministratorSubField))
-                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.AssignedNumberSubField));
 
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
@@ -54,17 +49,34 @@ namespace SCM.Models.NetModels
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.Layer3Vrf, conf => conf.MapFrom(src => src));
 
+            CreateMap<Interface, Layer3NetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<InterfaceVlan, Layer3NetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<BundleInterface, Layer3NetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<BundleInterfaceVlan, Layer3NetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<Vrf, VrfNetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Name))
+                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.AdministratorSubField))
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.AssignedNumberSubField));
+
             CreateMap<BgpPeer, BgpPeerNetModel>()
                 .ForMember(dest => dest.PeerIpv4Address, conf => conf.MapFrom(src => src.IpAddress))
                 .ForMember(dest => dest.PeerAutonomousSystem, conf => conf.MapFrom(src => src.AutonomousSystem));
-
-            CreateMap<Interface, Layer3NetModel>().ConvertUsing(new InterfaceTypeConverter());
-
-            CreateMap<InterfaceVlan, Layer3NetModel>().ConvertUsing(new InterfaceVlanTypeConverter());
-
-            CreateMap<BundleInterface, Layer3NetModel>().ConvertUsing(new BundleInterfaceTypeConverter());
-
-            CreateMap<BundleInterfaceVlan, Layer3NetModel>().ConvertUsing(new BundleInterfaceVlanTypeConverter());
 
             CreateMap<Device, PeAttachmentNetModel>().ConvertUsing(new DeviceTypeConverter());
         }
@@ -81,7 +93,7 @@ namespace SCM.Models.NetModels
                 var taggedAttachmentBundleInterfaces = new List<TaggedAttachmentBundleInterfaceNetModel>();
 
                 result.PEName = source.Name;
-                result.Vrfs = Mapper.Map<IList<VrfNetModel>>(source.Vrfs);
+                result.Vrfs = Mapper.Map<List<VrfNetModel>>(source.Vrfs);
 
                 if (source.Ports != null)
                 {
@@ -123,89 +135,6 @@ namespace SCM.Models.NetModels
                 result.UntaggedAttachmentBundleInterfaces = untaggedAttachmentBundleInterfaces;
 
                 return result;
-            }
-        }
-
-        public class InterfaceTypeConverter : ITypeConverter<Interface, Layer3NetModel>
-        {
-            public Layer3NetModel Convert(Interface source, Layer3NetModel destination, ResolutionContext context)
-            {
-                var Mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    var result = new Layer3NetModel();
-
-                    result.VrfName = source.Vrf.Name;
-                    result.IpAddress = source.IpAddress;
-                    result.IpSubnetMask = source.SubnetMask;
-
-                    return result;
-                }
-
-                return null;
-            }
-        }
-
-        public class BundleInterfaceTypeConverter : ITypeConverter<BundleInterface, Layer3NetModel>
-        {
-            public Layer3NetModel Convert(BundleInterface source, Layer3NetModel destination, ResolutionContext context)
-            {
-                var Mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    var result = new Layer3NetModel();
-
-                    result.VrfName = source.Vrf.Name;
-                    result.IpAddress = source.IpAddress;
-                    result.IpSubnetMask = source.SubnetMask;
-
-                    return result;
-                }
-
-                return null;
-            }
-        }
-
-        public class InterfaceVlanTypeConverter : ITypeConverter<InterfaceVlan, Layer3NetModel>
-        {
-            public Layer3NetModel Convert(InterfaceVlan source, Layer3NetModel destination, ResolutionContext context)
-            {
-                var Mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    var result = new Layer3NetModel();
-
-                    result.VrfName = source.Vrf.Name;
-                    result.IpAddress = source.IpAddress;
-                    result.IpSubnetMask = source.SubnetMask;
-
-                    return result;
-                }
-
-                return null;
-            }
-        }
-        public class BundleInterfaceVlanTypeConverter : ITypeConverter<BundleInterfaceVlan, Layer3NetModel>
-        {
-            public Layer3NetModel Convert(BundleInterfaceVlan source, Layer3NetModel destination, ResolutionContext context)
-            {
-                var Mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    var result = new Layer3NetModel();
-
-                    result.VrfName = source.Vrf.Name;
-                    result.IpAddress = source.IpAddress;
-                    result.IpSubnetMask = source.SubnetMask;
-
-                    return result;
-                }
-
-                return null;
             }
         }
     }
