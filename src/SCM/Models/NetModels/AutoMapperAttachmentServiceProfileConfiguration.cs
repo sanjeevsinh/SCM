@@ -3,11 +3,11 @@ using SCM.Models;
 using System.Collections.Generic;
 using System;
 
-namespace SCM.Models.NetModels
+namespace SCM.Models.NetModels.Attachment
 {
-    public class AutoMapperNetModelProfileConfiguration : Profile
+    public class AutoMapperAttachmentServiceProfileConfiguration : Profile
     {
-        public AutoMapperNetModelProfileConfiguration()
+        public AutoMapperAttachmentServiceProfileConfiguration()
         {
             CreateMap<Port, UntaggedAttachmentInterfaceNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interface.Port.Type))

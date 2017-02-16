@@ -12,7 +12,8 @@ using Microsoft.Extensions.Logging;
 using SCM.Data;
 using SCM.Models;
 using SCM.Models.ViewModels;
-using SCM.Models.NetModels;
+using SCM.Models.NetModels.Attachment;
+using SCM.Models.NetModels.IpVpn;
 using SCM.Services;
 using SCM.Services.SCMServices;
 using AutoMapper;
@@ -43,7 +44,8 @@ namespace SCM
             MapperConfiguration = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile(new AutoMapperViewModelProfileConfiguration());
-                cfg.AddProfile(new AutoMapperNetModelProfileConfiguration());
+                cfg.AddProfile(new AutoMapperAttachmentServiceProfileConfiguration());
+                cfg.AddProfile(new AutoMapperIpVpnServiceProfileConfiguration());
             });
         }
 

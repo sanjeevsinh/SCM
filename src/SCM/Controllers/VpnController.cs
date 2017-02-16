@@ -50,6 +50,34 @@ namespace SCM.Controllers
             return View(Mapper.Map<VpnViewModel>(item));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Sync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var syncResult = await VpnService.SyncToNetwork(id.Value);
+            if (!syncResult.IsSuccess)
+            {
+
+                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+                var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
+                includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
+                var item = dbResult.SingleOrDefault();
+
+                if (item == null)
+                {
+                    return NotFound();
+                }
+
+                return View("Details", Mapper.Map<VpnViewModel>(item));
+            }
+
+            return Content(syncResult.XmlResult, "text/xml");
+        }
+
         [HttpGet]
         public async Task<IActionResult> CreateStep1()
         {
@@ -79,7 +107,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedVpn = Mapper.Map<Vpn>(vpn);
-                    var validationResult = await VpnService.ValidateVpnAsync(mappedVpn);
+                    var validationResult = await VpnService.ValidateCreateVpnAsync(mappedVpn);
 
                     if (!validationResult.IsValid)
                     {
@@ -101,7 +129,6 @@ namespace SCM.Controllers
             }
 
             ViewBag.VpnProtocolType = await GetProtocolTypeByTopologyType(vpn.VpnTopologyTypeID);
-
 
             await PopulatePlanesDropDownList(vpn.PlaneID);
             await PopulateTenantsDropDownList(vpn.TenantID);

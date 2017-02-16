@@ -13,6 +13,6 @@ namespace SCM.Models
         public string Name { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
-        public ICollection<SubRegion> SubRegions { get; set; }
+        public virtual ICollection<SubRegion> SubRegions { get; set; }
     }
 }

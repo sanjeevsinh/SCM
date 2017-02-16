@@ -246,11 +246,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var bundleIface = await BundleInterfaceService.GetByIDAsync(id.Value);
+            var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == id.Value,
+                includeProperties:"InterfaceBandwidth,Vrf");
+            var bundleIface = dbResult.SingleOrDefault();
+
             if (bundleIface == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
+                    await PopulateDeviceItem(bundleIface.DeviceID);
                     return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
                 }
 
@@ -267,6 +271,7 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
+            await PopulateDeviceItem(bundleIface.DeviceID);
             return View(Mapper.Map<BundleInterfaceViewModel>(bundleIface));
         }
 
@@ -276,7 +281,7 @@ namespace SCM.Controllers
         {
             try
             {
-                var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(filter: d => d.DeviceID == bundleIface.DeviceID,
+                var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == bundleIface.BundleInterfaceID,
                     AsTrackable: false);
                 var currentBundleInterface = dbResult.SingleOrDefault();
 
@@ -284,6 +289,8 @@ namespace SCM.Controllers
                 {
                     await BundleInterfaceService.DeleteAsync(Mapper.Map<BundleInterface>(bundleIface));
                 }
+
+                await PopulateDeviceItem(bundleIface.DeviceID);
                 return RedirectToAction("GetAllByDeviceID", new { id = bundleIface.DeviceID });
             }
 
@@ -293,6 +300,7 @@ namespace SCM.Controllers
                 return RedirectToAction("Delete", new { concurrencyError = true, id = bundleIface.BundleInterfaceID });
             }
         }
+
         private async Task PopulateDeviceItem(int deviceID)
         {
             var device = await BundleInterfaceService.UnitOfWork.DeviceRepository.GetByIDAsync(deviceID);
@@ -302,7 +310,7 @@ namespace SCM.Controllers
         private async Task PopulateInterfaceBandwidthsDropDownList(object selectedInterfaceBandwidth = null)
         {
             var interfaceBandwidths = await BundleInterfaceService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
-            ViewBag.InterfaceBandwidthID = new SelectList(interfaceBandwidths, "InterfaceBandwidthID", "BandwidthKbps", selectedInterfaceBandwidth);
+            ViewBag.InterfaceBandwidthID = new SelectList(interfaceBandwidths, "InterfaceBandwidthID", "BandwidthGbps", selectedInterfaceBandwidth);
         }
         private async Task PopulateVrfsDropDownList(int deviceID, object selectedVrf = null)
         {

@@ -23,6 +23,6 @@ namespace SCM.Models
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
         public virtual Port Port { get; set; }
-        public ICollection<InterfaceVlan> InterfaceVlans { get; set; }
+        public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

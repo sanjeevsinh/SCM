@@ -250,7 +250,9 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var iface = await InterfaceService.GetByIDAsync(id.Value);
+            var dbResult = await InterfaceService.UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id.Value, includeProperties:"InterfaceBandwidth,Vrf");
+            var iface = dbResult.SingleOrDefault();
+
             if (iface == null)
             {
                 if (concurrencyError.GetValueOrDefault())

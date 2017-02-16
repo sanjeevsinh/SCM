@@ -74,6 +74,113 @@ namespace SCM.Data
             builder.Entity<Plane>().ToTable("Plane");
             builder.Entity<Vrf>().ToTable("Vrf");
 
+            // Prevent cascade deletes
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.SubRegion)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.Region)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.ContractBandwidth)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.AttachmentRedundancy)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<BundleInterface>()
+                   .HasOne(c => c.InterfaceBandwidth)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<BundleInterfacePort>()
+                   .HasOne(c => c.Port)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Device>()
+                    .HasOne(c => c.Plane)
+                    .WithMany()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Device>()
+                   .HasOne(c => c.Location)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Interface>()
+                   .HasOne(c => c.InterfaceBandwidth)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Location>()
+                   .HasOne(c => c.AlternateLocation)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Port>()
+                   .HasOne(c => c.PortBandwidth)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vpn>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttachmentSet>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TenantNetwork>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vrf>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Port>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vpn>()
+                   .HasOne(c => c.Plane)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vpn>()
+                   .HasOne(c => c.Region)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vpn>()
+                   .HasOne(c => c.VpnTopologyType)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vpn>()
+                   .HasOne(c => c.VpnTenancyType)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<VpnTopologyType>()
+                   .HasOne(c => c.VpnProtocolType)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
             // Set Indexes to ensure data uniqueness
 
 
@@ -149,7 +256,7 @@ namespace SCM.Data
 
             builder.Entity<SubRegion>()
             .HasIndex(p => p.Name).IsUnique();
-            
+
             // Route Targets must be unique
 
             builder.Entity<RouteTarget>()
@@ -174,9 +281,9 @@ namespace SCM.Data
 
             builder.Entity<AttachmentRedundancy>()
             .HasIndex(p => new { p.Name }).IsUnique();
-            
+
             // Tenants must be unique
-            
+
             builder.Entity<Tenant>()
             .HasIndex(p => p.Name).IsUnique();
 
@@ -201,53 +308,6 @@ namespace SCM.Data
 
             builder.Entity<BgpPeer>()
             .HasIndex(p => new { p.VrfID, p.IpAddress }).IsUnique();
-
-            // Prevent cascade deletes
-
-            builder.Entity<AttachmentSet>()
-                   .HasOne(c => c.SubRegion)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<AttachmentSetVrf>()
-                   .HasOne(c => c.Vrf)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<VpnAttachmentSet>()
-                   .HasOne(c => c.Vpn)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Port>()
-                   .HasOne(c => c.PortBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Interface>()
-                   .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<BundleInterface>()
-                   .HasOne(c => c.InterfaceBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<BundleInterfacePort>()
-                   .HasOne(c => c.Port)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Location>()
-                   .HasOne(c => c.AlternateLocation)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<VpnTenantNetwork>()
-                   .HasOne(c => c.VpnAttachmentSet)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

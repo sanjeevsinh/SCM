@@ -11,7 +11,7 @@ namespace SCM.Models
         public int MultiPortPortID { get; set; }
         public int PortID { get; set; }
         public int MultiPortID { get; set; }
-        public Port Port { get; set; }
-        public MultiPort MultiPort { get; set; }
+        public virtual Port Port { get; set; }
+        public virtual MultiPort MultiPort { get; set; }
     }
 }

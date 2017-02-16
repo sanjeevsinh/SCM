@@ -15,6 +15,6 @@ namespace SCM.Models
         public string BgpPeerSourceIpAddress { get; set; } 
         [Timestamp]
         public byte[] RowVersion { get; set; }
-        public ICollection<MultiPortPort> MultiPortPorts { get; set; }
+        public virtual ICollection<MultiPortPort> MultiPortPorts { get; set; }
     }
 }

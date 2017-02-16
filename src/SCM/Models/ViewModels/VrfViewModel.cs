@@ -11,7 +11,7 @@ namespace SCM.Models.ViewModels
         [Display(AutoGenerateField = false)]
         public int VrfID { get; set; }
         [Required(AllowEmptyStrings = false, ErrorMessage = "A name must be specified")]
-        [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "The name must contain letters and numbers only and no whitespace.")]
+        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The name must contain letters, numbers, and dashes (-) only and no whitespace.")]
         [StringLength(50)]
         public string Name { get; set; }
         [Display(Name = "Administrator Sub-Field")]

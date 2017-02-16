@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using SCM.Data;
 using SCM.Models;
+using SCM.Models.NetModels.IpVpn;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace SCM.Services.SCMServices
 {
     public class VpnService : BaseService, IVpnService
     {
-        public VpnService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public VpnService(IUnitOfWork unitOfWork, IMapper mapper, INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
         {
         }
 
@@ -46,7 +48,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpn"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateVpnAsync(Vpn vpn)
+        public async Task<ServiceValidationResult> ValidateCreateVpnAsync(Vpn vpn)
         {
             var validationResult = new ServiceValidationResult();
             validationResult.IsValid = true;
@@ -112,6 +114,68 @@ namespace SCM.Services.SCMServices
                 {
                     validationResult.Add("The Tenancy Type cannot be changed because Attachment Sets are bound to this VPN.");
                     validationResult.IsValid = false;
+                }
+            }
+
+            return validationResult;
+        }
+        public async Task<NetworkSyncServiceResult> SyncToNetwork(int vpnID)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+            syncResult.IsSuccess = true;
+
+            var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID,
+                includeProperties: "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
+                    + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,VpnTopologyType,RouteTargets");
+
+            var vpn = vpnDbResult.SingleOrDefault();
+            if (vpn == null)
+            {
+                syncResult.Add("The VPN was not found.");
+                syncResult.IsSuccess = false;
+            }
+            else
+            {
+                var validationResult = ValidateVpn(vpn);
+                if (!validationResult.IsValid)
+                {
+                    syncResult.Add(validationResult.GetMessage());
+                    syncResult.IsSuccess = false;
+
+                    return syncResult;
+                }
+
+                var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
+                syncResult = await NetSync.SyncToNetwork(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+            }
+
+            return syncResult;
+        }
+
+        /// <summary>
+        /// Validate a VPN before syncing to the network
+        /// </summary>
+        /// <param name="vpn"></param>
+        /// <returns></returns>
+        private ServiceValidationResult ValidateVpn(Vpn vpn)
+        {
+            var validationResult = new ServiceValidationResult();
+            validationResult.IsValid = true;
+
+            if (vpn.VpnTopologyType.TopologyType == "Any-to-Any")
+            {
+                if (vpn.RouteTargets.Count() != 1)
+                {
+                    validationResult.IsValid = false;
+                    validationResult.Add("Route targets must be correctly defined for the VPN.");
+                }
+            }
+            else
+            {
+                if (vpn.RouteTargets.Count() != 2)
+                {
+                    validationResult.IsValid = false;
+                    validationResult.Add("Route targets must be correctly defined for the VPN.");
                 }
             }
 

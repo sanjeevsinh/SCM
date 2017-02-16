@@ -26,6 +26,7 @@ namespace SCM.Models
         public virtual Region Region { get; set; }
         public virtual VpnTopologyType VpnTopologyType { get; set; }
         public virtual VpnTenancyType VpnTenancyType { get; set; }
-        public ICollection<RouteTarget> RouteTargets { get; set; }
+        public virtual ICollection<RouteTarget> RouteTargets { get; set; }
+        public virtual ICollection<VpnAttachmentSet> VpnAttachmentSets { get; set; }
     }
 }

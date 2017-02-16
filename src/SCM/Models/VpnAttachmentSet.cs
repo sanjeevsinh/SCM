@@ -15,5 +15,6 @@ namespace SCM.Models
         public virtual Vpn Vpn { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
+        public virtual ICollection<VpnTenantNetwork> VpnTenantNetworks { get; set; }
     }
 }

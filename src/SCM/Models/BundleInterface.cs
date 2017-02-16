@@ -26,7 +26,7 @@ namespace SCM.Models
         public virtual Device Device { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
-        public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
-        public ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
+        public virtual ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
+        public virtual ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
-namespace SCM.Models.NetModels
+namespace SCM.Models.NetModels.Attachment
 {
     public class Layer3NetModel
     {

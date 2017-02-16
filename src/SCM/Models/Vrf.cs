@@ -22,11 +22,11 @@ namespace SCM.Models
         public byte[] RowVersion { get; set; }
         public virtual Device Device { get; set; }
         public virtual Tenant Tenant { get; set; }
-        public ICollection<Interface> Interfaces { get; set; }
-        public ICollection<BundleInterface> BundleInterfaces { get; set; }
-        public ICollection<InterfaceVlan> InterfaceVlans { get; set; }
-        public ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
-        public ICollection<BgpPeer> BgpPeers { get; set; }
+        public virtual ICollection<Interface> Interfaces { get; set; }
+        public virtual ICollection<BundleInterface> BundleInterfaces { get; set; }
+        public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
+        public virtual ICollection<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
+        public virtual ICollection<BgpPeer> BgpPeers { get; set; }
 
     }
 }

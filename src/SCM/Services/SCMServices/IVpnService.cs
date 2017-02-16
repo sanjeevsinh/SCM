@@ -16,7 +16,8 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(Vpn vpn);
         Task<int> UpdateAsync(Vpn vpn);
         Task<int> DeleteAsync(Vpn vpn);
-        Task<ServiceValidationResult> ValidateVpnAsync(Vpn vpn);
+        Task<ServiceValidationResult> ValidateCreateVpnAsync(Vpn vpn);
         Task<ServiceValidationResult> ValidateVpnChangesAsync(Vpn vpn, Vpn currentVpn);
+        Task<NetworkSyncServiceResult> SyncToNetwork(int vpnID);
     }
 }

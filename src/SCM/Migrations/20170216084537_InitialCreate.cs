@@ -43,7 +43,7 @@ namespace SCM.Migrations
                 {
                     InterfaceBandwidthID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    BandwidthKbps = table.Column<int>(nullable: false),
+                    BandwidthGbps = table.Column<int>(nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -57,6 +57,7 @@ namespace SCM.Migrations
                 {
                     MultiPortID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    BgpPeerSourceIpAddress = table.Column<string>(nullable: true),
                     Name = table.Column<string>(maxLength: 50, nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
@@ -84,7 +85,7 @@ namespace SCM.Migrations
                 {
                     PortBandwidthID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    BandwidthKbps = table.Column<int>(nullable: false),
+                    BandwidthGbps = table.Column<int>(nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -118,22 +119,6 @@ namespace SCM.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tenant", x => x.TenantID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TenantNetwork",
-                columns: table => new
-                {
-                    TenantNetworkID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    IpPrefix = table.Column<string>(maxLength: 15, nullable: true),
-                    Length = table.Column<int>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    TenantNetworkVpnID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TenantNetwork", x => x.TenantNetworkID);
                 });
 
             migrationBuilder.CreateTable(
@@ -186,6 +171,29 @@ namespace SCM.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TenantNetwork",
+                columns: table => new
+                {
+                    TenantNetworkID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    AllowExtranet = table.Column<bool>(nullable: false),
+                    IpPrefix = table.Column<string>(maxLength: 15, nullable: true),
+                    Length = table.Column<int>(nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    TenantID = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TenantNetwork", x => x.TenantNetworkID);
+                    table.ForeignKey(
+                        name: "FK_TenantNetwork_Tenant_TenantID",
+                        column: x => x.TenantID,
+                        principalTable: "Tenant",
+                        principalColumn: "TenantID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VpnTopologyType",
                 columns: table => new
                 {
@@ -193,7 +201,8 @@ namespace SCM.Migrations
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     TopologyType = table.Column<string>(maxLength: 50, nullable: false),
-                    VpnProtocolTypeID = table.Column<int>(nullable: false)
+                    VpnProtocolTypeID = table.Column<int>(nullable: false),
+                    VpnProtocolTypeID1 = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -203,7 +212,13 @@ namespace SCM.Migrations
                         column: x => x.VpnProtocolTypeID,
                         principalTable: "VpnProtocolType",
                         principalColumn: "VpnProtocolTypeID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_VpnTopologyType_VpnProtocolType_VpnProtocolTypeID1",
+                        column: x => x.VpnProtocolTypeID1,
+                        principalTable: "VpnProtocolType",
+                        principalColumn: "VpnProtocolTypeID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -229,19 +244,19 @@ namespace SCM.Migrations
                         column: x => x.AttachmentRedundancyID,
                         principalTable: "AttachmentRedundancy",
                         principalColumn: "AttachmentRedundancyID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AttachmentSet_ContractBandwidth_ContractBandwidthID",
                         column: x => x.ContractBandwidthID,
                         principalTable: "ContractBandwidth",
                         principalColumn: "ContractBandwidthID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AttachmentSet_Region_RegionID",
                         column: x => x.RegionID,
                         principalTable: "Region",
                         principalColumn: "RegionID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AttachmentSet_SubRegion_SubRegionID",
                         column: x => x.SubRegionID,
@@ -253,7 +268,7 @@ namespace SCM.Migrations
                         column: x => x.TenantID,
                         principalTable: "Tenant",
                         principalColumn: "TenantID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -299,7 +314,9 @@ namespace SCM.Migrations
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     TenantID = table.Column<int>(nullable: false),
                     VpnTenancyTypeID = table.Column<int>(nullable: false),
-                    VpnTopologyTypeID = table.Column<int>(nullable: false)
+                    VpnTenancyTypeID1 = table.Column<int>(nullable: true),
+                    VpnTopologyTypeID = table.Column<int>(nullable: false),
+                    VpnTopologyTypeID1 = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -321,19 +338,31 @@ namespace SCM.Migrations
                         column: x => x.TenantID,
                         principalTable: "Tenant",
                         principalColumn: "TenantID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Vpn_VpnTenancyType_VpnTenancyTypeID",
                         column: x => x.VpnTenancyTypeID,
                         principalTable: "VpnTenancyType",
                         principalColumn: "VpnTenancyTypeID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Vpn_VpnTenancyType_VpnTenancyTypeID1",
+                        column: x => x.VpnTenancyTypeID1,
+                        principalTable: "VpnTenancyType",
+                        principalColumn: "VpnTenancyTypeID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Vpn_VpnTopologyType_VpnTopologyTypeID",
                         column: x => x.VpnTopologyTypeID,
                         principalTable: "VpnTopologyType",
                         principalColumn: "VpnTopologyTypeID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Vpn_VpnTopologyType_VpnTopologyTypeID1",
+                        column: x => x.VpnTopologyTypeID1,
+                        principalTable: "VpnTopologyType",
+                        principalColumn: "VpnTopologyTypeID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -356,13 +385,13 @@ namespace SCM.Migrations
                         column: x => x.LocationID,
                         principalTable: "Location",
                         principalColumn: "LocationID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Device_Plane_PlaneID",
                         column: x => x.PlaneID,
                         principalTable: "Plane",
                         principalColumn: "PlaneID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -371,8 +400,8 @@ namespace SCM.Migrations
                 {
                     RouteTargetID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AdministratorSubField = table.Column<string>(nullable: true),
-                    AssignedNumberSubField = table.Column<string>(nullable: true),
+                    AdministratorSubField = table.Column<int>(nullable: false),
+                    AssignedNumberSubField = table.Column<int>(nullable: false),
                     IsHubExport = table.Column<bool>(nullable: false),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     VpnID = table.Column<int>(nullable: false)
@@ -412,6 +441,36 @@ namespace SCM.Migrations
                         column: x => x.VpnID,
                         principalTable: "Vpn",
                         principalColumn: "VpnID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Vrf",
+                columns: table => new
+                {
+                    VrfID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    AdministratorSubField = table.Column<int>(nullable: false),
+                    AssignedNumberSubField = table.Column<int>(nullable: false),
+                    DeviceID = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(maxLength: 50, nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    TenantID = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vrf", x => x.VrfID);
+                    table.ForeignKey(
+                        name: "FK_Vrf_Device_DeviceID",
+                        column: x => x.DeviceID,
+                        principalTable: "Device",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Vrf_Tenant_TenantID",
+                        column: x => x.TenantID,
+                        principalTable: "Tenant",
+                        principalColumn: "TenantID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -421,8 +480,9 @@ namespace SCM.Migrations
                 {
                     VpnTenantNetworkID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     TenantNetworkID = table.Column<int>(nullable: false),
-                    VpnID = table.Column<int>(nullable: false)
+                    VpnAttachmentSetID = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -434,10 +494,152 @@ namespace SCM.Migrations
                         principalColumn: "TenantNetworkID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_VpnTenantNetwork_Vpn_VpnID",
-                        column: x => x.VpnID,
-                        principalTable: "Vpn",
-                        principalColumn: "VpnID",
+                        name: "FK_VpnTenantNetwork_VpnAttachmentSet_VpnAttachmentSetID",
+                        column: x => x.VpnAttachmentSetID,
+                        principalTable: "VpnAttachmentSet",
+                        principalColumn: "VpnAttachmentSetID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AttachmentSetVrf",
+                columns: table => new
+                {
+                    AttachmentSetVrfID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    AttachmentSetID = table.Column<int>(nullable: false),
+                    Preference = table.Column<int>(nullable: true),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    VrfID = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttachmentSetVrf", x => x.AttachmentSetVrfID);
+                    table.ForeignKey(
+                        name: "FK_AttachmentSetVrf_AttachmentSet_AttachmentSetID",
+                        column: x => x.AttachmentSetID,
+                        principalTable: "AttachmentSet",
+                        principalColumn: "AttachmentSetID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AttachmentSetVrf_Vrf_VrfID",
+                        column: x => x.VrfID,
+                        principalTable: "Vrf",
+                        principalColumn: "VrfID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BgpPeer",
+                columns: table => new
+                {
+                    BgpPeerID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    AutonomousSystem = table.Column<int>(nullable: false),
+                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
+                    MaximumRoutes = table.Column<int>(nullable: true),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    VrfID = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BgpPeer", x => x.BgpPeerID);
+                    table.ForeignKey(
+                        name: "FK_BgpPeer_Vrf_VrfID",
+                        column: x => x.VrfID,
+                        principalTable: "Vrf",
+                        principalColumn: "VrfID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BundleInterface",
+                columns: table => new
+                {
+                    BundleInterfaceID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    DeviceID = table.Column<int>(nullable: false),
+                    InterfaceBandwidthID = table.Column<int>(nullable: false),
+                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
+                    IsLayer3 = table.Column<bool>(nullable: false),
+                    IsTagged = table.Column<bool>(nullable: false),
+                    Name = table.Column<string>(maxLength: 15, nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    SubnetMask = table.Column<string>(maxLength: 15, nullable: true),
+                    VrfID = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BundleInterface", x => x.BundleInterfaceID);
+                    table.ForeignKey(
+                        name: "FK_BundleInterface_Device_DeviceID",
+                        column: x => x.DeviceID,
+                        principalTable: "Device",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BundleInterface_InterfaceBandwidth_InterfaceBandwidthID",
+                        column: x => x.InterfaceBandwidthID,
+                        principalTable: "InterfaceBandwidth",
+                        principalColumn: "InterfaceBandwidthID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_BundleInterface_Vrf_VrfID",
+                        column: x => x.VrfID,
+                        principalTable: "Vrf",
+                        principalColumn: "VrfID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BundleInterfaceVlan",
+                columns: table => new
+                {
+                    BundleInterfaceVlanID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    BundleInterfaceID = table.Column<int>(nullable: false),
+                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
+                    IsLayer3 = table.Column<bool>(nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
+                    SubnetMask = table.Column<string>(maxLength: 15, nullable: true),
+                    VlanTag = table.Column<int>(nullable: false),
+                    VrfID = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BundleInterfaceVlan", x => x.BundleInterfaceVlanID);
+                    table.ForeignKey(
+                        name: "FK_BundleInterfaceVlan_BundleInterface_BundleInterfaceID",
+                        column: x => x.BundleInterfaceID,
+                        principalTable: "BundleInterface",
+                        principalColumn: "BundleInterfaceID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BundleInterfaceVlan_Vrf_VrfID",
+                        column: x => x.VrfID,
+                        principalTable: "Vrf",
+                        principalColumn: "VrfID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BundleInterfacePort",
+                columns: table => new
+                {
+                    BundleInterfacePortID = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    BundleInterfaceID = table.Column<int>(nullable: false),
+                    PortID = table.Column<int>(nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BundleInterfacePort", x => x.BundleInterfacePortID);
+                    table.ForeignKey(
+                        name: "FK_BundleInterfacePort_BundleInterface_BundleInterfaceID",
+                        column: x => x.BundleInterfaceID,
+                        principalTable: "BundleInterface",
+                        principalColumn: "BundleInterfaceID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -447,6 +649,7 @@ namespace SCM.Migrations
                 {
                     ID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    BundleInterfacePortID = table.Column<int>(nullable: true),
                     DeviceID = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: false),
                     PortBandwidthID = table.Column<int>(nullable: false),
@@ -457,6 +660,12 @@ namespace SCM.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Port", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Port_BundleInterfacePort_BundleInterfacePortID",
+                        column: x => x.BundleInterfacePortID,
+                        principalTable: "BundleInterfacePort",
+                        principalColumn: "BundleInterfacePortID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Port_Device_DeviceID",
                         column: x => x.DeviceID,
@@ -474,151 +683,6 @@ namespace SCM.Migrations
                         column: x => x.TenantID,
                         principalTable: "Tenant",
                         principalColumn: "TenantID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Vrfs",
-                columns: table => new
-                {
-                    VrfID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AdministratorSubField = table.Column<string>(maxLength: 16, nullable: false),
-                    AssignedNumberSubField = table.Column<string>(maxLength: 16, nullable: false),
-                    DeviceID = table.Column<int>(nullable: false),
-                    Name = table.Column<string>(maxLength: 50, nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    TenantID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Vrfs", x => x.VrfID);
-                    table.ForeignKey(
-                        name: "FK_Vrfs_Device_DeviceID",
-                        column: x => x.DeviceID,
-                        principalTable: "Device",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Vrfs_Tenant_TenantID",
-                        column: x => x.TenantID,
-                        principalTable: "Tenant",
-                        principalColumn: "TenantID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MultiPortPort",
-                columns: table => new
-                {
-                    MultiPortPortID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    MultiPortID = table.Column<int>(nullable: false),
-                    PortID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MultiPortPort", x => x.MultiPortPortID);
-                    table.ForeignKey(
-                        name: "FK_MultiPortPort_MultiPort_MultiPortID",
-                        column: x => x.MultiPortID,
-                        principalTable: "MultiPort",
-                        principalColumn: "MultiPortID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MultiPortPort_Port_PortID",
-                        column: x => x.PortID,
-                        principalTable: "Port",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AttachmentSetVrf",
-                columns: table => new
-                {
-                    AttachmentSetVrfID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AttachmentSetID = table.Column<int>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    VrfID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttachmentSetVrf", x => x.AttachmentSetVrfID);
-                    table.ForeignKey(
-                        name: "FK_AttachmentSetVrf_AttachmentSet_AttachmentSetID",
-                        column: x => x.AttachmentSetID,
-                        principalTable: "AttachmentSet",
-                        principalColumn: "AttachmentSetID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AttachmentSetVrf_Vrfs_VrfID",
-                        column: x => x.VrfID,
-                        principalTable: "Vrfs",
-                        principalColumn: "VrfID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BgpPeer",
-                columns: table => new
-                {
-                    BgpPeerID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AutonomousSystem = table.Column<int>(nullable: false),
-                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
-                    MaximumRoutes = table.Column<int>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    VrfID = table.Column<int>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BgpPeer", x => x.BgpPeerID);
-                    table.ForeignKey(
-                        name: "FK_BgpPeer_Vrfs_VrfID",
-                        column: x => x.VrfID,
-                        principalTable: "Vrfs",
-                        principalColumn: "VrfID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BundleInterface",
-                columns: table => new
-                {
-                    BundleInterfaceID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    DeviceID = table.Column<int>(nullable: false),
-                    ID = table.Column<int>(nullable: false),
-                    InterfaceBandwidthID = table.Column<int>(nullable: false),
-                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
-                    IsLayer3 = table.Column<bool>(nullable: false),
-                    IsTagged = table.Column<bool>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    SubnetMask = table.Column<string>(maxLength: 15, nullable: true),
-                    VrfID = table.Column<int>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BundleInterface", x => x.BundleInterfaceID);
-                    table.ForeignKey(
-                        name: "FK_BundleInterface_Device_DeviceID",
-                        column: x => x.DeviceID,
-                        principalTable: "Device",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_BundleInterface_InterfaceBandwidth_InterfaceBandwidthID",
-                        column: x => x.InterfaceBandwidthID,
-                        principalTable: "InterfaceBandwidth",
-                        principalColumn: "InterfaceBandwidthID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_BundleInterface_Vrfs_VrfID",
-                        column: x => x.VrfID,
-                        principalTable: "Vrfs",
-                        principalColumn: "VrfID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -651,95 +715,36 @@ namespace SCM.Migrations
                         principalColumn: "InterfaceBandwidthID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Interface_Vrfs_VrfID",
+                        name: "FK_Interface_Vrf_VrfID",
                         column: x => x.VrfID,
-                        principalTable: "Vrfs",
+                        principalTable: "Vrf",
                         principalColumn: "VrfID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TenantNetworkBgpPeer",
+                name: "MultiPortPort",
                 columns: table => new
                 {
-                    TenantNetworkBgpPeerID = table.Column<int>(nullable: false)
+                    MultiPortPortID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    BgpPeerID = table.Column<int>(nullable: false),
-                    TenantNetworkID = table.Column<int>(nullable: false),
-                    Weight = table.Column<int>(nullable: true)
+                    MultiPortID = table.Column<int>(nullable: false),
+                    PortID = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TenantNetworkBgpPeer", x => x.TenantNetworkBgpPeerID);
+                    table.PrimaryKey("PK_MultiPortPort", x => x.MultiPortPortID);
                     table.ForeignKey(
-                        name: "FK_TenantNetworkBgpPeer_BgpPeer_BgpPeerID",
-                        column: x => x.BgpPeerID,
-                        principalTable: "BgpPeer",
-                        principalColumn: "BgpPeerID",
+                        name: "FK_MultiPortPort_MultiPort_MultiPortID",
+                        column: x => x.MultiPortID,
+                        principalTable: "MultiPort",
+                        principalColumn: "MultiPortID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TenantNetworkBgpPeer_TenantNetwork_TenantNetworkID",
-                        column: x => x.TenantNetworkID,
-                        principalTable: "TenantNetwork",
-                        principalColumn: "TenantNetworkID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BundleInterfacePort",
-                columns: table => new
-                {
-                    BundleInterfacePortID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    BundleInterfaceID = table.Column<int>(nullable: false),
-                    PortID = table.Column<int>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BundleInterfacePort", x => x.BundleInterfacePortID);
-                    table.ForeignKey(
-                        name: "FK_BundleInterfacePort_BundleInterface_BundleInterfaceID",
-                        column: x => x.BundleInterfaceID,
-                        principalTable: "BundleInterface",
-                        principalColumn: "BundleInterfaceID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BundleInterfacePort_Port_PortID",
+                        name: "FK_MultiPortPort_Port_PortID",
                         column: x => x.PortID,
                         principalTable: "Port",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BundleInterfaceVlan",
-                columns: table => new
-                {
-                    BundleInterfaceVlanID = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    BundleInterfaceID = table.Column<int>(nullable: false),
-                    IpAddress = table.Column<string>(maxLength: 15, nullable: true),
-                    IsLayer3 = table.Column<bool>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
-                    SubnetMask = table.Column<string>(maxLength: 15, nullable: true),
-                    VlanTag = table.Column<int>(nullable: false),
-                    VrfID = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BundleInterfaceVlan", x => x.BundleInterfaceVlanID);
-                    table.ForeignKey(
-                        name: "FK_BundleInterfaceVlan_BundleInterface_BundleInterfaceID",
-                        column: x => x.BundleInterfaceID,
-                        principalTable: "BundleInterface",
-                        principalColumn: "BundleInterfaceID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BundleInterfaceVlan_Vrfs_VrfID",
-                        column: x => x.VrfID,
-                        principalTable: "Vrfs",
-                        principalColumn: "VrfID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -755,7 +760,7 @@ namespace SCM.Migrations
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
                     SubnetMask = table.Column<string>(maxLength: 15, nullable: true),
                     VlanTag = table.Column<int>(nullable: false),
-                    VrfID = table.Column<int>(nullable: false)
+                    VrfID = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -767,9 +772,9 @@ namespace SCM.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_InterfaceVlan_Vrfs_VrfID",
+                        name: "FK_InterfaceVlan_Vrf_VrfID",
                         column: x => x.VrfID,
-                        principalTable: "Vrfs",
+                        principalTable: "Vrf",
                         principalColumn: "VrfID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -817,9 +822,10 @@ namespace SCM.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_BgpPeer_VrfID",
+                name: "IX_BgpPeer_VrfID_IpAddress",
                 table: "BgpPeer",
-                column: "VrfID");
+                columns: new[] { "VrfID", "IpAddress" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BundleInterface_InterfaceBandwidthID",
@@ -832,9 +838,9 @@ namespace SCM.Migrations
                 column: "VrfID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BundleInterface_DeviceID_ID",
+                name: "IX_BundleInterface_DeviceID_Name",
                 table: "BundleInterface",
-                columns: new[] { "DeviceID", "ID" },
+                columns: new[] { "DeviceID", "Name" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -892,9 +898,9 @@ namespace SCM.Migrations
                 column: "VrfID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InterfaceBandwidth_BandwidthKbps",
+                name: "IX_InterfaceBandwidth_BandwidthGbps",
                 table: "InterfaceBandwidth",
-                column: "BandwidthKbps",
+                column: "BandwidthGbps",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -932,13 +938,19 @@ namespace SCM.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_MultiPortPort_PortID",
                 table: "MultiPortPort",
-                column: "PortID");
+                column: "PortID",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Plane_Name",
                 table: "Plane",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Port_BundleInterfacePortID",
+                table: "Port",
+                column: "BundleInterfacePortID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Port_DeviceID",
@@ -962,9 +974,9 @@ namespace SCM.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PortBandwidth_BandwidthKbps",
+                name: "IX_PortBandwidth_BandwidthGbps",
                 table: "PortBandwidth",
-                column: "BandwidthKbps",
+                column: "BandwidthGbps",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1002,14 +1014,20 @@ namespace SCM.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TenantNetworkBgpPeer_TenantNetworkID",
-                table: "TenantNetworkBgpPeer",
-                column: "TenantNetworkID");
+                name: "IX_TenantNetwork_TenantID",
+                table: "TenantNetwork",
+                column: "TenantID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TenantNetworkBgpPeer_BgpPeerID_TenantNetworkID",
-                table: "TenantNetworkBgpPeer",
-                columns: new[] { "BgpPeerID", "TenantNetworkID" },
+                name: "IX_TenantNetwork_IpPrefix_Length",
+                table: "TenantNetwork",
+                columns: new[] { "IpPrefix", "Length" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vpn_Name",
+                table: "Vpn",
+                column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1033,9 +1051,19 @@ namespace SCM.Migrations
                 column: "VpnTenancyTypeID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Vpn_VpnTenancyTypeID1",
+                table: "Vpn",
+                column: "VpnTenancyTypeID1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Vpn_VpnTopologyTypeID",
                 table: "Vpn",
                 column: "VpnTopologyTypeID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vpn_VpnTopologyTypeID1",
+                table: "Vpn",
+                column: "VpnTopologyTypeID1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VpnAttachmentSet_VpnID",
@@ -1061,14 +1089,14 @@ namespace SCM.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_VpnTenantNetwork_VpnID",
+                name: "IX_VpnTenantNetwork_VpnAttachmentSetID",
                 table: "VpnTenantNetwork",
-                column: "VpnID");
+                column: "VpnAttachmentSetID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VpnTenantNetwork_TenantNetworkID_VpnID",
+                name: "IX_VpnTenantNetwork_TenantNetworkID_VpnAttachmentSetID",
                 table: "VpnTenantNetwork",
-                columns: new[] { "TenantNetworkID", "VpnID" },
+                columns: new[] { "TenantNetworkID", "VpnAttachmentSetID" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1077,35 +1105,94 @@ namespace SCM.Migrations
                 column: "VpnProtocolTypeID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VpnTopologyType_VpnProtocolTypeID1",
+                table: "VpnTopologyType",
+                column: "VpnProtocolTypeID1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VpnTopologyType_TopologyType_VpnProtocolTypeID",
                 table: "VpnTopologyType",
                 columns: new[] { "TopologyType", "VpnProtocolTypeID" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vrfs_DeviceID",
-                table: "Vrfs",
+                name: "IX_Vrf_DeviceID",
+                table: "Vrf",
                 column: "DeviceID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vrfs_TenantID",
-                table: "Vrfs",
+                name: "IX_Vrf_Name",
+                table: "Vrf",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vrf_TenantID",
+                table: "Vrf",
                 column: "TenantID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vrfs_AdministratorSubField_AssignedNumberSubField",
-                table: "Vrfs",
+                name: "IX_Vrf_AdministratorSubField_AssignedNumberSubField",
+                table: "Vrf",
                 columns: new[] { "AdministratorSubField", "AssignedNumberSubField" },
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BundleInterfacePort_Port_PortID",
+                table: "BundleInterfacePort",
+                column: "PortID",
+                principalTable: "Port",
+                principalColumn: "ID",
+                onDelete: ReferentialAction.Restrict);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_SubRegion_Region_RegionID",
+                table: "SubRegion");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Location_SubRegion_SubRegionID",
+                table: "Location");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Port_Tenant_TenantID",
+                table: "Port");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Vrf_Tenant_TenantID",
+                table: "Vrf");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_BundleInterface_Vrf_VrfID",
+                table: "BundleInterface");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_BundleInterface_Device_DeviceID",
+                table: "BundleInterface");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Port_Device_DeviceID",
+                table: "Port");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_BundleInterface_InterfaceBandwidth_InterfaceBandwidthID",
+                table: "BundleInterface");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_BundleInterfacePort_BundleInterface_BundleInterfaceID",
+                table: "BundleInterfacePort");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_BundleInterfacePort_Port_PortID",
+                table: "BundleInterfacePort");
+
             migrationBuilder.DropTable(
                 name: "AttachmentSetVrf");
 
             migrationBuilder.DropTable(
-                name: "BundleInterfacePort");
+                name: "BgpPeer");
 
             migrationBuilder.DropTable(
                 name: "BundleInterfaceVlan");
@@ -1120,16 +1207,7 @@ namespace SCM.Migrations
                 name: "RouteTarget");
 
             migrationBuilder.DropTable(
-                name: "TenantNetworkBgpPeer");
-
-            migrationBuilder.DropTable(
-                name: "VpnAttachmentSet");
-
-            migrationBuilder.DropTable(
                 name: "VpnTenantNetwork");
-
-            migrationBuilder.DropTable(
-                name: "BundleInterface");
 
             migrationBuilder.DropTable(
                 name: "Interface");
@@ -1138,25 +1216,16 @@ namespace SCM.Migrations
                 name: "MultiPort");
 
             migrationBuilder.DropTable(
-                name: "BgpPeer");
+                name: "TenantNetwork");
+
+            migrationBuilder.DropTable(
+                name: "VpnAttachmentSet");
 
             migrationBuilder.DropTable(
                 name: "AttachmentSet");
 
             migrationBuilder.DropTable(
-                name: "TenantNetwork");
-
-            migrationBuilder.DropTable(
                 name: "Vpn");
-
-            migrationBuilder.DropTable(
-                name: "Port");
-
-            migrationBuilder.DropTable(
-                name: "InterfaceBandwidth");
-
-            migrationBuilder.DropTable(
-                name: "Vrfs");
 
             migrationBuilder.DropTable(
                 name: "AttachmentRedundancy");
@@ -1171,16 +1240,22 @@ namespace SCM.Migrations
                 name: "VpnTopologyType");
 
             migrationBuilder.DropTable(
-                name: "PortBandwidth");
+                name: "VpnProtocolType");
 
             migrationBuilder.DropTable(
-                name: "Device");
+                name: "Region");
+
+            migrationBuilder.DropTable(
+                name: "SubRegion");
 
             migrationBuilder.DropTable(
                 name: "Tenant");
 
             migrationBuilder.DropTable(
-                name: "VpnProtocolType");
+                name: "Vrf");
+
+            migrationBuilder.DropTable(
+                name: "Device");
 
             migrationBuilder.DropTable(
                 name: "Location");
@@ -1189,10 +1264,19 @@ namespace SCM.Migrations
                 name: "Plane");
 
             migrationBuilder.DropTable(
-                name: "SubRegion");
+                name: "InterfaceBandwidth");
 
             migrationBuilder.DropTable(
-                name: "Region");
+                name: "BundleInterface");
+
+            migrationBuilder.DropTable(
+                name: "Port");
+
+            migrationBuilder.DropTable(
+                name: "BundleInterfacePort");
+
+            migrationBuilder.DropTable(
+                name: "PortBandwidth");
         }
     }
 }
