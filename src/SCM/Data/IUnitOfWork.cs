@@ -26,8 +26,10 @@ namespace SCM.Data
         GenericRepository<SubRegion> SubRegionRepository { get; }
         GenericRepository<Tenant> TenantRepository { get; }
         GenericRepository<TenantNetwork> TenantNetworkRepository { get; }
+        GenericRepository<TenantCommunity> TenantCommunityRepository { get; }
         GenericRepository<Vpn> VpnRepository { get; }
         GenericRepository<VpnTenantNetwork> VpnTenantNetworkRepository { get; }
+        GenericRepository<VpnTenantCommunity> VpnTenantCommunityRepository { get; }
         GenericRepository<VpnProtocolType> VpnProtocolTypeRepository { get; }
         GenericRepository<VpnTenancyType> VpnTenancyTypeRepository { get; }
         GenericRepository<VpnTopologyType> VpnTopologyTypeRepository { get; }

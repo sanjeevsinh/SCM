@@ -66,6 +66,7 @@ namespace SCM.Data
             builder.Entity<SubRegion>().ToTable("SubRegion");
             builder.Entity<Tenant>().ToTable("Tenant");
             builder.Entity<TenantNetwork>().ToTable("TenantNetwork");
+            builder.Entity<TenantCommunity>().ToTable("TenantCommunity");
             builder.Entity<Vpn>().ToTable("Vpn");
             builder.Entity<VpnTenantNetwork>().ToTable("VpnTenantNetwork");
             builder.Entity<VpnProtocolType>().ToTable("VpnProtocolType");
@@ -146,6 +147,11 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<TenantCommunity>()
+                   .HasOne(c => c.Tenant)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Vrf>()
                    .HasOne(c => c.Tenant)
                    .WithMany()
@@ -181,8 +187,17 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<AttachmentSetVrf>()
+                   .HasOne(c => c.Vrf)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
             // Set Indexes to ensure data uniqueness
 
+            // Names of Attachment Sets must be unique
+
+            builder.Entity<AttachmentSet>()
+            .HasIndex(p => new { p.Name }).IsUnique();
 
             // Ports which are members of a bundle interface must be unique
 
@@ -291,6 +306,11 @@ namespace SCM.Data
 
             builder.Entity<TenantNetwork>()
             .HasIndex(p => new { p.IpPrefix, p.Length }).IsUnique();
+
+            // Prevent duplicate Tenant Communities
+
+            builder.Entity<TenantCommunity>()
+            .HasIndex(p => new { p.AutonomousSystemNumber, p.Number }).IsUnique();
 
             // Planes must be unique
 

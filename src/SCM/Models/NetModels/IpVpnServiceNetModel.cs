@@ -23,6 +23,14 @@ namespace SCM.Models.NetModels.IpVpn
         public bool IsBgpLearned { get; set; }
     }
 
+    public class TenantCommunityNetModel
+    {
+        [XmlElement(ElementName = "autonomous-system-number")]
+        public int AutonomousSystemNumber { get; set; }
+        [XmlElement(ElementName = "number")]
+        public int Number { get; set; }
+    }
+
     public class PENetModel
     {
         [XmlElement(ElementName = "pe-name")]
@@ -35,6 +43,8 @@ namespace SCM.Models.NetModels.IpVpn
     {
         [XmlElement(ElementName = "vrf-name")]
         public string VrfName { get; set; }
+        [XmlElement(ElementName = "preference")]
+        public int Preference { get; set; }
     }
 
     public class VpnAttachmentSetNetModel
@@ -45,6 +55,8 @@ namespace SCM.Models.NetModels.IpVpn
         public List<PENetModel> PEs { get; set; }
         [XmlElement(ElementName = "tenant-ipv4-prefix")]
         public List<TenantPrefixNetModel> TenantPrefixes { get; set; }
+        [XmlElement(ElementName = "tenant-community")]
+        public List<TenantCommunityNetModel> TenantCommunities { get; set; }
     }
 
     [XmlRoot(ElementName = "vpn", Namespace = "urn:thomsonreuters:ip-vpn")]

@@ -106,7 +106,8 @@ namespace SCM.Models.NetModels.Attachment
         public Layer3NetModel Layer3Vrf { get; set; }
     }
 
-    public class PeAttachmentNetModel
+    [XmlRoot(ElementName = "pe", Namespace = "urn:thomsonreuters:attachment")]
+    public class AttachmentServiceNetModel
     {
         [XmlElement(ElementName ="pe-name")]
         public string PEName { get; set; }
@@ -125,12 +126,5 @@ namespace SCM.Models.NetModels.Attachment
 
         [XmlElement(ElementName = "tagged-attachment-bundle-interface")]
         public List<TaggedAttachmentBundleInterfaceNetModel> TaggedAttachmentBundleInterfaces { get; set; }
-    }
-
-    [XmlRoot(ElementName = "attachment", Namespace = "urn:thomsonreuters:attachment")]
-    public class AttachmentServiceNetModel
-    {
-        [XmlElement(ElementName = "pe")]
-        public List<PeAttachmentNetModel> PEs { get; set; }
     }
 }

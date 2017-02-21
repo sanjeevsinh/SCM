@@ -44,13 +44,39 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<NetworkSyncServiceResult> SyncToNetwork(int deviceID)
+        public async Task<NetworkSyncServiceResult> CheckSync(int deviceID)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+            syncResult.IsSuccess = true;
+
+            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
+                           includeProperties: "Vrfs,Ports.Interface.InterfaceBandwidth,"
+                               + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,Ports.Interface.Vrf.BgpPeers,BundleInterfaces.Vrf.BgpPeers,"
+                               + "BundleInterfaces.InterfaceBandwidth,BundleInterfaces.BundleInterfacePorts,"
+                               + "BundleInterfaces.BundleInterfaceVlans.Vrf.BgpPeers");
+
+            var device = deviceDbResult.SingleOrDefault();
+            if (device == null)
+            {
+                syncResult.Add("The Device was not found.");
+                syncResult.IsSuccess = false;
+            }
+            else
+            {
+                var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
+                syncResult = await NetSync.CheckSync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
+            }
+
+            return syncResult;
+        }
+
+        public async Task<NetworkSyncServiceResult> Sync(int deviceID)
         {
             var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, 
-                includeProperties: "Ports.Interface.InterfaceBandwidth," 
+                includeProperties: "Vrfs,Ports.Interface.InterfaceBandwidth," 
                     + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,Ports.Interface.Vrf.BgpPeers,BundleInterfaces.Vrf.BgpPeers,"
                     + "BundleInterfaces.InterfaceBandwidth,BundleInterfaces.BundleInterfacePorts," 
                     + "BundleInterfaces.BundleInterfaceVlans.Vrf.BgpPeers");
@@ -63,10 +89,8 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-                var attachmentServiceModelData = new AttachmentServiceNetModel();
-                attachmentServiceModelData.PEs = Mapper.Map<List<PeAttachmentNetModel>>(deviceDbResult);
-
-                syncResult = await NetSync.SyncToNetwork(attachmentServiceModelData, "/attachment");
+                var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
+                syncResult = await NetSync.Sync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
             }
 
             return syncResult;

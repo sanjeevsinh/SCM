@@ -1,0 +1,42 @@
+@model IEnumerable<SCM.Models.ViewModels.VpnTenantCommunityViewModel>
+
+@{
+    ViewData["Title"] = "Tenant Communities";
+}
+
+<h2>Communities for Tenant @ViewBag.VpnAttachmentSet.AttachmentSet.Tenant.Name in VPN @ViewBag.VpnAttachmentSet.Vpn.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Add New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.TenantCommunity.AutonomousSystemNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TenantCommunity.Number)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.TenantCommunity.AutonomousSystemNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TenantCommunity.Number)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.VpnTenantCommunityID }) |
+                @Html.ActionLink("Details", "Details", new { id=item.VpnTenantCommunityID }) |
+                @Html.ActionLink("Remove", "Delete", new { id=item.VpnTenantCommunityID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnID">Back to Attachment Sets</a>

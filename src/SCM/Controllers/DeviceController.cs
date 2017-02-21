@@ -48,6 +48,34 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> CheckSync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var checkSyncResult = await DeviceService.CheckSync(id.Value);
+            if (checkSyncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The Device is synchronised with the network.";
+            }
+            else
+            {
+                ViewData["SyncErrorMessage"] = "The Device is not synchronised with the network. Press the 'Sync' button to update the network.";
+            }
+
+            var item = await DeviceService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            return View("Details", Mapper.Map<DeviceViewModel>(item));
+        }
+
+
+        [HttpPost]
         public async Task<IActionResult> Sync(int? id)
         {
             if (id == null)
@@ -55,10 +83,17 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var syncResult = await DeviceService.SyncToNetwork(id.Value);
+            var syncResult = await DeviceService.Sync(id.Value);
             if (!syncResult.IsSuccess)
             {
                 ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+                var item = await DeviceService.GetByIDAsync(id.Value);
+                if (item == null)
+                {
+                    return NotFound();
+                }
+
+                return View("Details", Mapper.Map<DeviceViewModel>(item));
             }
 
             return Content(syncResult.XmlResult, "text/xml");
@@ -112,15 +147,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulatePlanesDropDownList(device.Plane);
-            await PopulateLocationsDropDownList(device.Location);
-
             return View(Mapper.Map<DeviceViewModel>(device));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ID,Name,Description,PlaneID,LocationID,RowVersion")] DeviceViewModel device)
+        public async Task<ActionResult> Edit(int id, [Bind("ID,Name,Description,RowVersion")] DeviceViewModel device)
         {
             if (id != device.ID)
             {
@@ -141,7 +173,10 @@ namespace SCM.Controllers
                         return View(device);
                     }
 
+                    device.PlaneID = currentDevice.PlaneID;
+                    device.LocationID = currentDevice.LocationID;
                     await DeviceService.UpdateAsync(Mapper.Map<Device>(device));
+
                     return RedirectToAction("GetAll");
                 }
             }
@@ -162,18 +197,6 @@ namespace SCM.Controllers
                     ModelState.AddModelError("Description", $"Current value: {currentDevice.Description}");
                 }
 
-                var proposedPlaneID = (int)exceptionEntry.Property("PlaneID").CurrentValue;
-                if (currentDevice.PlaneID != proposedPlaneID)
-                {
-                    ModelState.AddModelError("PlaneID", $"Current value: {currentDevice.Plane.Name}");
-                }
-
-                var proposedLocationID = (int)exceptionEntry.Property("LocationID").CurrentValue;
-                if (currentDevice.LocationID != proposedLocationID)
-                {
-                    ModelState.AddModelError("LocationID", $"Current value: {currentDevice.Location.SiteName}");
-                }
-
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
                     + "was modified by another user after you got the original value. The "
                     + "edit operation was cancelled and the current values in the database "
@@ -190,9 +213,6 @@ namespace SCM.Controllers
                     "Try again, and if the problem persists " +
                     "see your system administrator.");
             }
-
-            await PopulateLocationsDropDownList(device.Location);
-            await PopulatePlanesDropDownList(device.Plane);
 
             return View(Mapper.Map<DeviceViewModel>(device));
         }

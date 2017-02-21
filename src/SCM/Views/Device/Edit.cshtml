@@ -14,24 +14,6 @@
         <input type="hidden" asp-for="ID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-group">
-            <label asp-for="Plane" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="PlaneID" class="form-control" asp-items="ViewBag.PlaneID">
-                    <option value="">-- Select Plane --</option>
-                </select>
-                <span asp-validation-for="PlaneID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="Location" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="LocationID" class="form-control" asp-items="ViewBag.LocationID">
-                    <option value="">-- Select Location --</option>
-                </select>
-                <span asp-validation-for="LocationID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="Name" class="form-control" />

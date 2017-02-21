@@ -1,0 +1,52 @@
+@model SCM.Models.ViewModels.TenantCommunityViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create a new Tenant Community</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <h4>Tenant Network</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.Tenant.TenantID" />
+        <div class="form-group">
+            <label asp-for="AutonomousSystemNumber" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="AutonomousSystemNumber" class="form-control" />
+                <span asp-validation-for="AutonomousSystemNumber" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Number" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Number" class="form-control" />
+                <span asp-validation-for="Number" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <div class="checkbox">
+                    <input asp-for="AllowExtranet" />
+                    <label asp-for="AllowExtranet"></label>
+                </div>
+                <span asp-validation-for="AllowExtranet" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

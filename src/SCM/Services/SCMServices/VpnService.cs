@@ -117,16 +117,28 @@ namespace SCM.Services.SCMServices
                 }
             }
 
+            if (vpn.IsExtranet)
+            {
+                var VpnTopologyType = await UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
+                if (VpnTopologyType.TopologyType != "Hub-and-Spoke")
+                {
+                    validationResult.Add("The Extranet attribute can only be set for VPNs with the 'Hub-and-Spoke' topology.");
+                    validationResult.IsValid = false;
+                }
+            }
+
             return validationResult;
         }
-        public async Task<NetworkSyncServiceResult> SyncToNetwork(int vpnID)
+
+        public async Task<NetworkSyncServiceResult> CheckSync(int vpnID)
         {
             var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
 
             var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID,
                 includeProperties: "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
-                    + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,VpnTopologyType,RouteTargets");
+                    + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
+                    + "VpnTopologyType,RouteTargets");
 
             var vpn = vpnDbResult.SingleOrDefault();
             if (vpn == null)
@@ -146,7 +158,41 @@ namespace SCM.Services.SCMServices
                 }
 
                 var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
-                syncResult = await NetSync.SyncToNetwork(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+                syncResult = await NetSync.CheckSync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+            }
+
+            return syncResult;
+        }
+
+        public async Task<NetworkSyncServiceResult> Sync(int vpnID)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+            syncResult.IsSuccess = true;
+
+            var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID,
+                includeProperties: "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
+                    + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
+                    + "VpnTopologyType,RouteTargets");
+
+            var vpn = vpnDbResult.SingleOrDefault();
+            if (vpn == null)
+            {
+                syncResult.Add("The VPN was not found.");
+                syncResult.IsSuccess = false;
+            }
+            else
+            {
+                var validationResult = ValidateVpn(vpn);
+                if (!validationResult.IsValid)
+                {
+                    syncResult.Add(validationResult.GetMessage());
+                    syncResult.IsSuccess = false;
+
+                    return syncResult;
+                }
+
+                var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
+                syncResult = await NetSync.Sync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
             }
 
             return syncResult;

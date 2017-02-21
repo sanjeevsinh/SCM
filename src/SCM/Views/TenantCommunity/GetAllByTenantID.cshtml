@@ -1,0 +1,50 @@
+@model IEnumerable<SCM.Models.ViewModels.TenantCommunityViewModel>
+
+@{
+    ViewData["Title"] = "Tenant Communities";
+}
+
+<h2>Communities for Tenant @ViewBag.Tenant.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AutonomousSystemNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Number)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AllowExtranet)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.AutonomousSystemNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Number)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AllowExtranet)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.TenantCommunityID }) |
+                @Html.ActionLink("Details", "Details", new { id=item.TenantCommunityID }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.TenantCommunityID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+</div>

@@ -7,6 +7,7 @@ namespace SCM.Services.SCMServices
 {
     public interface INetworkSyncService
     {
-        Task<NetworkSyncServiceResult> SyncToNetwork(object item, string resource);
+        Task<NetworkSyncServiceResult> CheckSync(Object item, string resource = "");
+        Task<NetworkSyncServiceResult> Sync(object item, string resource);
     }
 }

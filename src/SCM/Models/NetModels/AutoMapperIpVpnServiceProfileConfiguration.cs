@@ -12,16 +12,22 @@ namespace SCM.Models.NetModels.IpVpn
         {
             CreateMap<RouteTarget, RouteTargetNetModel>();
 
-            CreateMap<Vrf, VrfNetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Name));
+            CreateMap<AttachmentSetVrf, VrfNetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.Preference, conf => conf.MapFrom(src => src.Preference));
 
             CreateMap<VpnAttachmentSet, VpnAttachmentSetNetModel>().ConvertUsing(new VpnAttachmentSetTypeConverter());
 
             CreateMap<Device, PENetModel>()
-                .ForMember(dest => dest.PEName, conf => conf.MapFrom(src => src.Name));
+                .ForMember(dest => dest.PEName, conf => conf.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Vrfs, conf => conf.Ignore());
 
             CreateMap<VpnTenantNetwork, TenantPrefixNetModel>()
                 .ForMember(dest => dest.Prefix, conf => conf.MapFrom(src => src.TenantNetwork.IpPrefix + "/" + src.TenantNetwork.Length));
+
+            CreateMap<VpnTenantCommunity, TenantCommunityNetModel>()
+                .ForMember(dest => dest.AutonomousSystemNumber, conf => conf.MapFrom(src => src.TenantCommunity.AutonomousSystemNumber))
+                .ForMember(dest => dest.Number, conf => conf.MapFrom(src => src.TenantCommunity.Number));
 
             CreateMap<Vpn, IpVpnServiceNetModel>().ConvertUsing(new VpnTypeConverter());
         }
@@ -61,12 +67,17 @@ namespace SCM.Models.NetModels.IpVpn
                 var result = new VpnAttachmentSetNetModel();
                 var Mapper = context.Mapper;
 
-                var devices = source.AttachmentSet.AttachmentSetVrfs.Select(s => s.Vrf.Device);
-                result.PEs = Mapper.Map<List<PENetModel>>(devices);
+                var devices = source.AttachmentSet.AttachmentSetVrfs.Select(s => s.Vrf.Device).ToList();
 
-                //var tenantNetworks = source.VpnTenantNetworks.Select(s => s.TenantNetwork);
+                var PEs = Mapper.Map<List<PENetModel>>(devices);
+                foreach (PENetModel PE in PEs)
+                {
+                    PE.Vrfs = Mapper.Map<List<VrfNetModel>>(source.AttachmentSet.AttachmentSetVrfs);
+                }
+
+                result.PEs = PEs;
                 result.TenantPrefixes = Mapper.Map<List<TenantPrefixNetModel>>(source.VpnTenantNetworks);
-
+                result.TenantCommunities = Mapper.Map<List<TenantCommunityNetModel>>(source.VpnTenantCommunities);
                 result.Name = source.AttachmentSet.Name;
 
                 return result;

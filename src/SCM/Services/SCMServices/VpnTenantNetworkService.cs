@@ -15,7 +15,7 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<VpnTenantNetwork>> GetAllAsync()
         {
-            return await this.UnitOfWork.VpnTenantNetworkRepository.GetAsync(includeProperties: "VpnAttachmentSet,VpnTenantNetwork");
+            return await this.UnitOfWork.VpnTenantNetworkRepository.GetAsync(includeProperties: "TenantNetwork,VpnAttachmentSet");
         }
 
         public async Task<VpnTenantNetwork> GetByIDAsync(int key)

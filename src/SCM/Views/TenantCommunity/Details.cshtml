@@ -1,0 +1,42 @@
+@model SCM.Models.ViewModels.TenantCommunityViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Tenant Community</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.AutonomousSystemNumber)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AutonomousSystemNumber)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Number)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Number)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AllowExtranet)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AllowExtranet)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantCommunityID }) |
+    <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+</div>

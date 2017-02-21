@@ -7,6 +7,7 @@
 <h2>Details</h2>
 
 <p class="text-danger">@ViewData["SyncErrorMessage"]</p>
+<p class="text-success">@ViewData["SyncSuccessMessage"]</p>
 
 <div>
     <h4>VPN</h4>
@@ -67,7 +68,8 @@
 </div>
 <form asp-action="Sync">
     <input type="hidden" asp-for="VpnID" name="id" />
-    <input type="submit" value="Sync to Network" class="btn btn-default" /> |
+    <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+    <input type="submit" value="Sync" class="btn btn-default" /> |
     @Html.ActionLink("Edit", "Edit", new { id = Model.VpnID }) |
     <a asp-action="GetAll">Back to List</a>
 </form>

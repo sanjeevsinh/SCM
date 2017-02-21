@@ -34,7 +34,9 @@ namespace SCM.Models.ViewModels
             CreateMap<VpnAttachmentSet, VpnAttachmentSetViewModel>().ReverseMap();
             CreateMap<BgpPeer, BgpPeerViewModel>().ReverseMap();
             CreateMap<TenantNetwork, TenantNetworkViewModel>().ReverseMap();
+            CreateMap<TenantCommunity, TenantCommunityViewModel>().ReverseMap();
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
+            CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
         }
     }
 }

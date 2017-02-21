@@ -78,14 +78,14 @@ namespace SCM.Models.NetModels.Attachment
                 .ForMember(dest => dest.PeerIpv4Address, conf => conf.MapFrom(src => src.IpAddress))
                 .ForMember(dest => dest.PeerAutonomousSystem, conf => conf.MapFrom(src => src.AutonomousSystem));
 
-            CreateMap<Device, PeAttachmentNetModel>().ConvertUsing(new DeviceTypeConverter());
+            CreateMap<Device, AttachmentServiceNetModel>().ConvertUsing(new DeviceTypeConverter());
         }
 
-        public class DeviceTypeConverter : ITypeConverter<Device, PeAttachmentNetModel>
+        public class DeviceTypeConverter : ITypeConverter<Device, AttachmentServiceNetModel>
         {
-            public PeAttachmentNetModel Convert(Device source, PeAttachmentNetModel destination, ResolutionContext context)
+            public AttachmentServiceNetModel Convert(Device source, AttachmentServiceNetModel destination, ResolutionContext context)
             {
-                var result = new PeAttachmentNetModel();
+                var result = new AttachmentServiceNetModel();
                 var Mapper = context.Mapper;
                 var untaggedAttachmentInterfaces = new List<UntaggedAttachmentInterfaceNetModel>();
                 var taggedAttachmentInterfaces = new List<TaggedAttachmentInterfaceNetModel>();

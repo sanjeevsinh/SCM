@@ -58,7 +58,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var syncResult = await VpnService.SyncToNetwork(id.Value);
+            var syncResult = await VpnService.Sync(id.Value);
             if (!syncResult.IsSuccess)
             {
 
@@ -72,10 +72,40 @@ namespace SCM.Controllers
                     return NotFound();
                 }
 
-                return View("Details", Mapper.Map<VpnViewModel>(item));
+             //   return View("Details", Mapper.Map<VpnViewModel>(item));
             }
 
             return Content(syncResult.XmlResult, "text/xml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckSync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var checkSyncResult = await VpnService.CheckSync(id.Value);
+            if (checkSyncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The VPN is synchronised with the network.";
+            }
+            else
+            {
+                ViewData["SyncErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
+            }
+
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
+            includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
+            var item = dbResult.SingleOrDefault();
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            return View("Details", Mapper.Map<VpnViewModel>(item));
         }
 
         [HttpGet]

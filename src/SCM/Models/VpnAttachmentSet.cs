@@ -16,5 +16,6 @@ namespace SCM.Models
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual ICollection<VpnTenantNetwork> VpnTenantNetworks { get; set; }
+        public virtual ICollection<VpnTenantCommunity> VpnTenantCommunities { get; set; }
     }
 }

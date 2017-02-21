@@ -13,5 +13,7 @@ namespace SCM.Models
         public string Name { get; set; }
         [Timestamp] 
         public byte[] RowVersion { get; set; }
+        public virtual ICollection<TenantNetwork> TenantNetworks { get; set; }
+        public virtual ICollection<TenantCommunity> TenantCommunities { get; set; }
     }
 }
