@@ -35,7 +35,7 @@ namespace SCM.Controllers
             var routeTargets = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.VpnID == id);
             await PopulateVpnItem(id.Value);
             var validateResult = await RouteTargetService.ValidateRouteTargetsAsync(id.Value);
-            if (!validateResult.IsValid)
+            if (!validateResult.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty,validateResult.GetMessage());
             }
@@ -90,7 +90,7 @@ namespace SCM.Controllers
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
                     var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         await PopulateVpnItem(routeTarget.VpnID);
@@ -159,7 +159,7 @@ namespace SCM.Controllers
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
                     var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         await PopulateVpnItem(currentRouteTarget.VpnID);
@@ -264,7 +264,7 @@ namespace SCM.Controllers
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
                     var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         await PopulateVpnItem(routeTarget.VpnID);

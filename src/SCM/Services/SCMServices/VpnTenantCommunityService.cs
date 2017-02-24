@@ -46,11 +46,11 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnTenantCommunity"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateVpnTenantCommunityAsync (VpnTenantCommunity vpnTenantCommunity)
+        public async Task<ServiceResult> ValidateVpnTenantCommunityAsync (VpnTenantCommunity vpnTenantCommunity)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
                   
             var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantCommunity.VpnAttachmentSetID,
                 includeProperties:"Vpn", AsTrackable:false);
@@ -59,7 +59,7 @@ namespace SCM.Services.SCMServices
             if (vpnAttachmentSet == null)
             {
                 validationResult.Add("The Attachment Set was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
             }
 
             var vpn = vpnAttachmentSet.Vpn;
@@ -70,7 +70,7 @@ namespace SCM.Services.SCMServices
                 if (!tenantCommunity.AllowExtranet)
                 {
                     validationResult.Add("Tenant Community " + tenantCommunity.AutonomousSystemNumber + ":" + tenantCommunity.Number + " is not enabled for Extranet.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
             else
@@ -86,7 +86,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("Tenant Community " + existingVpnTenantCommunity.TenantCommunity.AutonomousSystemNumber
                         + ":" + existingVpnTenantCommunity.TenantCommunity.Number
                         + " is already bound to VPN " + existingVpnTenantCommunity.VpnAttachmentSet.Vpn.Name + ".");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
 

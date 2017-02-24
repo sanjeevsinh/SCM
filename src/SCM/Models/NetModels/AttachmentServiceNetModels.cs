@@ -57,6 +57,7 @@ namespace SCM.Models.NetModels.Attachment
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceID { get; set; }
+        [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "vif")]
         public List<VifNetModel> Vifs { get; set; } 

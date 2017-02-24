@@ -72,7 +72,7 @@ namespace SCM.Models.NetModels.IpVpn
                 var PEs = Mapper.Map<List<PENetModel>>(devices);
                 foreach (PENetModel PE in PEs)
                 {
-                    PE.Vrfs = Mapper.Map<List<VrfNetModel>>(source.AttachmentSet.AttachmentSetVrfs);
+                    PE.Vrfs = Mapper.Map<List<VrfNetModel>>(source.AttachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Name == PE.PEName));
                 }
 
                 result.PEs = PEs;

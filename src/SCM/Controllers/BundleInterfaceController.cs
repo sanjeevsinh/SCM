@@ -97,7 +97,7 @@ namespace SCM.Controllers
                     var mappedBundleIface = Mapper.Map<BundleInterface>(bundleIface);
                     var validationResult = await BundleInterfaceService.ValidateBundleInterface(mappedBundleIface);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
@@ -163,7 +163,7 @@ namespace SCM.Controllers
                     var mappedBundleIface = Mapper.Map<BundleInterface>(bundleIface);
                     var validationResult = await BundleInterfaceService.ValidateBundleInterfaceChanges(mappedBundleIface, currentBundleIface);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }

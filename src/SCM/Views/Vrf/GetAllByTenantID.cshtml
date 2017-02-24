@@ -1,0 +1,63 @@
+@model IEnumerable<SCM.Models.ViewModels.VrfViewModel>
+
+@{
+    ViewData["Title"] = "GetAllByTenantID";
+}
+
+<ol class="breadcrumb">
+    <li><a href="#">Home</a></li>
+    <li><a href="/Tenant/GetAll">Tenants</a></li>
+    <li><a href="#">VRFs</a></li>
+</ol>
+
+<h2>VRFs for @ViewBag.Tenant.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID"  >Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Device.Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Device.Location.SubRegion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Device.Plane)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Device.Location.SiteName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Device.Location.SubRegion.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Device.Plane.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.VrfID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.VrfID, tenantContext = true } ) |
+                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div>
+    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+</div>

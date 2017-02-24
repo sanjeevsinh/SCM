@@ -14,8 +14,8 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(BundleInterface bundleIface);
         Task<int> UpdateAsync(BundleInterface bundleIface);
         Task<int> DeleteAsync(BundleInterface bundleIface);
-        Task<ServiceValidationResult> ValidateBundleInterface(BundleInterface bundleIface);
-        Task<ServiceValidationResult> ValidateBundleInterfaceChanges(BundleInterface bundleIface,
+        Task<ServiceResult> ValidateBundleInterface(BundleInterface bundleIface);
+        Task<ServiceResult> ValidateBundleInterfaceChanges(BundleInterface bundleIface,
             BundleInterface currentBundleIface);
     }
 }

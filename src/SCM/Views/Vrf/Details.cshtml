@@ -4,6 +4,19 @@
     ViewData["Title"] = "Details";
 }
 
+@{
+    if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
+        {
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="#">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Vrf/GetAllByTenantID/@Model.TenantID">Tenant VRFs</a></li>
+    <li class="breadcrumb-item active">VRF Details</li>
+</ol>
+        }
+    }
+
 <h2>Details</h2>
 
 <div>
@@ -44,5 +57,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID }) |
-    <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">Back to List</a>
+    <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">VRFs List</a>
 </div>

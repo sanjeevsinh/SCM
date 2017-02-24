@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml;
+using System.Net;
 
 namespace SCM.Services.SCMServices
 {
@@ -21,7 +22,7 @@ namespace SCM.Services.SCMServices
         {
         }
 
-        public async Task<NetworkSyncServiceResult> Sync(Object item, string resource = "")
+        public async Task<NetworkSyncServiceResult> SyncNetworkAsync(Object item, string resource)
         {
             var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
@@ -43,14 +44,12 @@ namespace SCM.Services.SCMServices
                 syncResult.Add(networkResponse.GetMessage());
             }
 
-            syncResult.XmlResult = xmlStr;
             return syncResult;
         }
 
-        public async Task<NetworkSyncServiceResult> CheckSync(Object item, string resource = "")
+        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
+            var checkSyncResult = new NetworkCheckSyncServiceResult();
 
             var request = new HttpRequestMessage()
             {
@@ -59,14 +58,25 @@ namespace SCM.Services.SCMServices
             };
 
             var networkResponse = await GetNetworkHttpResponse(request);
+            checkSyncResult.NetworkSyncServiceResult.NetworkHttpResponse = networkResponse;
 
             if (!networkResponse.IsSuccess)
             {
-                syncResult.IsSuccess = false;
-                syncResult.Add(networkResponse.GetMessage());
+                checkSyncResult.NetworkSyncServiceResult.Add("The network request failed.");
 
-                return syncResult;
+                if (networkResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                {
+                    checkSyncResult.NetworkSyncServiceResult.Add("The resource was not found.");
+                }
+
+                return checkSyncResult;
             }
+
+            checkSyncResult.NetworkSyncServiceResult.IsSuccess = true;
+
+            // Parse string response to an object then to xml to perform the deep-equals check.
+            // This process normalises the data. The resulting xml trees must also be sorted 
+            // in order to check equality using deep-equals.
 
             var objectItem = XmlStringToObject(networkResponse.Content, item.GetType());
             var xmlTree = XElement.Parse(ObjectToXmlString(objectItem));
@@ -74,8 +84,30 @@ namespace SCM.Services.SCMServices
             var xmlTreeToCompare = XElement.Parse(ObjectToXmlString(item));
             var sortedXmlTreeToCompare = Sort(xmlTreeToCompare);
 
-            syncResult.IsSuccess = XNode.DeepEquals(sortedXmlTree, sortedXmlTreeToCompare);
+            checkSyncResult.InSync = XNode.DeepEquals(sortedXmlTree, sortedXmlTreeToCompare);
           
+            return checkSyncResult;
+        }
+
+        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(string resource)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+            syncResult.IsSuccess = true;
+
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(NetworkBaseUri + resource),
+                Method = HttpMethod.Delete
+            };
+
+            var networkResponse = await GetNetworkHttpResponse(request);
+            syncResult.NetworkHttpResponse = networkResponse;
+
+            if (!networkResponse.IsSuccess)
+            {
+                syncResult.IsSuccess = false;
+            }
+
             return syncResult;
         }
 
@@ -120,6 +152,7 @@ namespace SCM.Services.SCMServices
                     result.IsSuccess = false;
                 }
 
+                result.HttpStatusCode = httpResponse.StatusCode;
                 result.Content = await httpResponse.Content.ReadAsStringAsync();
             }
 

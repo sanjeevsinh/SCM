@@ -141,7 +141,7 @@ namespace SCM.Controllers
                     var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
                     var validationResult = await AttachmentSetService.ValidateAttachmentSetChangesAsync(mappedAttachmentSet);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
 

@@ -41,10 +41,10 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceValidationResult> ValidateRouteTargetChangesAsync(RouteTarget routeTarget)
+        public async Task<ServiceResult> ValidateRouteTargetChangesAsync(RouteTarget routeTarget)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnID == routeTarget.VpnID, 
                 includeProperties:"AttachmentSet", AsTrackable:false);
@@ -53,7 +53,7 @@ namespace SCM.Services.SCMServices
             {
                 validationResult.Add("A Route Target cannot be added, deleted, or changed because the following Attachment Sets are bound to the VPN:");
                 validationResult.Add(string.Join(",", vpnAttachmentSets.Select(a => a.AttachmentSet.Name).ToArray()) + ". ");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
             }
 
             return validationResult;
@@ -64,11 +64,11 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnID"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateRouteTargetsAsync(int vpnID)
+        public async Task<ServiceResult> ValidateRouteTargetsAsync(int vpnID)
         {
             var dbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, includeProperties: "VpnTopologyType.VpnProtocolType,RouteTargets");
             var vpn = dbResult.SingleOrDefault();
-            var serviceValidationData = new ServiceValidationResult();
+            var serviceValidationData = new ServiceResult();
 
             if (vpn == null)
             {
@@ -82,14 +82,14 @@ namespace SCM.Services.SCMServices
                 var countOfRouteTargets = vpn.RouteTargets.Count();
                 var countOfExportRouteTarget = vpn.RouteTargets.Where(r => r.IsHubExport == true).Count();
 
-                serviceValidationData.IsValid = true;
+                serviceValidationData.IsSuccess = true;
 
                 if (protocolType == "Ethernet")
                 {
                     if (countOfExportRouteTarget > 0)
                     {
                         serviceValidationData.Add("A Hub Export route target cannot be defined for Ethernet VPN types.");
-                        serviceValidationData.IsValid = false;
+                        serviceValidationData.IsSuccess = false;
                     }
                 }
                 else
@@ -99,13 +99,13 @@ namespace SCM.Services.SCMServices
                         if (countOfRouteTargets != 1)
                         {
                             serviceValidationData.Add("Any-to-Any IP VPNs require one route target.");
-                            serviceValidationData.IsValid = false;
+                            serviceValidationData.IsSuccess = false;
                         }
 
                         if (countOfExportRouteTarget > 0)
                         {
                             serviceValidationData.Add("Hub Export cannot be set for Any-to-Any IP VPN types.");
-                            serviceValidationData.IsValid = false;
+                            serviceValidationData.IsSuccess = false;
                         }
                     }
                     else if (topologyType == "Hub-and-Spoke")
@@ -113,14 +113,14 @@ namespace SCM.Services.SCMServices
                         if (countOfRouteTargets != 2)
                         {
                             serviceValidationData.Add("Hub-and-Spoke IP VPNs require two route targets, one of which must be an export route target.");
-                            serviceValidationData.IsValid = false;
+                            serviceValidationData.IsSuccess = false;
                         }
 
 
                         if (countOfExportRouteTarget != 1)
                         {
                             serviceValidationData.Add("Hub-and-Spoke IP VPNs require one export route target.");
-                            serviceValidationData.IsValid = false;
+                            serviceValidationData.IsSuccess = false;
                         }
                     }
                 }

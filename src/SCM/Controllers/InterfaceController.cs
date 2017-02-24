@@ -98,7 +98,7 @@ namespace SCM.Controllers
                     var mappedIface = Mapper.Map<Interface>(iface);
                     var validationResult = await InterfaceService.ValidateInterface(mappedIface);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
@@ -167,7 +167,7 @@ namespace SCM.Controllers
                     var mappedIface = Mapper.Map<Interface>(iface);
                     var validationResult = await InterfaceService.ValidateInterfaceChanges(mappedIface, currentIface);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
 
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());

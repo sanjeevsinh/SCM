@@ -46,11 +46,11 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnTenantNetwork"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateVpnTenantNetworkAsync (VpnTenantNetwork vpnTenantNetwork)
+        public async Task<ServiceResult> ValidateVpnTenantNetworkAsync (VpnTenantNetwork vpnTenantNetwork)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
                   
             var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantNetwork.VpnAttachmentSetID,
                 includeProperties:"Vpn", AsTrackable:false);
@@ -59,7 +59,7 @@ namespace SCM.Services.SCMServices
             if (vpnAttachmentSet == null)
             {
                 validationResult.Add("The Attachment Set was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
             }
 
             var vpn = vpnAttachmentSet.Vpn;
@@ -70,7 +70,7 @@ namespace SCM.Services.SCMServices
                 if (!tenantNetwork.AllowExtranet)
                 {
                     validationResult.Add("Tenant Network " + tenantNetwork.IpPrefix + "/" + tenantNetwork.Length + " is not enabled for Extranet.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
             else
@@ -86,7 +86,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("Tenant Network " + existingVpnTenantNetwork.TenantNetwork.IpPrefix
                         + "/" + existingVpnTenantNetwork.TenantNetwork.Length
                         + " is already bound to VPN " + existingVpnTenantNetwork.VpnAttachmentSet.Vpn.Name + ".");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
 

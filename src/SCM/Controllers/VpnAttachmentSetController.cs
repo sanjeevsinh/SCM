@@ -98,7 +98,7 @@ namespace SCM.Controllers
                     var mappedAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
                     var validationResult = await VpnAttachmentSetService.ValidateVpnAttachmentSetAsync(mappedAttachmentSet);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
@@ -289,7 +289,7 @@ namespace SCM.Controllers
         {
 
             IEnumerable<AttachmentSet> attachmentSets  = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
-                        q.TenantID == vpnAttachmentSetSelection.TenantID);
+                        q.TenantID == vpnAttachmentSetSelection.TenantID && q.Region.RegionID == vpnAttachmentSetSelection.Vpn.RegionID);
 
             ViewBag.AttachmentSetID = new SelectList(attachmentSets, "AttachmentSetID", "Name", selectedAttachmentSet);
         }

@@ -99,7 +99,7 @@ namespace SCM.Controllers
                     var mappedVpnTenantCommunity = Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity);
                     var validationResult = await VpnTenantCommunityService.ValidateVpnTenantCommunityAsync(mappedVpnTenantCommunity);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         ViewBag.VpnAttachmentSet = vpnAttachmentSet;

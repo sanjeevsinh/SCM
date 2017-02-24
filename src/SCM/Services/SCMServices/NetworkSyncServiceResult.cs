@@ -18,11 +18,19 @@ namespace SCM.Services.SCMServices
         {
             return string.Join("\r\n", Messages);
         }
+        public string GetAllMessages()
+        {
+            var message = GetMessage();
+            message += NetworkHttpResponse.GetMessage();
+
+            return message;
+        }
+
         public void Add(string message)
         {
             Messages.Add(message);
         }
 
-        public string XmlResult { get; set; }
+        public NetworkHttpResponse NetworkHttpResponse { get; set; }
     }
 }

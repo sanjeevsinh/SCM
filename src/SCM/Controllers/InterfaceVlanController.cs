@@ -97,7 +97,7 @@ namespace SCM.Controllers
                     var mappedIfaceVlan = Mapper.Map<InterfaceVlan>(ifaceVlan);
                     var validationResult = await InterfaceVlanService.ValidateInterfaceVlan(mappedIfaceVlan);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
@@ -161,7 +161,7 @@ namespace SCM.Controllers
                     var mappedIfaceVlan = Mapper.Map<InterfaceVlan>(ifaceVlan);
                     var validationResult = await InterfaceVlanService.ValidateInterfaceVlanChanges(mappedIfaceVlan, currentIfaceVlan);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }

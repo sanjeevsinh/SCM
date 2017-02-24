@@ -46,10 +46,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachmentSetVrf"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateVrfChangesAsync(AttachmentSetVrf attachmentSetVrf)
+        public async Task<ServiceResult> ValidateVrfChangesAsync(AttachmentSetVrf attachmentSetVrf)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID, 
                 includeProperties:"Vpn", AsTrackable: false);
@@ -58,17 +58,17 @@ namespace SCM.Services.SCMServices
                 validationResult.Add("VRFs cannot be added, removed or changed because the Attachment Set is bound to the following VPNs: ");
                 validationResult.Add(string.Join(",", vpnAttachmentSets.Select(v => v.Vpn.Name).ToArray()) + ". ");
                 validationResult.Add("Remove the Attachment Set from the VPNs first.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
             }
 
             return validationResult;
         }
  
-        public async Task<ServiceValidationResult> ValidateVrfsAsync(AttachmentSet attachmentSet)
+        public async Task<ServiceResult> ValidateVrfsAsync(AttachmentSet attachmentSet)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             IList<AttachmentSetVrf> attachmentSetVrfs = await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,
                 includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane");
@@ -80,7 +80,7 @@ namespace SCM.Services.SCMServices
                 if (attachmentSetVrfs.Count != 1)
                 {
                     validationResult.Add("One, and no more than one, VRF for a Bronze Attachment Set must be defined.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
             else
@@ -94,7 +94,7 @@ namespace SCM.Services.SCMServices
                     {
                         validationResult.Add("Two, and no more than two, VRFs for a Silver Attachment Set must be defined."
                             + "Each VRF must be in the same location.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                         return validationResult;
                     }
 
@@ -106,13 +106,13 @@ namespace SCM.Services.SCMServices
                     if (locationA.LocationID != locationB.LocationID)
                     {
                         validationResult.Add("The Location for each VRF in a Silver Attachment Set must be the same.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
                         validationResult.Add("The Plane for each VRF in a Silver Attachment Set must be different.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
 
@@ -123,7 +123,7 @@ namespace SCM.Services.SCMServices
                     {
                         validationResult.Add("Two, and no more than two, VRFs for a Gold Attachment Set must be defined. "
                             + "Each VRF must be in a different location.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                         return validationResult;
                     }
 
@@ -137,19 +137,19 @@ namespace SCM.Services.SCMServices
                     if (subRegionA.SubRegionID != subRegionB.SubRegionID)
                     {
                         validationResult.Add("The Sub-Region for each VRF in a Gold Attachment Set must be the same.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     if (locationA.LocationID == locationB.LocationID)
                     {
                         validationResult.Add("The Location for each VRF in a Gold Attachment Set must be different.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
                         validationResult.Add("The Plane for each VRF in a Gold Attachment Set must be different.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
                 else if (attachmentRedundancy == "Custom")
@@ -158,7 +158,7 @@ namespace SCM.Services.SCMServices
                     if (attachmentSetVrfs.Count == 0)
                     {
                         validationResult.Add("At least one VRF is required for a Custom Attachment Set.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
             }

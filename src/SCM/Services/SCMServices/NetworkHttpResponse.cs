@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace SCM.Services.SCMServices
@@ -11,6 +12,7 @@ namespace SCM.Services.SCMServices
 
         public bool IsSuccess { get; set; }
         public string Content { get; set; }
+        public HttpStatusCode HttpStatusCode { get; set; }
 
         public string GetMessage()
         {

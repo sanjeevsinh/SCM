@@ -40,10 +40,10 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetRepository.Delete(attachmentSet);
             return await this.UnitOfWork.SaveAsync();
         }
-        public async Task<ServiceValidationResult> ValidateAttachmentSetChangesAsync(AttachmentSet attachmentSet)
+        public async Task<ServiceResult> ValidateAttachmentSetChangesAsync(AttachmentSet attachmentSet)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID, 
                 includeProperties: "AttachmentSetVrfs", AsTrackable: false);
@@ -51,7 +51,7 @@ namespace SCM.Services.SCMServices
             if (currentAttachmentSet == null)
             {
                 validationResult.Add("The Attachment Set was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
                 return validationResult;
             }
 
@@ -60,22 +60,22 @@ namespace SCM.Services.SCMServices
                 if (attachmentSet.AttachmentRedundancyID != currentAttachmentSet.AttachmentRedundancyID)
                 {
                     validationResult.Add("The Attachment Redundancy option cannot be changed because VRFs are defined.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
                 if (attachmentSet.RegionID != currentAttachmentSet.RegionID)
                 {
                     validationResult.Add("The Region cannot be changed because VRFs are defined.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
                 if (attachmentSet.SubRegionID != currentAttachmentSet.SubRegionID)
                 {
                     validationResult.Add("The Sub-Region cannot be changed because VRFs are defined.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
                 if (attachmentSet.TenantID != currentAttachmentSet.TenantID)
                 {
                     validationResult.Add("The Tenant cannot be changed because VRFs are defined.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
 

@@ -4,7 +4,7 @@
     ViewData["Title"] = "Edit";
 }
 
-<h2>Edit</h2>
+<h2>Edit VPN @Model.Name</h2>
 
 <form asp-action="Edit">
     <div class="form-horizontal">
@@ -12,14 +12,8 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input type="hidden" asp-for="VpnID" />
+        <input type="hidden" asp-for="Name" />
         <input type="hidden" asp-for="RowVersion" />
-        <div class="form-group">
-            <label asp-for="Name" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-        </div>
         <div class="form-group">
             <label asp-for="Description" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -37,39 +31,12 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Plane" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="PlaneID" class="form-control" asp-items="ViewBag.PlaneID">
-                    <option value="">-- Optionally Select Plane --</option>
-                </select>
-                <span asp-validation-for="PlaneID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="VpnTenancyType" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="VpnTenancyTypeID" class="form-control" asp-items="ViewBag.VpnTenancyTypeID">
                     <option value="">-- Select Tenancy Type --</option>
                 </select>
                 <span asp-validation-for="VpnTenancyTypeID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="VpnTopologyType" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="VpnTopologyTypeID" class="form-control" asp-items="ViewBag.VpnTopologyTypeID">
-                    <option value="">-- Select Topology Type --</option>
-                </select>
-                <span asp-validation-for="VpnTopologyTypeID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="Tenant" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
-                    <option value="">-- Select Tenant --</option>
-                </select>
-                <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
 @{

@@ -39,7 +39,7 @@ namespace SCM.Controllers
                 includeProperties:"Vrf.Device.Location.SubRegion.Region");
 
             var validationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
-            if (!validationResult.IsValid)
+            if (!validationResult.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty, validationResult.GetMessage());
             }
@@ -109,7 +109,7 @@ namespace SCM.Controllers
                     var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
                     var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(mappedAttachmentSetVrf);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
 
@@ -190,7 +190,7 @@ namespace SCM.Controllers
                     }
 
                     var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                         ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
@@ -301,7 +301,7 @@ namespace SCM.Controllers
                 if (currentAttachmentSetVrf != null)
                 {
                     var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = validationResult.GetMessage();
                         ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;

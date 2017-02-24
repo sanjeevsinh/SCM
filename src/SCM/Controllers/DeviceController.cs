@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
 
 namespace SCM.Controllers
 {
@@ -55,14 +56,21 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var checkSyncResult = await DeviceService.CheckSync(id.Value);
-            if (checkSyncResult.IsSuccess)
+            var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
+            if (checkSyncResult.InSync)
             {
                 ViewData["SyncSuccessMessage"] = "The Device is synchronised with the network.";
             }
             else
             {
-                ViewData["SyncErrorMessage"] = "The Device is not synchronised with the network. Press the 'Sync' button to update the network.";
+                if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                {
+                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetMessage();
+                }
+                else
+                {
+                    ViewData["SyncErrorMessage"] = "The Device is not synchronised with the network. Press the 'Sync' button to update the network.";
+                }
             }
 
             var item = await DeviceService.GetByIDAsync(id.Value);
@@ -83,20 +91,24 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var syncResult = await DeviceService.Sync(id.Value);
-            if (!syncResult.IsSuccess)
+            var item = await DeviceService.GetByIDAsync(id.Value);
+            if (item == null)
             {
-                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
-                var item = await DeviceService.GetByIDAsync(id.Value);
-                if (item == null)
-                {
-                    return NotFound();
-                }
-
-                return View("Details", Mapper.Map<DeviceViewModel>(item));
+                return NotFound();
             }
 
-            return Content(syncResult.XmlResult, "text/xml");
+            var syncResult = await DeviceService.SyncToNetworkAsync(id.Value);
+
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The network is synchronised.";
+            }
+            else
+            {
+                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+            }
+
+            return View("Details", Mapper.Map<DeviceViewModel>(item));
         }
 
         [HttpGet]
@@ -152,7 +164,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ID,Name,Description,RowVersion")] DeviceViewModel device)
+        public async Task<ActionResult> Edit(int id, [Bind("ID,Description,RowVersion")] DeviceViewModel device)
         {
             if (id != device.ID)
             {
@@ -173,6 +185,13 @@ namespace SCM.Controllers
                         return View(device);
                     }
 
+                    // The name property must not be changed because this is used as a key
+                    // in the network service model.
+
+                    // LocationID and PlaneID properties must not be changed because these properties affect the 
+                    // association of VRFs with VPNs using Attachment Sets.
+
+                    device.Name = currentDevice.Name;
                     device.PlaneID = currentDevice.PlaneID;
                     device.LocationID = currentDevice.LocationID;
                     await DeviceService.UpdateAsync(Mapper.Map<Device>(device));
@@ -260,7 +279,12 @@ namespace SCM.Controllers
 
                 if (currentDevice != null)
                 {
-                    await DeviceService.DeleteAsync(Mapper.Map<Device>(device));
+                    var result = await DeviceService.DeleteAsync(Mapper.Map<Device>(device));
+                    if (!result.IsSuccess)
+                    {
+                        ViewData["DeleteErrorMessage"] = result.GetMessage();
+                        return View(Mapper.Map<DeviceViewModel>(currentDevice));
+                    }
                 }
                 return RedirectToAction("GetAll");
             }
@@ -270,6 +294,42 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = device.ID });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFromNetwork(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var device = await DeviceService.GetByIDAsync(id.Value);
+            if (device == null)
+            {
+
+                ViewData["DeviceDeletedMessage"] = "The Device has been deleted by another user. Return to the list.";
+                return View("DeviceDeleted");
+            }
+
+            var syncResult = await DeviceService.DeleteFromNetworkAsync(id.Value);
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The Device has been deleted from the network.";
+            }
+            else
+            {
+                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                {
+                    ViewData["SyncErrorMessage"] = "The Device has already been deleted from the network.";
+                }
+                else
+                {
+                    ViewData["SyncErrorMessage"] = "There was a problem deleting the Device from the network. " + syncResult.GetAllMessages();
+                }
+            }
+
+            return View("Delete", Mapper.Map<DeviceViewModel>(device));
         }
 
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)

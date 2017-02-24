@@ -40,10 +40,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="iface"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateBundleInterface(BundleInterface bundleIface)
+        public async Task<ServiceResult> ValidateBundleInterface(BundleInterface bundleIface)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var dbVrfResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == bundleIface.VrfID,
                 includeProperties: "Interfaces.Port,BundleInterfaces,InterfaceVlans.Interface.Port,BundleInterfaceVlans.BundleInterface",
@@ -59,7 +59,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to interface "
                         + intface.Port.Type + intface.Port.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
 
                 else if (vrf.BundleInterfaces.Count() > 0)
@@ -70,7 +70,7 @@ namespace SCM.Services.SCMServices
                         validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to bundle interface "
                             + bundleIntface.Name);
 
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
 
@@ -80,7 +80,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                         + ifaceVlan.VlanTag + " of interface " + ifaceVlan.Interface.Port.Type + ifaceVlan.Interface.Port.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
 
                 else if (vrf.BundleInterfaceVlans.Count() > 0)
@@ -89,7 +89,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                         + bundleIfaceVlan.VlanTag + " of bundle interface " + bundleIfaceVlan.BundleInterface.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
 
@@ -100,17 +100,17 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="bundleIface"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateBundleInterfaceChanges(BundleInterface bundleIface, 
+        public async Task<ServiceResult> ValidateBundleInterfaceChanges(BundleInterface bundleIface, 
             BundleInterface currentBundleIface)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             if (currentBundleIface == null)
             {
                 validationResult.Add("Unable to save changes. The bundle interface was deleted by another user.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -121,7 +121,7 @@ namespace SCM.Services.SCMServices
                 {
                     validationResult.Add("You cannot change this interface to untagged because "
                     + "there are vlans configured. Delete the vlans first.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
 
                     return validationResult;
                 }

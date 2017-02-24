@@ -41,10 +41,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="ifaceVlan"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateInterfaceVlan(InterfaceVlan ifaceVlan)
+        public async Task<ServiceResult> ValidateInterfaceVlan(InterfaceVlan ifaceVlan)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == ifaceVlan.InterfaceID, includeProperties: "Port");
             var iface = dbInterfaceResult.SingleOrDefault();
@@ -52,7 +52,7 @@ namespace SCM.Services.SCMServices
             if (iface == null)
             {
                 validationResult.Add("The inteface was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -60,7 +60,7 @@ namespace SCM.Services.SCMServices
             if (!iface.IsTagged)
             {
                 validationResult.Add("A vlan cannot be created for an untagged interface.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -79,7 +79,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to interface "
                         + intface.Port.Type + intface.Port.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
 
                 else if (vrf.BundleInterfaces.Count() > 0)
@@ -88,7 +88,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to bundle interface "
                         + bundleIface.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
 
                 else if (vrf.InterfaceVlans.Count() > 0)
@@ -100,7 +100,7 @@ namespace SCM.Services.SCMServices
                         validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                             + intfaceVlan.VlanTag + " of interface " + intfaceVlan.Interface.Port.Type + intfaceVlan.Interface.Port.Name);
 
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
 
@@ -110,7 +110,7 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                         + bundleIfaceVlan.VlanTag + " of bundle interface " + bundleIfaceVlan.BundleInterface.Name);
 
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
             }
 
@@ -123,16 +123,16 @@ namespace SCM.Services.SCMServices
         /// <param name="ifaceVlan"></param>
         /// <param name="currentIfaceVlan"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateInterfaceVlanChanges(InterfaceVlan ifaceVlan, InterfaceVlan currentIfaceVlan)
+        public async Task<ServiceResult> ValidateInterfaceVlanChanges(InterfaceVlan ifaceVlan, InterfaceVlan currentIfaceVlan)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             if (currentIfaceVlan == null)
             {
                 validationResult.Add("Unable to save changes. The vlan was deleted by another user.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }

@@ -6,6 +6,7 @@ using SCM.Models;
 using SCM.Data;
 using SCM.Models.NetModels.Attachment;
 using AutoMapper;
+using System.Net;
 
 namespace SCM.Services.SCMServices
 {
@@ -38,16 +39,29 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<int> DeleteAsync(Device device)
+        public async Task<ServiceResult> DeleteAsync(Device device)
         {
+            var serviceResult = new ServiceResult();
+            serviceResult.IsSuccess = true;
+
+            var syncResult = await DeleteFromNetworkAsync(device.ID);
+
+            if (!syncResult.IsSuccess && syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+            {
+                serviceResult.IsSuccess = false;
+                serviceResult.Add(syncResult.GetAllMessages());
+                return serviceResult;
+            }
+
             this.UnitOfWork.DeviceRepository.Delete(device);
-            return await this.UnitOfWork.SaveAsync();
+            await this.UnitOfWork.SaveAsync();
+
+            return serviceResult;
         }
 
-        public async Task<NetworkSyncServiceResult> CheckSync(int deviceID)
+        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(int deviceID)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
+            var checkSyncResult = new NetworkCheckSyncServiceResult();
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
                            includeProperties: "Vrfs,Ports.Interface.InterfaceBandwidth,"
@@ -58,19 +72,18 @@ namespace SCM.Services.SCMServices
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)
             {
-                syncResult.Add("The Device was not found.");
-                syncResult.IsSuccess = false;
+                checkSyncResult.NetworkSyncServiceResult.Add("The Device was not found.");
             }
             else
             {
                 var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
-                syncResult = await NetSync.CheckSync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
+                checkSyncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
             }
 
-            return syncResult;
+            return checkSyncResult;
         }
 
-        public async Task<NetworkSyncServiceResult> Sync(int deviceID)
+        public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(int deviceID)
         {
             var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
@@ -90,7 +103,27 @@ namespace SCM.Services.SCMServices
             else
             {
                 var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
-                syncResult = await NetSync.Sync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
+                syncResult = await NetSync.SyncNetworkAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
+            }
+
+            return syncResult;
+        }
+        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int deviceID)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+            syncResult.IsSuccess = true;
+
+            var dbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, AsTrackable: false);
+            var device = dbResult.SingleOrDefault();
+
+            if (device == null)
+            {
+                syncResult.Add("The Device was not found.");
+                syncResult.IsSuccess = false;
+            }
+            else
+            {
+                syncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" + device.Name);
             }
 
             return syncResult;

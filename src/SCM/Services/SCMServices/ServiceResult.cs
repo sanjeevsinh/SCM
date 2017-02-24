@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace SCM.Services.SCMServices
 {
-    public class ServiceValidationResult
+    public class ServiceResult
     {
         private List<string> Messages = new List<string>();
 
-        public bool IsValid { get; set; }
+        public bool IsSuccess { get; set; }
 
         public string GetMessage()
         {

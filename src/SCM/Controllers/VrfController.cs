@@ -36,6 +36,23 @@ namespace SCM.Controllers
             var vrfs = await VrfService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == id, 
                 includeProperties:"Tenant");
             ViewBag.Device = device;
+
+            return View(Mapper.Map<List<VrfViewModel>>(vrfs));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllByTenantID(int id)
+        {
+            var tenant = await VrfService.UnitOfWork.TenantRepository.GetByIDAsync(id);
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            var vrfs = await VrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Tenant.TenantID == id,
+                includeProperties: "Device.Location.SubRegion,Device.Plane");
+            ViewBag.Tenant = tenant;
+
             return View(Mapper.Map<List<VrfViewModel>>(vrfs));
         }
 

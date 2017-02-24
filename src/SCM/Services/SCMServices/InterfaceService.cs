@@ -41,10 +41,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="iface"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateInterface(Interface iface)
+        public async Task<ServiceResult> ValidateInterface(Interface iface)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var dbPortResult = await UnitOfWork.PortRepository.GetAsync(q => q.ID == iface.ID, 
                 includeProperties: "BundleInterfacePort.BundleInterface", AsTrackable:false);
@@ -53,7 +53,7 @@ namespace SCM.Services.SCMServices
             if (port == null)
             {
                 validationResult.Add("The port was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -63,7 +63,7 @@ namespace SCM.Services.SCMServices
                 validationResult.Add("You cannot create an interface for this port "
                     + "because the port is a member of bundle interface "
                     + port.BundleInterfacePort.BundleInterface.Name);
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -88,7 +88,7 @@ namespace SCM.Services.SCMServices
                             validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to interface "
                                 + intface.Port.Type + intface.Port.Name);
 
-                            validationResult.IsValid = false;
+                            validationResult.IsSuccess = false;
                         }
                     }
 
@@ -98,7 +98,7 @@ namespace SCM.Services.SCMServices
                         validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to bundle interface "
                             + bundleIface.Name);
 
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     else if (vrf.InterfaceVlans.Count() > 0)
@@ -107,7 +107,7 @@ namespace SCM.Services.SCMServices
                         validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                             + ifaceVlan.VlanTag + " of interface " + ifaceVlan.Interface.Port.Type + ifaceVlan.Interface.Port.Name);
 
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     else if (vrf.BundleInterfaceVlans.Count() > 0)
@@ -116,7 +116,7 @@ namespace SCM.Services.SCMServices
                         validationResult.Add("The selected VRF cannot be bound to the interface because the VRF is already bound to vlan "
                             + bundleIfaceVlan.VlanTag + " of bundle interface " + bundleIfaceVlan.BundleInterface.Name);
 
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
             }
@@ -129,16 +129,16 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="iface"></param>
         /// <returns></returns>
-        public async Task<ServiceValidationResult> ValidateInterfaceChanges(Interface iface, Interface currentIface)
+        public async Task<ServiceResult> ValidateInterfaceChanges(Interface iface, Interface currentIface)
         {
 
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             if (currentIface == null)
             {
                 validationResult.Add("Unable to save changes. The interface was deleted by another user.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
 
                 return validationResult;
             }
@@ -149,7 +149,7 @@ namespace SCM.Services.SCMServices
                 {
                     validationResult.Add("You cannot change this interface to untagged because "
                     + "there are vlans configured. Delete the vlans first.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
 
                     return validationResult;
                 }

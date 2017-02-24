@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
 
 namespace SCM.Controllers
 {
@@ -57,25 +58,27 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-
-            var syncResult = await VpnService.Sync(id.Value);
-            if (!syncResult.IsSuccess)
-            {
-
-                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
-                var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
                 includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
-                var item = dbResult.SingleOrDefault();
+            var item = dbResult.SingleOrDefault();
 
-                if (item == null)
-                {
-                    return NotFound();
-                }
-
-             //   return View("Details", Mapper.Map<VpnViewModel>(item));
+            if (item == null)
+            {
+                return NotFound();
             }
 
-            return Content(syncResult.XmlResult, "text/xml");
+            var syncResult = await VpnService.SyncToNetworkAsync(id.Value);
+     
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The network is synchronised.";
+            }
+            else
+            {
+                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+            }
+
+            return View("Details", Mapper.Map<VpnViewModel>(item));
         }
 
         [HttpPost]
@@ -86,14 +89,23 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var checkSyncResult = await VpnService.CheckSync(id.Value);
-            if (checkSyncResult.IsSuccess)
+            var checkSyncResult = await VpnService.CheckNetworkSyncAsync(id.Value);
+            if (checkSyncResult.InSync)
             {
                 ViewData["SyncSuccessMessage"] = "The VPN is synchronised with the network.";
             }
             else
             {
-                ViewData["SyncErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
+                if (checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                {
+                    ViewData["SyncErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
+                }
+                else
+                {
+                    var message = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                    ViewData["SyncErrorMessage"] = message;
+                }
+  
             }
 
             var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
@@ -139,7 +151,7 @@ namespace SCM.Controllers
                     var mappedVpn = Mapper.Map<Vpn>(vpn);
                     var validationResult = await VpnService.ValidateCreateVpnAsync(mappedVpn);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
@@ -196,16 +208,35 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("VpnID,Name,Description,PlaneID,RegionID,VpnTopologyTypeID,VpnTenancyTypeID,TenantID,IsExtranet,RowVersion")] VpnViewModel vpn)
+        public async Task<ActionResult> Edit(int id, [Bind("VpnID,Name,Description,RegionID,VpnTenancyTypeID,IsExtranet,RowVersion")] VpnViewModel vpn)
         {
             if (id != vpn.VpnID)
             {
                 return NotFound();
             }
 
-            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id, 
-                includeProperties:"Plane,Region,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant", AsTrackable: false);
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
+                includeProperties: "Plane,Region,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant,VpnAttachmentSets.AttachmentSet.Tenant,"
+                 + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device.Location.SubRegion.Region",
+                AsTrackable: false);
+
             var currentVpn = dbResult.SingleOrDefault();
+
+            if (currentVpn == null)
+            {
+                return NotFound();
+            }
+
+            // Name property must not be changed because this is used as a key 
+            // in the network service model
+
+            // PlaneID and VpnTopologyTypeID must not be changed
+            // because these properties affect how the VPN is deployed to the network
+
+            vpn.Name = currentVpn.Name;
+            vpn.PlaneID = currentVpn.PlaneID;
+            vpn.VpnTopologyTypeID = currentVpn.VpnTopologyTypeID;
+            vpn.TenantID = currentVpn.TenantID;
 
             try
             {
@@ -214,12 +245,12 @@ namespace SCM.Controllers
                     var mappedVpn = Mapper.Map<Vpn>(vpn);
                     var validationResult = await VpnService.ValidateVpnChangesAsync(mappedVpn, currentVpn);
 
-                    if (!validationResult.IsValid)
+                    if (!validationResult.IsSuccess)
                     {
                         ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
                     else
-                    {
+                    { 
                         await VpnService.UpdateAsync(mappedVpn);
                         return RedirectToAction("GetAll");
                     }
@@ -230,22 +261,10 @@ namespace SCM.Controllers
             {
                 var exceptionEntry = ex.Entries.Single();
 
-                var proposedName = (string)exceptionEntry.Property("Name").CurrentValue;
-                if (currentVpn.Name != proposedName)
-                {
-                    ModelState.AddModelError("Name", $"Current value: {currentVpn.Name}");
-                }
-
                 var proposedDescription = (string)exceptionEntry.Property("Description").CurrentValue;
                 if (currentVpn.Description != proposedDescription)
                 {
                     ModelState.AddModelError("Description", $"Current value: {currentVpn.Description}");
-                }
-
-                var proposedPlaneID = (int?)exceptionEntry.Property("PlaneID").CurrentValue;
-                if (currentVpn.PlaneID != proposedPlaneID)
-                {
-                    ModelState.AddModelError("PlaneID", $"Current value: {currentVpn.Plane.Name}");
                 }
 
                 var proposedRegionID = (int)exceptionEntry.Property("RegionID").CurrentValue;
@@ -258,18 +277,6 @@ namespace SCM.Controllers
                 if (currentVpn.VpnTenancyTypeID != proposedTenancyTypeID)
                 {
                     ModelState.AddModelError("VpnTenancyTypeID", $"Current value: {currentVpn.VpnTenancyType.TenancyType}");
-                }
-
-                var proposedTopologyTypeID = (int)exceptionEntry.Property("VpnTopologyTypeID").CurrentValue;
-                if (currentVpn.VpnTopologyTypeID != proposedTopologyTypeID)
-                {
-                    ModelState.AddModelError("VpnTopologyTypeID", $"Current value: {currentVpn.VpnTopologyType.TopologyType}");
-                }
-
-                var proposedTenantID = (int)exceptionEntry.Property("TenantID").CurrentValue;
-                if (currentVpn.TenantID != proposedTenantID)
-                {
-                    ModelState.AddModelError("TenantID", $"Current value: {currentVpn.Tenant.Name}");
                 }
 
                 var proposedIsExtranet = (bool)exceptionEntry.Property("IsExtranet").CurrentValue;
@@ -339,16 +346,21 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(VpnViewModel vpn)
+        public async Task<IActionResult> Delete(int? id)
         {  
             try
             {
-                var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpn.VpnID, AsTrackable:false);
+                var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id, AsTrackable:false);
                 var currentVpn = dbResult.SingleOrDefault();
 
                 if (currentVpn != null)
                 {
-                    await VpnService.DeleteAsync(Mapper.Map<Vpn>(vpn));
+                    var result = await VpnService.DeleteAsync(Mapper.Map<Vpn>(currentVpn));
+                    if (!result.IsSuccess)
+                    {
+                        ViewData["DeleteErrorMessage"] = result.GetMessage();
+                        return View(Mapper.Map<VpnViewModel>(currentVpn));
+                    }
                 }
                 return RedirectToAction("GetAll");
             }
@@ -356,8 +368,44 @@ namespace SCM.Controllers
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = vpn.VpnID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = id });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFromNetwork(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vpn = await VpnService.GetByIDAsync(id.Value);
+            if (vpn == null)
+            {
+
+                ViewData["VpnDeletedMessage"] = "The VPN has been deleted by another user. Return to the list.";
+                return View("VpnDeleted");
+            }
+
+            var syncResult = await VpnService.DeleteFromNetworkAsync(id.Value);
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The VPN has been deleted from the network.";
+            }
+            else
+            {
+                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                {
+                    ViewData["SyncErrorMessage"] = "The VPN has already been deleted from the network.";
+                }
+                else
+                {
+                    ViewData["SyncErrorMessage"] = "There was a problem deleting the VPN from the network. " + syncResult.GetAllMessages();
+                }
+            }
+
+            return View("Delete", Mapper.Map<VpnViewModel>(vpn));
         }
 
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)

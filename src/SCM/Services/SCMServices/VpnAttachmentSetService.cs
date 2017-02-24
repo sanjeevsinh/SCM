@@ -41,10 +41,10 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceValidationResult> ValidateVpnAttachmentSetAsync(VpnAttachmentSet vpnAttachmentSet)
+        public async Task<ServiceResult> ValidateVpnAttachmentSetAsync(VpnAttachmentSet vpnAttachmentSet)
         {
-            var validationResult = new ServiceValidationResult();
-            validationResult.IsValid = true;
+            var validationResult = new ServiceResult();
+            validationResult.IsSuccess = true;
 
             var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnAttachmentSet.VpnID, 
                 includeProperties:"Plane", AsTrackable:false);
@@ -57,14 +57,14 @@ namespace SCM.Services.SCMServices
             if (vpn == null)
             {
                 validationResult.Add("The VPN was not found.");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
                 return validationResult;
             }
 
             if (attachmentSet == null)
             {
                 validationResult.Add("The Attachment Set was not found");
-                validationResult.IsValid = false;
+                validationResult.IsSuccess = false;
                 return validationResult;
             }
 
@@ -83,14 +83,14 @@ namespace SCM.Services.SCMServices
                     {
                         validationResult.Add("This Attachment Set does not contain any attachments into the Red Plane. "
                             + " There must be at least one Red Plane attachment in the set.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
 
                     if (bluePlaneAttachmentCount == 0)
                     {
                         validationResult.Add("This Attachment Set does not contain any attachments into the Blue Plane. "
                             + " There must be at least one Blue Plane attachment in the set.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
             }
@@ -100,7 +100,7 @@ namespace SCM.Services.SCMServices
                 {
                     validationResult.Add("A Gold Attachment Set cannot be used with a Planar-Scoped VPN. The VPN is scoped to the '" + vpn.Plane.Name + "' Plane. " +
                         "A Gold Attachment Set provides connectivity into both Planes.");
-                    validationResult.IsValid = false;
+                    validationResult.IsSuccess = false;
                 }
 
                 else if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Custom")
@@ -109,7 +109,7 @@ namespace SCM.Services.SCMServices
                     if (attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == vpn.Plane.Name).Count() != attachmentSet.AttachmentSetVrfs.Count())
                     {
                         validationResult.Add("One or more VRFs in the Attachment Set are not located in the required Plane ('" + vpn.Plane.Name + "') for the VPN.");
-                        validationResult.IsValid = false;
+                        validationResult.IsSuccess = false;
                     }
                 }
             }

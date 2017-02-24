@@ -17,6 +17,7 @@ using SCM.Models.NetModels.IpVpn;
 using SCM.Services;
 using SCM.Services.SCMServices;
 using AutoMapper;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace SCM
 {
