@@ -6,11 +6,13 @@
 
 <h2>Remove</h2>
 
-<p class="text-danger">@ViewData["ErrorMessage"]</p>
+@if (@ViewData["ErrorMessage"] != null)
+{
+<div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
 
 <h3>Are you sure you want to remove this VRF from the Attachment Set?</h3>
 <div>
-    <h4>VRF</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>

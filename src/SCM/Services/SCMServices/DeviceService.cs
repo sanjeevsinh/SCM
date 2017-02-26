@@ -32,7 +32,7 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.DeviceRepository.Insert(device);
             return await this.UnitOfWork.SaveAsync();
         }
- 
+
         public async Task<int> UpdateAsync(Device device)
         {
             this.UnitOfWork.DeviceRepository.Update(device);

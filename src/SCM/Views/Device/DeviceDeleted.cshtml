@@ -5,6 +5,9 @@
 
 <h2>Device Deleted</h2>
 
-<p class="text-danger">@ViewData["DeviceDeletedMessage"]</p>
+@if (@ViewData["DeviceDeletedMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["DeviceDeletedMessage"]</div>
+}
 
 <a asp-action="GetAll">Back to List</a>

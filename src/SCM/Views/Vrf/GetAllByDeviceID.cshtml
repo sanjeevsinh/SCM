@@ -4,10 +4,16 @@
     ViewData["Title"] = "GetAllByDeviceID";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Device/GetAll">Devices</a></li>
+    <li class="breadcrumb-item active">Device VRFs</li>
+</ol>
+
 <h2>VRFs for @ViewBag.Device.Name</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Device.ID"  >Create New</a>
+    <a asp-action="CreateForDevice" asp-route-id="@ViewBag.Device.ID"  >Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -43,10 +49,10 @@
                 @Html.DisplayFor(modelItem => item.Tenant.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VrfID }) |
+                @Html.ActionLink("Edit", "Edit", new { id = item.VrfID, deviceContext = true }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VrfID, deviceContext = true }) |
-                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID }) |
-                <a asp-controller="BgpPeer" asp-action="GetAllByVrfID" asp-route-id="@item.VrfID">BGP Peers</a>
+                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID, deviceContext = true }) |
+                @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { id = item.VrfID, deviceContext = true })
             </td>
         </tr>
 }

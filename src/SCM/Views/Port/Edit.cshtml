@@ -8,9 +8,8 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>Port</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="ID" />
         <input type="hidden" asp-for="DeviceID" />
         <input type="hidden" asp-for="RowVersion" />

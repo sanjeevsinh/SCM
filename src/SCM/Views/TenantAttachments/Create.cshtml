@@ -1,0 +1,127 @@
+@model SCM.Models.ViewModels.AttachmentRequestViewModel
+
+@{
+    ViewData["Title"] = "CreateForTenant";
+}
+
+<h2>Create Attachment for Tenant @ViewBag.Tenant.Name</h2>
+
+<form asp-action="Createt">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.Tenant.TenantID" />
+        <div class="form-group">
+            <label asp-for="Region" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="RegionID" class="form-control" asp-items="ViewBag.RegionID">
+                    <option value="">-- Select Region --</option>
+                </select>
+                <span asp-validation-for="RegionID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="SubRegion" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="SubRegionID" class="form-control">
+                    <option value="">-- Select Sub-Region --</option>
+                </select>
+                <span asp-validation-for="SubRegionID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Location" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="LocationID" class="form-control">
+                    <option value="">-- Select Location --</option>
+                </select>
+                <span asp-validation-for="LocationID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Plane" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="PlaneID" class="form-control">
+                    <option value="">-- Select Plane --</option>
+                </select>
+                <span asp-validation-for="PlaneID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfName" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfName" class="form-control" />
+                <span asp-validation-for="VrfName" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfAdministratorSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfAdministratorSubField" class="form-control" />
+                <span asp-validation-for="VrfAdministratorSubField" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfAssignedNumberSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfAssignedNumberSubField" class="form-control" />
+                <span asp-validation-for="VrfAssignedNumberSubField" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Tenant VRFs</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $region = $('#RegionID'),
+            region = $region[0],
+            $subregion = $('#SubRegionID'),
+            subregion = $subregion[0],
+            $location = $('#LocationID'),
+            location = $location[0];
+            subregion.disabled = true;
+            location.disabled = true;
+
+            $region.on('change', function (e) {
+
+                subregion.disabled = false;
+                location.selectedIndex = '0';
+                location.disabled = true;
+
+                var regionID = this.value;
+
+                $.get("/Vrf/SubRegions", { id: regionID })
+                .done(function (data) {
+                    $subregion.html(data);
+                });
+            });
+
+            $subregion.on('change', function (e) {
+
+                var subRegionID = this.value;
+                location.disabled = false;
+
+                $.get("/Vrf/Locations", { id: subRegionID })
+                .done(function (data) {
+                    $location.html(data);
+                });
+            });
+
+        }(jQuery));
+    
+    </script>
+}

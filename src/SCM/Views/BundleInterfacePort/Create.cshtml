@@ -8,9 +8,8 @@
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Bundle Port</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="BundleInterfaceID" value="@ViewBag.BundleInterface.BundleInterfaceID" />
         <div class="form-group">
             <label asp-for="Port" class="col-md-2 control-label"></label>

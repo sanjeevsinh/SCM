@@ -8,9 +8,8 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>VRf</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VrfID" />
         <input type="hidden" asp-for="DeviceID" />
         <input type="hidden" asp-for="RowVersion" />
@@ -53,7 +52,14 @@
 </form>
 
 <div>
-    <a asp-action="GetAllByDeviceID" asp-route-id ="@Model.DeviceID">Back to List</a>
+    @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
+    {
+        <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Tenant VRFs</a>
+    }
+    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
+    {
+        <a asp-action="GetAllByDeviceID" asp-route-id="@Model.DeviceID">Back to Device VRFs</a>
+    }
 </div>
 
 @section Scripts {

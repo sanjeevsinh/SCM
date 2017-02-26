@@ -15,5 +15,7 @@ namespace SCM.Models
         public byte[] RowVersion { get; set; }
         public virtual ICollection<TenantNetwork> TenantNetworks { get; set; }
         public virtual ICollection<TenantCommunity> TenantCommunities { get; set; }
+        public virtual ICollection<Port> Ports { get; set; }
+        public virtual ICollection<BundleInterface> BundleInterfaces { get; set; }
     }
 }

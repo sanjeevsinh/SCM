@@ -1,0 +1,12 @@
+@model IEnumerable<SCM.Models.ViewModels.SubRegionViewModel>
+    
+@{
+    ViewData["Title"] = "SubRegions";
+}
+
+<option value="">-- Select Sub-Region --</option>
+
+@foreach (var item in Model)
+{
+    <option value="@item.SubRegionID">@item.Name</option>
+}

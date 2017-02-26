@@ -10,7 +10,7 @@
     <div class="form-horizontal">
         <h4>Select a Tenant for VPN @ViewBag.Vpn.Name</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.Vpn.VpnID" />
         <div class="form-group">
             <label asp-for="Tenant" class="col-md-2 control-label"></label>

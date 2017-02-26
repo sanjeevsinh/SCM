@@ -5,15 +5,15 @@
 }
 
 <ol class="breadcrumb">
-    <li><a href="#">Home</a></li>
-    <li><a href="/Tenant/GetAll">Tenants</a></li>
-    <li><a href="#">VRFs</a></li>
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item active">Tenant VRFs</li>
 </ol>
 
 <h2>VRFs for @ViewBag.Tenant.Name</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID"  >Create New</a>
+    <a asp-action="CreateForTenant" asp-route-id="@ViewBag.Tenant.TenantID"  >Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -49,9 +49,10 @@
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VrfID }) |
+                @Html.ActionLink("Edit", "Edit", new { id = item.VrfID, tenantContext = true }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VrfID, tenantContext = true } ) |
-                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID })
+                @Html.ActionLink("Delete", "Delete", new { id= item.VrfID, tenantContext = true }) |
+                @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { id = item.VrfID, tenantContext = true })
             </td>
         </tr>
 }

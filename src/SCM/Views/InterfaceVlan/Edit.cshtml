@@ -8,9 +8,8 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>Vlan</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="InterfaceVlanID" />
         <input type="hidden" asp-for="InterfaceID" />
         <input type="hidden" asp-for="RowVersion" />

@@ -8,9 +8,8 @@
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Bundle Interface</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VrfID" value="@ViewBag.Vrf.VrfID" />
        
         <div class="form-group">
@@ -41,11 +40,17 @@
         </div>
     </div>
 </form>
-
 <div>
-    <a asp-action="GetAllByVrfID" asp-route-id="@ViewBag.Vrf.VrfID">Back to BGP Peers List</a>
+    @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
+    {
+        <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantContext="True">Back to BGP Peers List</a>
+    }
+    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
+    {
+        <a asp-action="GetAllByVrfIDD" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
+    }
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }

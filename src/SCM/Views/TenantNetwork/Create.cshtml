@@ -10,7 +10,7 @@
     <div class="form-horizontal">
         <h4>Tenant Network</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="TenantID" value="@ViewBag.Tenant.TenantID" />
         <div class="form-group">
             <label asp-for="IpPrefix" class="col-md-2 control-label"></label>

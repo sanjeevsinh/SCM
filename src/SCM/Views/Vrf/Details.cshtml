@@ -8,19 +8,28 @@
     if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
         {
 
-<ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="#">Home</a></li>
-    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Vrf/GetAllByTenantID/@Model.TenantID">Tenant VRFs</a></li>
-    <li class="breadcrumb-item active">VRF Details</li>
-</ol>
-        }
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+            <li class="breadcrumb-item"><a href="/Vrf/GetAllByTenantID/@Model.TenantID">Tenant VRFs</a></li>
+            <li class="breadcrumb-item active">VRF Details</li>
+        </ol>
     }
+    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
+    {
+
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+            <li class="breadcrumb-item"><a href="/Vrf/GetAllByDeviceID/@Model.TenantID">Device VRFs</a></li>
+            <li class="breadcrumb-item active">VRF Details</li>
+        </ol>
+    }
+}
 
 <h2>Details</h2>
 
 <div>
-    <h4>VRF</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -57,5 +66,12 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID }) |
-    <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">VRFs List</a>
+    @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
+    {
+        <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Tenant VRFs</a>
+    }
+    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
+    {
+        <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">Back to Device VRFs</a>
+    }
 </div>

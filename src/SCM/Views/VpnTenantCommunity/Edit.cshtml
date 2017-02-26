@@ -8,9 +8,8 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>Tenant Community for VPN @ViewBag.VpnAttachmentSet.Vpn.Name</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnTenantCommunityID" />
         <input type="hidden" asp-for="VpnAttachmentSetID" />
         <input type="hidden" asp-for="RowVersion" />

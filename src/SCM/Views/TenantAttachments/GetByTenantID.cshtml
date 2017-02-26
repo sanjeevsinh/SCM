@@ -1,0 +1,59 @@
+@model SCM.Models.ViewModels.TenantAttachmentsViewModel
+
+@{
+    ViewData["Title"] = "GetByTenantID";
+}
+
+<h2>Attachment Interfaces</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.Select(q => q.PortType))
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.Select(q => q.PortName))
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.Select(q => q.Location))
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.Select(q => q.Device))
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.Select(q => q.Bandwidth))
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.AttachmentInterfaces)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PortType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PortName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Location.SiteName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Device.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Bandwidth.BandwidthGbps)
+                </td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.TenantID }) |
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

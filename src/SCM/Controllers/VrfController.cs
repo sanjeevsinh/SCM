@@ -110,7 +110,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     await VrfService.AddAsync(Mapper.Map<Vrf>(vrf));
-                    return RedirectToAction("GetAllByDeviceID", new { id = vrf.DeviceID });
+                    return RedirectToAction("GetAllByDeviceID", new { id = vrf.DeviceID, deviceContext = true });
                 }
             }
             catch (DbUpdateException /** ex **/ )

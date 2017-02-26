@@ -10,7 +10,7 @@
     <div class="form-horizontal">
         <h4>Add Attachment Set to VPN @ViewBag.Vpn.Name</h4>
         <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.VpnAttachmentSetSelection.VpnID" />
         <input type="hidden" name="TenantID" value="@ViewBag.VpnAttachmentSetSelection.TenantID" />
         <div class="form-group">
