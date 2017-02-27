@@ -33,7 +33,7 @@ namespace SCM.Models.ViewModels
         public Port Port { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (IsTagged == true)
+            if (IsTagged)
             {
                 if (!string.IsNullOrEmpty(IpAddress))
                 {

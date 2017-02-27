@@ -274,14 +274,19 @@ namespace SCM.Controllers
         private async Task PopulatePortsDropDownList(int bundleIfaceID, object selectedPort = null)
         {
             var dbResult = await BundleInterfacePortService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == bundleIfaceID, includeProperties: "Device.Ports.Interface,Device.Ports.BundleInterfacePort");
-            var item = dbResult.SingleOrDefault();
-            if (item != null)
+            var bundleIface = dbResult.SingleOrDefault();
+            if (bundleIface != null)
             {
-                // Get only those Ports which do not have interfaces, are not already associated with a bundle interface or are a member of the 
+                // Get only those Ports which are registered to the same tenant as the bundle interface,
+                // and do not have interfaces, and are not already associated with a bundle interface and are not a member of the 
                 // current bundle.  
                 // These ports can become members of the bundle
-                var ports = from p in item.Device.Ports.Where(f => f.Interface == null && (f.BundleInterfacePort == null 
-                            || f.BundleInterfacePort.BundleInterfaceID == bundleIfaceID)) select new { ID = p.ID, Name = string.Concat(p.Type, p.Name) };
+
+                var ports = from p in bundleIface.Device.Ports.Where(q => q.TenantID == bundleIface.TenantID 
+                            && q.Interface == null 
+                            && (q.BundleInterfacePort == null || q.BundleInterfacePort.BundleInterfaceID == bundleIfaceID))
+                            select new { ID = p.ID, Name = string.Concat(p.Type, p.Name) };
+
                 ViewBag.PortID = new SelectList(ports, "ID", "Name", selectedPort);
             }
         }

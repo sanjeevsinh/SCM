@@ -34,9 +34,10 @@
                 @Html.ActionLink("Edit", "Edit", new { id=item.TenantID }) |
                 @Html.ActionLink("Details", "Details", new { id=item.TenantID }) |
                 @Html.ActionLink("Delete", "Delete", new { id=item.TenantID }) |
+                @Html.ActionLink("Attachments", "GetByTenantID", "Attachment", new { id = item.TenantID }) |
                 @Html.ActionLink("VRFs", "GetAllByTenantID", "Vrf", new { id = item.TenantID }) |
-                @Html.ActionLink("Tenant Networks", "GetAllByTenantID", "TenantNetwork", new {id = item.TenantID}) |
-                @Html.ActionLink("Tenant Communities", "GetAllByTenantID", "TenantCommunity", new { id = item.TenantID })
+                @Html.ActionLink("Networks", "GetAllByTenantID", "TenantNetwork", new {id = item.TenantID}) |
+                @Html.ActionLink("Communities", "GetAllByTenantID", "TenantCommunity", new { id = item.TenantID })
             </td>
         </tr>
 }

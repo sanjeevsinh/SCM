@@ -1,0 +1,63 @@
+@model SCM.Models.ViewModels.TenantAttachmentsViewModel
+
+@{
+    ViewData["Title"] = "GetByTenantID";
+}
+
+<h2>Attachments for Tenant @ViewBag.Tenant.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Port.Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Port.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Device)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Bandwidth)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.AttachmentInterfaces)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Port.Type)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Port.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Location.SiteName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Device.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Bandwidth.BandwidthGbps)
+                </td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = item.ID }) |
+                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, TenantID = item.TenantID })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+</div>

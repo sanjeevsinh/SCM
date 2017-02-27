@@ -24,7 +24,7 @@ namespace SCM.Controllers
         private IAttachmentService AttachmentService { get; set; }
         private IMapper Mapper { get; set; }
 
-      
+
         [HttpGet]
         public async Task<IActionResult> GetByTenantID(int id)
         {
@@ -35,6 +35,7 @@ namespace SCM.Controllers
             }
 
             var attachments = await AttachmentService.GetByTenantAsync(tenant);
+            await PopulateTenantItem(id);
 
             return View(Mapper.Map<TenantAttachmentsViewModel>(attachments));
         }
@@ -56,16 +57,41 @@ namespace SCM.Controllers
             return View(Mapper.Map<AttachmentInterfaceViewModel>(item));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Create(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            await PopulateTenantItem(id.Value);
+            await PopulatePlanesDropDownList();
+            await PopulateRegionsDropDownList();
+            await PopulateBandwidthsDropDownList();
+
+            return View();
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DeviceID,VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID")] AttachmentInterfaceViewModel attachment)
+        public async Task<IActionResult> Create([Bind("VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID," +
+            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,IsLayer3,IsTagged")] AttachmentRequestViewModel request)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await AttachmentService.AddAsync(Mapper.Map<AttachmentRequest>(attachment));
-                    return RedirectToAction("GetByTenantID", new { id = attachment.TenantID });
+                    var result = await AttachmentService.AddAsync(Mapper.Map<AttachmentRequest>(request));
+                    if (!result.IsSuccess)
+                    {
+                        ModelState.AddModelError(string.Empty, result.GetMessage());
+                    }
+                    else
+                    {
+                        return RedirectToAction("GetByTenantID", new { id = request.TenantID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -76,7 +102,13 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            return View(attachment);
+            await PopulateTenantItem(request.TenantID);
+            await PopulatePlanesDropDownList();
+            await PopulateRegionsDropDownList(request.RegionID);
+            await PopulateSubRegionsDropDownList(request.RegionID, request.SubRegionID);
+            await PopulateLocationsDropDownList(request.SubRegionID, request.LocationID);
+            await PopulateBandwidthsDropDownList();
+            return View(request);
         }
 
         [HttpGet]
@@ -131,28 +163,24 @@ namespace SCM.Controllers
 
                 if (currentAttachment != null)
                 {
-                    await AttachmentService.DeleteAttachmentInterfaceAsync(Mapper.Map<AttachmentInterface>(attachment));
+                    var result = await AttachmentService.DeleteAttachmentInterfaceAsync(Mapper.Map<AttachmentInterface>(attachment));
+                    if (!result.IsSuccess)
+                    {
+                        ViewData["DeleteErrorMessage"] = result.GetMessage();
+                        return RedirectToAction("DeleteAttachmentInterface", new { attachment = attachment });
+                    }
                 }
+
                 return RedirectToAction("GetByTenantID", new { id = attachment.TenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, attachment = attachment });
+                return RedirectToAction("DeleteAttachmentInterface", new { concurrencyError = true, attachment = attachment });
             }
         }
-        private async Task PopulateDeviceItem(int deviceID)
-        {
-            var device = await AttachmentService.UnitOfWork.DeviceRepository.GetByIDAsync(deviceID);
-            ViewBag.Device = device;
-        }
 
-        private async Task PopulateTenantsDropDownList(object selectedTenant = null)
-        {
-            var tenants = await AttachmentService.UnitOfWork.TenantRepository.GetAsync();
-            ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
-        }
         private async Task PopulateTenantItem(int tenantID)
         {
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
@@ -163,6 +191,29 @@ namespace SCM.Controllers
         {
             var regions = await AttachmentService.UnitOfWork.RegionRepository.GetAsync();
             ViewBag.RegionID = new SelectList(regions, "RegionID", "Name", selectedRegion);
+        }
+
+        private async Task PopulateSubRegionsDropDownList(int regionID, object selectedSubRegion = null)
+        {
+            var subRegions = await AttachmentService.UnitOfWork.SubRegionRepository.GetAsync(q => q.RegionID == regionID);
+            ViewBag.SubRegionID = new SelectList(subRegions, "SubRegionID", "Name", selectedSubRegion);
+        }
+
+        private async Task PopulateLocationsDropDownList(int subRegionID, object selectedLocation = null)
+        {
+            var locations = await AttachmentService.UnitOfWork.LocationRepository.GetAsync(q => q.SubRegionID == subRegionID);
+            ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName", selectedLocation);
+        }
+
+        private async Task PopulatePlanesDropDownList(object selectedPlane = null)
+        {
+            var planes = await AttachmentService.UnitOfWork.PlaneRepository.GetAsync();
+            ViewBag.PlaneID = new SelectList(planes, "PlaneID", "Name", selectedPlane);
+        }
+        private async Task PopulateBandwidthsDropDownList(object selectedBandwidth = null)
+        {
+            var bandwidths = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
+            ViewBag.BandwidthID = new SelectList(bandwidths, "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
         }
     }
 }

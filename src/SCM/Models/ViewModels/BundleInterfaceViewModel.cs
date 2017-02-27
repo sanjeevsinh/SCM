@@ -28,14 +28,17 @@ namespace SCM.Models.ViewModels
         public string SubnetMask { get; set; }
         public int DeviceID { get; set; }
         public int? VrfID { get; set; }
+        [Required(ErrorMessage = "A Tenant must be selected")]
+        public int TenantID { get; set; }
         [Required(ErrorMessage = "An interface bandwidth must be selected")]
         public int InterfaceBandwidthID { get; set; }
         public byte[] RowVersion { get; set; }
         public Device Device { get; set; }
         [Display(Name = "VRF")]
         public  VrfViewModel Vrf { get; set; }
-        [Display(Name = "Interface Bandwidth (Kbps)")]
+        [Display(Name = "Interface Bandwidth (Gbps)")]
         public  InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
+        public Tenant Tenant { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged == true)

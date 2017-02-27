@@ -10,11 +10,6 @@ namespace SCM.Models
     public class AttachmentInterface
     {
         public int ID { get; set; }
-        public string PortType { get; set; }
-        public string PortName { get; set; }
-        public string VrfName { get; set; }
-        public int VrfAdministratorSubField { get; set; }
-        public int VrfAssignedNumberSubField { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public string IpAddress { get; set; }
@@ -26,11 +21,15 @@ namespace SCM.Models
         public int SubRegionID { get; set; }
         public int PlaneID { get; set; }
         public int BandwidthID { get; set; }
+        public int? VrfID { get; set; }
+        public Port Port { get; set; }
         public Tenant Tenant { get; set; }
         public Device Device { get; set; }
         public Region Region { get; set; }
         public SubRegion SubRegion { get; set; }
         public Location Location { get; set; }
         public InterfaceBandwidth Bandwidth { get; set; }
+        public Plane Plane { get; set; }
+        public Vrf Vrf { get; set; }
     }
 }

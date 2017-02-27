@@ -13,8 +13,8 @@ namespace SCM.Services.SCMServices
         Task<TenantAttachments> GetByTenantAsync(Tenant tenant);
         Task<AttachmentRequest> GetAttachmentInterfaceByIDAsync(int id);
         Task<AttachmentRequest> GetAttachmentBundleInterfaceByIDAsync(int id);
-        Task<int> AddAsync(AttachmentRequest attachmentRequest);
-        Task<int> DeleteAttachmentInterfaceAsync(AttachmentInterface attachment);
-        Task<int> DeleteAttachmentBundleInterfaceAsync(AttachmentBundleInterface attachment);
+        Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
+        Task<ServiceResult> DeleteAttachmentInterfaceAsync(AttachmentInterface attachment);
+        Task<ServiceResult> DeleteAttachmentBundleInterfaceAsync(AttachmentBundleInterface attachment);
     }
 }

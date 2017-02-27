@@ -40,6 +40,7 @@ namespace SCM.Models.ViewModels
             CreateMap<TenantAttachments, TenantAttachmentsViewModel>();
             CreateMap<AttachmentInterface, AttachmentInterfaceViewModel>();
             CreateMap<AttachmentBundleInterface, AttachmentBundleInterfaceViewModel>();
+            CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
         }
     }
 }

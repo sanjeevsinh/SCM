@@ -45,7 +45,7 @@ namespace SCM.Controllers
             }
 
             var bundleIfaces = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.DeviceID == id,
-                includeProperties: "Device,Vrf,InterfaceBandwidth");
+                includeProperties: "Device,Vrf,Tenant,InterfaceBandwidth");
 
             ViewBag.Device = device;
             return View(Mapper.Map<List<BundleInterfaceViewModel>>(bundleIfaces));
@@ -60,7 +60,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == id.Value,
-                includeProperties: "InterfaceBandwidth,Device,Vrf");
+                includeProperties: "InterfaceBandwidth,Device,Vrf,Tenant");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -82,13 +82,14 @@ namespace SCM.Controllers
 
             await PopulateDeviceItem(id.Value);
             await PopulateInterfaceBandwidthsDropDownList();
+            await PopulateTenantsDropDownList();
             await PopulateVrfsDropDownList(id.Value);
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
+        public async Task<IActionResult> Create([Bind("Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,TenantID,VrfID,InterfaceBandwidthID")] BundleInterfaceViewModel bundleIface)
         {
             try
             {
@@ -118,6 +119,7 @@ namespace SCM.Controllers
 
             await PopulateDeviceItem(bundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
+            await PopulateTenantsDropDownList();
             await PopulateVrfsDropDownList(bundleIface.DeviceID);
             return View(bundleIface);
         }
@@ -139,13 +141,14 @@ namespace SCM.Controllers
 
             await PopulateDeviceItem(bundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
+            await PopulateTenantsDropDownList();
             await PopulateVrfsDropDownList(bundleIface.DeviceID);
             return View(Mapper.Map<BundleInterfaceViewModel>(bundleIface));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
+        public async Task<ActionResult> Edit(int id, [Bind("BundleInterfaceID,Name,IpAddress,SubnetMask,IsTagged,IsLayer3,DeviceID,TenantID,VrfID,InterfaceBandwidthID,RowVersion")] BundleInterfaceViewModel bundleIface)
         {
             if (id != bundleIface.BundleInterfaceID)
             {
@@ -203,6 +206,12 @@ namespace SCM.Controllers
                     ModelState.AddModelError("InterfaceBandwidthID", $"Current value: {currentBundleIface.InterfaceBandwidth.BandwidthGbps}");
                 }
 
+                var proposedTenantID = (int?)exceptionEntry.Property("TenantID").CurrentValue;
+                if (currentBundleIface.TenantID != proposedTenantID)
+                {
+                    ModelState.AddModelError("TenantID", $"Current value: {currentBundleIface.Tenant.Name}");
+                }
+
                 var proposedVrfID = (int?)exceptionEntry.Property("VrfID").CurrentValue;
                 if (currentBundleIface.VrfID != proposedVrfID)
                 {
@@ -234,6 +243,7 @@ namespace SCM.Controllers
 
             await PopulateDeviceItem(currentBundleIface.DeviceID);
             await PopulateInterfaceBandwidthsDropDownList();
+            await PopulateTenantsDropDownList();
             await PopulateVrfsDropDownList(currentBundleIface.DeviceID);
             return View(Mapper.Map<BundleInterfaceViewModel>(currentBundleIface));
         }
@@ -247,7 +257,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await BundleInterfaceService.UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == id.Value,
-                includeProperties:"InterfaceBandwidth,Vrf");
+                includeProperties:"InterfaceBandwidth,Vrf,Tenant");
             var bundleIface = dbResult.SingleOrDefault();
 
             if (bundleIface == null)
@@ -316,6 +326,11 @@ namespace SCM.Controllers
         {
             var vrfs = await BundleInterfaceService.UnitOfWork.VrfRepository.GetAsync(q => q.DeviceID == deviceID);
             ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
+        }
+        private async Task PopulateTenantsDropDownList(object selectedTenant = null)
+        {
+            var tenants = await BundleInterfaceService.UnitOfWork.TenantRepository.GetAsync();
+            ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
         }
     }
 }
