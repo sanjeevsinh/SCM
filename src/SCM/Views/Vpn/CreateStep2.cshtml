@@ -73,11 +73,9 @@
 @if (ViewBag.VpnProtocolType.ProtocolType == "IP")
 {
         <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsExtranet" />
-                    <label asp-for="IsExtranet"></label>
-                </div>
+            <label asp-for="IsExtranet" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsExtranet" class="form-control" />
                 <span asp-validation-for="IsExtranet" class="text-danger"></span>
             </div>
         </div>

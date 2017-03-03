@@ -20,6 +20,8 @@ namespace SCM.Models.ViewModels
         public int AutonomousSystem { get; set; }
         [Display(Name = "Maximum Routes")]
         public int? MaximumRoutes { get; set; }
+        [Display(Name = "Require BFD Fast Failure Detection")]
+        public bool IsBfdEnabled { get; set; }
         public int VrfID { get; set; }
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]

@@ -79,6 +79,48 @@ namespace SCM.Models.NetModels.Attachment
                 .ForMember(dest => dest.PeerAutonomousSystem, conf => conf.MapFrom(src => src.AutonomousSystem));
 
             CreateMap<Device, AttachmentServiceNetModel>().ConvertUsing(new DeviceTypeConverter());
+
+            CreateMap<AttachmentInterface, UntaggedAttachmentInterfaceServiceNetModel>()
+                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
+                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new Layer3NetModelTypeResolver()));
+
+            CreateMap<AttachmentInterface, TaggedAttachmentInterfaceServiceNetModel>()
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
+
+            CreateMap<AttachmentInterface, VrfServiceNetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+        }
+
+        public class Layer3NetModelTypeResolver : IValueResolver<AttachmentInterface, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
+        {
+            public Layer3NetModel Resolve(AttachmentInterface source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
+            {
+                var result = new Layer3NetModel();
+                var mapper = context.Mapper;
+
+                if (source.IsLayer3)
+                {
+                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
+                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
+                    result.IpAddress = source.IpAddress;
+                    result.SubnetMask = source.SubnetMask;
+                    result.VrfName = source.Vrf.Name;
+
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         public class DeviceTypeConverter : ITypeConverter<Device, AttachmentServiceNetModel>
@@ -86,14 +128,14 @@ namespace SCM.Models.NetModels.Attachment
             public AttachmentServiceNetModel Convert(Device source, AttachmentServiceNetModel destination, ResolutionContext context)
             {
                 var result = new AttachmentServiceNetModel();
-                var Mapper = context.Mapper;
+                var mapper = context.Mapper;
                 var untaggedAttachmentInterfaces = new List<UntaggedAttachmentInterfaceNetModel>();
                 var taggedAttachmentInterfaces = new List<TaggedAttachmentInterfaceNetModel>();
                 var untaggedAttachmentBundleInterfaces = new List<UntaggedAttachmentBundleInterfaceNetModel>();
                 var taggedAttachmentBundleInterfaces = new List<TaggedAttachmentBundleInterfaceNetModel>();
 
                 result.PEName = source.Name;
-                result.Vrfs = Mapper.Map<List<VrfNetModel>>(source.Vrfs);
+                result.Vrfs = mapper.Map<List<VrfNetModel>>(source.Vrfs);
 
                 if (source.Ports != null)
                 {
@@ -103,11 +145,11 @@ namespace SCM.Models.NetModels.Attachment
                         {
                             if (port.Interface.IsTagged)
                             {
-                                taggedAttachmentInterfaces.Add(Mapper.Map<TaggedAttachmentInterfaceNetModel>(port));
+                                taggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(port));
                             }
                             else
                             {
-                                untaggedAttachmentInterfaces.Add(Mapper.Map<UntaggedAttachmentInterfaceNetModel>(port));
+                                untaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(port));
                             }
                         }
                     }
@@ -120,12 +162,10 @@ namespace SCM.Models.NetModels.Attachment
                     {
                         if (bundleInterface.IsTagged)
                         {
-                            taggedAttachmentBundleInterfaces.Add(Mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
+                            taggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
                         }
                         else
-                        {
-                            untaggedAttachmentBundleInterfaces.Add(Mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
-                        }
+                            untaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
                     }
                 }
 

@@ -6,8 +6,8 @@
 
 
 <ol class="breadcrumb">
-    <li><a href="#">Home</a></li>
-    <li><a href="#">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item active">Tenants</li>
 </ol>
 
 <h2>Tenants</h2>
@@ -34,7 +34,7 @@
                 @Html.ActionLink("Edit", "Edit", new { id=item.TenantID }) |
                 @Html.ActionLink("Details", "Details", new { id=item.TenantID }) |
                 @Html.ActionLink("Delete", "Delete", new { id=item.TenantID }) |
-                @Html.ActionLink("Attachments", "GetByTenantID", "Attachment", new { id = item.TenantID }) |
+                @Html.ActionLink("Attachments", "GetByTenantID", "TenantAttachments", new { id = item.TenantID }) |
                 @Html.ActionLink("VRFs", "GetAllByTenantID", "Vrf", new { id = item.TenantID }) |
                 @Html.ActionLink("Networks", "GetAllByTenantID", "TenantNetwork", new {id = item.TenantID}) |
                 @Html.ActionLink("Communities", "GetAllByTenantID", "TenantCommunity", new { id = item.TenantID })

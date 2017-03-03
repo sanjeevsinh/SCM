@@ -288,8 +288,14 @@ namespace SCM.Controllers
         private async Task PopulateAttachmentSetsDropDownList(VpnAttachmentSetSelectionViewModel vpnAttachmentSetSelection, object selectedAttachmentSet = null)
         {
 
-            IEnumerable<AttachmentSet> attachmentSets  = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
-                        q.TenantID == vpnAttachmentSetSelection.TenantID && q.Region.RegionID == vpnAttachmentSetSelection.Vpn.RegionID);
+            var vpn = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetByIDAsync(vpnAttachmentSetSelection.VpnID);
+            var attachmentSets = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
+                        q.TenantID == vpnAttachmentSetSelection.TenantID);
+
+            if (vpn.RegionID != null)
+            {
+                attachmentSets = attachmentSets.Where(q => q.RegionID == vpn.RegionID).ToList();
+            }
 
             ViewBag.AttachmentSetID = new SelectList(attachmentSets, "AttachmentSetID", "Name", selectedAttachmentSet);
         }

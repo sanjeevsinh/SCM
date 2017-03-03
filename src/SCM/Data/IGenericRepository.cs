@@ -17,7 +17,7 @@ namespace SCM.Data
             bool AsTrackable = true);
 
         Task<TEntity> GetByIDAsync(object id);
-        void DeleteAsync(object id);
+        Task DeleteAsync(object id);
         void Delete(TEntity entityToDelete);
         void Update(TEntity entityToUpdate);
     }

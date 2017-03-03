@@ -1,19 +1,30 @@
 @model SCM.Models.ViewModels.AttachmentInterfaceViewModel
 
 @{
-    ViewData["Title"] = "DeleteAttachmentInterface";
+    ViewData["Title"] = "Delete";
 }
 
 <h2>Delete</h2>
 
-@if (@ViewData["ConcurrencyErrorMessage"] != null)
-{
-<div class="alert alert-danger">@ViewData["ConcurrencyErrorMessage"]</div>
-}
 
 @if (@ViewData["DeleteErrorMessage"] != null)
 {
     <div class="alert alert-danger">@ViewData["DeleteErrorMessage"]</div>
+}
+
+@if (@ViewData["ConcurrencyErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["ConcurrencyErrorMessage"]</div>
+}
+
+@if (@ViewData["SyncErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["SyncErrorMessage"]</div>
+}
+
+@if (@ViewData["SyncSuccessMessage"] != null)
+{
+    <div class="alert alert-success">@ViewData["SyncSuccessMessage"]</div>
 }
 
 <h3>Are you sure you want to delete this?</h3>
@@ -60,10 +71,10 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
-        <input type="hidden" asp-for="TenantID" />
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
-            <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.ID">Back to Attachments List</a>
+            <input type="submit" asp-action="DeleteFromNetwork" asp-route-TenantID="@ViewBag.Tenant.TenantID" value="Delete Network Only" class="btn btn-default" /> |
+            <input type="submit" value="Delete" asp-route-TenantID="@ViewBag.Tenant.TenantID" class="btn btn-default" /> |
+            <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="TenantAttachments">Back to Attachments List</a>
         </div>
     </form>
 </div>

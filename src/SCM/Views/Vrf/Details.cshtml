@@ -65,13 +65,14 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID }) |
     @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
     {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID, tenantContext = true }) <span>|</span>
         <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Tenant VRFs</a>
     }
     else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
     {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.VrfID, deviceContext = true }) <span>|</span>
         <a asp-action="GetAllByDeviceID" asp-route-id = "@Model.DeviceID">Back to Device VRFs</a>
     }
 </div>

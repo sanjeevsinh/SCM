@@ -1,0 +1,13 @@
+
+@{
+    ViewData["Title"] = "AttachmentDeleted";
+}
+
+<h2>Attachment Deleted</h2>
+
+@if (@ViewData["AttachmentDeletedMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["AttachmentDeletedMessage"]</div>
+}
+
+<a asp-action="GetByTenantID" asp-controller="TenantAttachments" asp-route-id="@ViewContext.HttpContext.Request.Query["TenantID"]">Back to List</a>

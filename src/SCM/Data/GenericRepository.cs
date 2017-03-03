@@ -63,7 +63,7 @@ namespace SCM.Data
             dbSet.Add(entity);
         }
 
-        public virtual async void DeleteAsync(object id)
+        public virtual async Task DeleteAsync(object id)
         {
             TEntity entityToDelete = await dbSet.FindAsync(id);
             Delete(entityToDelete);

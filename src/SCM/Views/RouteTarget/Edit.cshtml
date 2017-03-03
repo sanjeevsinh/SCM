@@ -30,11 +30,10 @@
 @if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
 {
         <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsHubExport" />
-                    <label asp-for="IsHubExport"></label>
-                </div>
+            <label asp-for="IsHubExport" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsHubExport" class="form-control" />
+                <span asp-validation-for="IsHubExport" class="text-danger"></span>
             </div>
         </div>
 }

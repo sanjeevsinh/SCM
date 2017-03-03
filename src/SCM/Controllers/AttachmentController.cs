@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
 
 namespace SCM.Controllers
 {
@@ -24,31 +25,15 @@ namespace SCM.Controllers
         private IAttachmentService AttachmentService { get; set; }
         private IMapper Mapper { get; set; }
 
-
         [HttpGet]
-        public async Task<IActionResult> GetByTenantID(int id)
-        {
-            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id);
-            if (tenant == null)
-            {
-                return NotFound();
-            }
-
-            var attachments = await AttachmentService.GetByTenantAsync(tenant);
-            await PopulateTenantItem(id);
-
-            return View(Mapper.Map<TenantAttachmentsViewModel>(attachments));
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AttachmentInterfaceDetails(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var item = await AttachmentService.GetAttachmentInterfaceByIDAsync(id.Value);
+            var item = await AttachmentService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 return NotFound();
@@ -77,7 +62,7 @@ namespace SCM.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID," +
-            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,IsLayer3,IsTagged")] AttachmentRequestViewModel request)
+            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged")] AttachmentRequestViewModel request)
         {
             try
             {
@@ -90,7 +75,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("GetByTenantID", new { id = request.TenantID });
+                        return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = request.TenantID });
                     }
                 }
             }
@@ -126,15 +111,19 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DeleteAttachmentInterface(AttachmentInterfaceViewModel attachment, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            var currentAttachment = await AttachmentService.GetAttachmentInterfaceByIDAsync(attachment.ID);
+            var currentAttachment = await AttachmentService.GetByIDAsync(id.Value);
             if (currentAttachment == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetByTenantID", new { id = attachment.TenantID });
+                    return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = Request.Query["TenantID"] });
                 }
 
                 return NotFound();
@@ -150,35 +139,139 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            return View(Mapper.Map<AttachmentInterfaceViewModel>(attachment));
+            await PopulateTenantItem(currentAttachment.TenantID);
+            return View(Mapper.Map<AttachmentInterfaceViewModel>(currentAttachment));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAttachmentInterface(AttachmentInterfaceViewModel attachment)
+        public async Task<IActionResult> Delete(AttachmentInterfaceViewModel attachment)
         {
             try
             {
-                var currentAttachment = await AttachmentService.GetAttachmentInterfaceByIDAsync(attachment.ID);
+                var currentAttachment = await AttachmentService.GetByIDAsync(attachment.ID);
 
                 if (currentAttachment != null)
                 {
-                    var result = await AttachmentService.DeleteAttachmentInterfaceAsync(Mapper.Map<AttachmentInterface>(attachment));
+                    var result = await AttachmentService.DeleteAsync(currentAttachment);
                     if (!result.IsSuccess)
                     {
                         ViewData["DeleteErrorMessage"] = result.GetMessage();
-                        return RedirectToAction("DeleteAttachmentInterface", new { attachment = attachment });
+                        await PopulateTenantItem(currentAttachment.TenantID);
+
+                        return View(Mapper.Map<AttachmentInterfaceViewModel>(currentAttachment));
                     }
                 }
 
-                return RedirectToAction("GetByTenantID", new { id = attachment.TenantID });
+                return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = attachment.TenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("DeleteAttachmentInterface", new { concurrencyError = true, attachment = attachment });
+                return RedirectToAction("Delete", new { concurrencyError = true, attachment = attachment });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckSync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(id.Value);
+            if (checkSyncResult.InSync)
+            {
+                ViewData["SyncSuccessMessage"] = "The Attachment Interface is synchronised with the network.";
+            }
+            else
+            {
+                if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                {
+                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                }
+                else
+                {
+                    ViewData["SyncErrorMessage"] = "The Attachment Interface is not synchronised with the network. Press the 'Sync' button to update the network.";
+                }
+            }
+
+            var item = await AttachmentService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            return View("Details", Mapper.Map<AttachmentInterfaceViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Sync(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var item = await AttachmentService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            var syncResult = await AttachmentService.SyncToNetworkAsync(id.Value);
+
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The network is synchronised.";
+            }
+            else
+            {
+                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+            }
+
+            return View("Details", Mapper.Map<AttachmentInterfaceViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFromNetwork(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
+
+            if (attachment == null)
+            {
+
+                ViewData["AttachmentDeletedMessage"] = "The Attachment has been deleted by another user. Return to the list.";
+
+                return View("AttachmentDeleted", new { TenantID = Request.Query["TenantID"] });
+            }
+
+            var syncResult = await AttachmentService.DeleteFromNetworkAsync(id.Value);
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SyncSuccessMessage"] = "The Attachment has been deleted from the network.";
+            }
+            else
+            {
+                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                {
+                    ViewData["SyncErrorMessage"] = "The Attachment has already been deleted from the network.";
+                }
+                else
+                {
+                    ViewData["SyncErrorMessage"] = "There was a problem deleting the Attachment from the network. " + syncResult.GetAllMessages();
+                }
+            }
+
+            await PopulateTenantItem(attachment.TenantID);
+            return View("Delete", Mapper.Map<AttachmentInterfaceViewModel>(attachment));
         }
 
         private async Task PopulateTenantItem(int tenantID)

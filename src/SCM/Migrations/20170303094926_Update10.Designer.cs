@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170303094926_Update10")]
+    partial class Update10
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -254,24 +255,6 @@ namespace SCM.Migrations
                     b.ToTable("ContractBandwidth");
                 });
 
-            modelBuilder.Entity("SCM.Models.ContractBandwidthPool", b =>
-                {
-                    b.Property<int>("ContractBandwidthPoolID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("ContractBandwidthID");
-
-                    b.Property<string>("Name");
-
-                    b.Property<bool>("TrustReceivedCosDscp");
-
-                    b.HasKey("ContractBandwidthPoolID");
-
-                    b.HasIndex("ContractBandwidthID");
-
-                    b.ToTable("ContractBandwidthPool");
-                });
-
             modelBuilder.Entity("SCM.Models.Device", b =>
                 {
                     b.Property<int>("ID")
@@ -359,8 +342,6 @@ namespace SCM.Migrations
                     b.Property<int>("InterfaceVlanID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("ContractBandwidthPoolID");
-
                     b.Property<int>("InterfaceID");
 
                     b.Property<string>("IpAddress")
@@ -380,8 +361,6 @@ namespace SCM.Migrations
                     b.Property<int?>("VrfID");
 
                     b.HasKey("InterfaceVlanID");
-
-                    b.HasIndex("ContractBandwidthPoolID");
 
                     b.HasIndex("VrfID");
 
@@ -1016,14 +995,6 @@ namespace SCM.Migrations
                         .HasForeignKey("VrfID");
                 });
 
-            modelBuilder.Entity("SCM.Models.ContractBandwidthPool", b =>
-                {
-                    b.HasOne("SCM.Models.ContractBandwidth", "ContractBandwidth")
-                        .WithMany()
-                        .HasForeignKey("ContractBandwidthID")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("SCM.Models.Device", b =>
                 {
                     b.HasOne("SCM.Models.Location", "Location")
@@ -1053,10 +1024,6 @@ namespace SCM.Migrations
 
             modelBuilder.Entity("SCM.Models.InterfaceVlan", b =>
                 {
-                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
-                        .WithMany()
-                        .HasForeignKey("ContractBandwidthPoolID");
-
                     b.HasOne("SCM.Models.Interface", "Interface")
                         .WithMany("InterfaceVlans")
                         .HasForeignKey("InterfaceID")

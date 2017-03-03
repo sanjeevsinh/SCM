@@ -31,5 +31,6 @@ namespace SCM.Models
         public InterfaceBandwidth Bandwidth { get; set; }
         public Plane Plane { get; set; }
         public Vrf Vrf { get; set; }
+        public ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

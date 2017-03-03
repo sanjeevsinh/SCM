@@ -62,11 +62,11 @@ namespace SCM.Services.SCMServices
 
             if (!networkResponse.IsSuccess)
             {
-                checkSyncResult.NetworkSyncServiceResult.Add("The network request failed.");
+                checkSyncResult.NetworkSyncServiceResult.Add("The network request failed. ");
 
                 if (networkResponse.HttpStatusCode == HttpStatusCode.NotFound)
                 {
-                    checkSyncResult.NetworkSyncServiceResult.Add("The resource was not found.");
+                    checkSyncResult.NetworkSyncServiceResult.Add("The resource was not found. ");
                 }
 
                 return checkSyncResult;
@@ -158,7 +158,7 @@ namespace SCM.Services.SCMServices
 
             catch (HttpRequestException /* ex */)
             {
-                result.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details.");
+                result.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details. ");
                 result.IsSuccess = false;
             }
 
@@ -170,6 +170,7 @@ namespace SCM.Services.SCMServices
             XElement newElement = new XElement(element.Name,
                     from child in element.Elements()
                     orderby child.Name.ToString()
+                    orderby child.Value.ToString()
                     select Sort(child));
 
             if (element.HasAttributes)
@@ -179,6 +180,12 @@ namespace SCM.Services.SCMServices
                     newElement.SetAttributeValue(attrib.Name, attrib.Value);
                 }
             }
+
+            if (!element.HasElements)
+            {
+                newElement.SetValue(element.Value);
+            }
+
             return newElement;
         }
     }

@@ -44,6 +44,8 @@ namespace SCM.Services.SCMServices
             var serviceResult = new ServiceResult();
             serviceResult.IsSuccess = true;
 
+            // Delete from the network first
+
             var syncResult = await DeleteFromNetworkAsync(device.ID);
 
             if (!syncResult.IsSuccess && syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
@@ -52,6 +54,9 @@ namespace SCM.Services.SCMServices
                 serviceResult.Add(syncResult.GetAllMessages());
                 return serviceResult;
             }
+
+
+            // Now update the inventory
 
             this.UnitOfWork.DeviceRepository.Delete(device);
             await this.UnitOfWork.SaveAsync();

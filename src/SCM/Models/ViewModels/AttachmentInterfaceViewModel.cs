@@ -28,6 +28,7 @@ namespace SCM.Models.ViewModels
         public int BandwidthID { get; set; }
         public PortViewModel Port { get; set; }
         public TenantViewModel Tenant { get; set; }
+        [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
         public DeviceViewModel Device { get; set; }
         public RegionViewModel Region { get; set; }
@@ -36,5 +37,7 @@ namespace SCM.Models.ViewModels
         public LocationViewModel Location { get; set; }
         [Display(Name = "Bandwidth (Gbps)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
+        public PlaneViewModel Plane { get; set; }
+        public ICollection<InterfaceVlanViewModel> InterfaceVlans { get; set; }
     }
 }

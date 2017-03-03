@@ -42,13 +42,14 @@
         <input type="hidden" asp-for="DeviceID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
             @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
             {
+                <input type="submit" value="Delete" asp-route-tenantContext="True" class="btn btn-default" /> <span>|</span>
                 <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Tenant VRFs</a>
             }
             else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
             {
+                <input type="submit" value="Delete" asp-route-deviceContext="True" class="btn btn-default" /> <span>|</span>
                 <a asp-action="GetAllByDeviceID" asp-route-id="@Model.DeviceID">Back to Device VRFs</a>
             }
         </div>

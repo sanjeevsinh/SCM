@@ -34,8 +34,22 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="IsBfdEnabled" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsBfdEnabled" class="form-control" />
+                <span asp-validation-for="IsBfdEnabled" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+@if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
+{
+                <input type="submit" value="Create" asp-route-tenantContext="True" class="btn btn-default" />
+}
+@if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
+{
+    <input type="submit" value="Create" asp-route-deviceContext="True" class="btn btn-default" />
+}
             </div>
         </div>
     </div>
@@ -47,7 +61,7 @@
     }
     else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
     {
-        <a asp-action="GetAllByVrfIDD" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
+        <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
     }
 </div>
 

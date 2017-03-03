@@ -171,7 +171,15 @@ namespace SCM.Controllers
                     }
 
                     await VrfService.UpdateAsync(Mapper.Map<Vrf>(vrf));
-                    return RedirectToAction("GetAllByDeviceID", new { id = vrf.DeviceID });
+
+                    if (Request.Query["tenantContext"] == "True")
+                    {
+                        return RedirectToAction("GetAllByTenantID", new { id = vrf.TenantID });
+                    }
+                    else 
+                    {
+                        return RedirectToAction("GetAllByDeviceID", new { id = vrf.DeviceID });
+                    }
                 }
             }
 
@@ -272,7 +280,15 @@ namespace SCM.Controllers
                 {
                     await VrfService.DeleteAsync(Mapper.Map<Vrf>(vrf));
                 }
-                return RedirectToAction("GetAllByDeviceID", new { id = vrf.DeviceID });
+
+                if (Request.Query["tenantContext"] == "True")
+                {
+                    return RedirectToAction("GetAllByTenantID", new { id = currentVrf.TenantID });
+                }
+                else 
+                {
+                    return RedirectToAction("GetAllByDeviceID", new { id = currentVrf.DeviceID });
+                }
             }
 
             catch (DbUpdateConcurrencyException /* ex */)

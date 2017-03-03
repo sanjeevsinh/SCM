@@ -26,10 +26,12 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Vlan Tag")]
         public int VlanTag { get; set; }
         public int? VrfID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public byte[] RowVersion { get; set; }
         public InterfaceViewModel Interface { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
+        public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsLayer3)

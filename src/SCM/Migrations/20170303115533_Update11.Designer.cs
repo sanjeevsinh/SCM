@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170303115533_Update11")]
+    partial class Update11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -262,8 +263,6 @@ namespace SCM.Migrations
                     b.Property<int>("ContractBandwidthID");
 
                     b.Property<string>("Name");
-
-                    b.Property<bool>("TrustReceivedCosDscp");
 
                     b.HasKey("ContractBandwidthPoolID");
 

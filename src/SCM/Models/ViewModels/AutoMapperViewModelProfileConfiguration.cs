@@ -38,8 +38,8 @@ namespace SCM.Models.ViewModels
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
             CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
             CreateMap<TenantAttachments, TenantAttachmentsViewModel>();
-            CreateMap<AttachmentInterface, AttachmentInterfaceViewModel>();
-            CreateMap<AttachmentBundleInterface, AttachmentBundleInterfaceViewModel>();
+            CreateMap<AttachmentInterface, AttachmentInterfaceViewModel>().ReverseMap();
+            CreateMap<AttachmentBundleInterface, AttachmentBundleInterfaceViewModel>().ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
         }
     }

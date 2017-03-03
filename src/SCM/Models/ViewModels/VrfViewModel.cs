@@ -13,12 +13,13 @@ namespace SCM.Models.ViewModels
         [Required(AllowEmptyStrings = false, ErrorMessage = "A name must be specified")]
         [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The name must contain letters, numbers, and dashes (-) only and no whitespace.")]
         [StringLength(50)]
+        [Display(Name = "VRF Name")]
         public string Name { get; set; }
-        [Display(Name = "Administrator Sub-Field")]
+        [Display(Name = "VRF Administrator Sub-Field")]
         [Required]
         [Range(1, 4294967295)]
         public int AdministratorSubField { get; set; }
-        [Display(Name = "Assigned Number Sub-Field")]
+        [Display(Name = "VRF Assigned Number Sub-Field")]
         [Required]
         [Range(1, 4294967295)]
         public int AssignedNumberSubField { get; set; }

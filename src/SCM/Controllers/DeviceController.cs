@@ -65,7 +65,7 @@ namespace SCM.Controllers
             {
                 if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
                 {
-                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetMessage();
+                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
                 }
                 else
                 {

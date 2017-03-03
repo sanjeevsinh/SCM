@@ -128,4 +128,21 @@ namespace SCM.Models.NetModels.Attachment
         [XmlElement(ElementName = "tagged-attachment-bundle-interface")]
         public List<TaggedAttachmentBundleInterfaceNetModel> TaggedAttachmentBundleInterfaces { get; set; }
     }
+
+    [XmlRoot(ElementName = "vrf", Namespace = "urn:thomsonreuters:attachment")]
+    public class VrfServiceNetModel : VrfNetModel
+    { 
+    }
+
+    [XmlRoot(ElementName = "untagged-attachment-interface", Namespace = "urn:thomsonreuters:attachment")]
+    public class UntaggedAttachmentInterfaceServiceNetModel : UntaggedAttachmentInterfaceNetModel
+    {
+    }
+
+    [XmlRoot(ElementName = "tagged-attachment-interface", Namespace = "urn:thomsonreuters:attachment")]
+    public class TaggedAttachmentInterfaceServiceNetModel : TaggedAttachmentInterfaceNetModel
+    {
+    }
+
+
 }

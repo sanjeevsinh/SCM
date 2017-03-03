@@ -4,10 +4,17 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<h2>Details for Device @Model.Name</h2>
 
-<p class="text-danger">@ViewData["SyncErrorMessage"]</p>
-<p class="text-success">@ViewData["SyncSuccessMessage"]</p>
+@if (@ViewData["SyncErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["SyncErrorMessage"]</div>
+}
+
+@if (@ViewData["SyncSuccessMessage"] != null)
+{
+    <p class="alert alert-success">@ViewData["SyncSuccessMessage"]</p>
+}
 
 <div>
     <h4>Device</h4>

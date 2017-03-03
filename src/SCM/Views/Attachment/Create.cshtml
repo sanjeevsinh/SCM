@@ -4,6 +4,7 @@
     ViewData["Title"] = "Create";
 }
 
+
 <h2>Create Attachment for Tenant @ViewBag.Tenant.Name</h2>
 
 <form asp-action="Create">
@@ -59,17 +60,13 @@
         <div class="form-group">
             <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsLayer3" />
-                </div>
+                <input asp-for="IsLayer3" class="form-control" />
             </div>
         </div>
         <div class="form-group">
             <label asp-for="IsTagged" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsTagged" />
-                </div>
+                <input asp-for="IsTagged" class="form-control" />
             </div>
         </div>
         <div class="form-group">
@@ -116,7 +113,7 @@
 </form>
 
 <div>
-    <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Attachments List</a>
+    <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="TenantAttachments">Back to Attachments List</a>
 </div>
 
 @section Scripts {
