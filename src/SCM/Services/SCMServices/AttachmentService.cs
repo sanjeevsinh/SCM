@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using SCM.Data;
 using SCM.Models;
-using SCM.Models.NetModels.Attachment;
+using SCM.Models.ServiceModels;
+using SCM.Models.NetModels.AttachmentNetModels;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -18,16 +19,21 @@ namespace SCM.Services.SCMServices
         {
         }
 
-        public async Task<AttachmentInterface> GetByIDAsync(int id)
+        public async Task<Attachment> GetByIDAsync(int id)
         {
-            var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id, includeProperties: "Port.Device.Location,Port.Device.Plane,Vrf.BgpPeers,InterfaceBandwidth", AsTrackable: false);
-            return Mapper.Map<AttachmentInterface>(dbResult.SingleOrDefault());
+            var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id, includeProperties:
+                "Port.Device.Location,Port.Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth",
+                AsTrackable: false);
+            return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
         }
 
-        public async Task<AttachmentInterface> GetAttachmentBundleInterfaceByIDAsync(int id)
+        public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
         {
-            var dbResult = await UnitOfWork.BundleInterfaceRepository.GetAsync(q => q.BundleInterfaceID == id, includeProperties: "Vrf", AsTrackable: false);
-            return Mapper.Map<AttachmentInterface>(dbResult.SingleOrDefault());
+            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.Port.TenantID == tenant.TenantID,
+                includeProperties: "Port.Device.Location.SubRegion.Region,Port.Device.Plane,"
+                + "Port.Interface.Vrf,Port.Interface.InterfaceBandwidth,Port.Interface.ContractBandwidthPool", AsTrackable: false);
+
+            return Mapper.Map<List<Attachment>>(ifaces);
         }
 
         public async Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest)
@@ -132,26 +138,22 @@ namespace SCM.Services.SCMServices
             return serviceResult;
         }
 
-        public async Task<ServiceResult> DeleteAsync(AttachmentInterface attachment)
+        public async Task<ServiceResult> DeleteAsync(Attachment attachment)
         {
 
             var result = new ServiceResult();
             result.IsSuccess = true;
 
-            // Check for Attachment Sets - if a VRF for the Attachment exists, which 
-            // is to be deleted, and the VRF belongs to an Attachment Set, quit and 
-            // warn the user
+            // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
+            // is to be deleted, and one or more VPNs are bound to the  VRF, 
+            // then quit and warn the user
 
             if (attachment.VrfID != null)
             {
-                var attachmentSets = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetVrfs.Where(v => v.VrfID == attachment.VrfID).Count() > 0);
-                if (attachmentSets.Count() > 0)
+                var checkVpnAttachmentSetsResult = await CheckVpnAttachmentSets(attachment.VrfID.Value);
+                if (!checkVpnAttachmentSetsResult.IsSuccess)
                 {
-                    result.Add("This attachment cannot be deleted because the VRF is bound to the following Attachment Sets: "
-                        + string.Join(",", attachmentSets.Select(q => q.Name)));
-                    result.IsSuccess = false;
-
-                    return result;
+                    return checkVpnAttachmentSetsResult;
                 }
             }
 
@@ -184,7 +186,7 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.SaveAsync();
             }
 
-            catch (DbUpdateException  /* ex */)
+            catch (DbUpdateException  /** ex **/ )
             {
                 result.Add("The delete operation failed. The error has been logged. "
                    + "Please try again and contact your system administrator if the problem persists.");
@@ -203,9 +205,9 @@ namespace SCM.Services.SCMServices
             {
                 var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                 var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentServiceModelData,
-                    "/attachment/pe/" + attachment.Device.Name 
+                    "/attachment/pe/" + attachment.Device.Name
                     + "/tagged-attachment-interface/"
-                    + taggedAttachmentServiceModelData.InterfaceType + "," 
+                    + taggedAttachmentServiceModelData.InterfaceType + ","
                     + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                 return attachmentCheckSyncResult;
@@ -225,9 +227,9 @@ namespace SCM.Services.SCMServices
 
                 var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
                 var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentServiceModelData,
-                    "/attachment/pe/" + attachment.Device.Name 
+                    "/attachment/pe/" + attachment.Device.Name
                     + "/untagged-attachment-interface/"
-                    + untaggedAttachmentServiceModelData.InterfaceType + "," 
+                    + untaggedAttachmentServiceModelData.InterfaceType + ","
                     + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                 return attachmentCheckSyncResult;
@@ -236,14 +238,14 @@ namespace SCM.Services.SCMServices
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(int attachmentID)
         {
             var attachment = await GetByIDAsync(attachmentID);
-           
+
             if (attachment.IsTagged)
             {
                 var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                 var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentServiceModelData,
-                    "/attachment/pe/" + attachment.Device.Name 
+                    "/attachment/pe/" + attachment.Device.Name
                     + "/tagged-attachment-interface/"
-                    + taggedAttachmentServiceModelData.InterfaceType + "," 
+                    + taggedAttachmentServiceModelData.InterfaceType + ","
                     + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                 return attachmentSyncResult;
@@ -254,8 +256,8 @@ namespace SCM.Services.SCMServices
                 {
                     var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
                     var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                        "/attachment/pe/" 
-                        + attachment.Device.Name + "/vrf/" 
+                        "/attachment/pe/"
+                        + attachment.Device.Name + "/vrf/"
                         + vrfServiceModelData.VrfName);
 
                     if (!vrfSyncResult.IsSuccess)
@@ -266,7 +268,7 @@ namespace SCM.Services.SCMServices
 
                 var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
                 var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentServiceModelData,
-                    "/attachment/pe/" + attachment.Device.Name 
+                    "/attachment/pe/" + attachment.Device.Name
                     + "/untagged-attachment-interface/"
                     + untaggedAttachmentServiceModelData.InterfaceType + ","
                     + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
@@ -275,31 +277,40 @@ namespace SCM.Services.SCMServices
             }
         }
 
-        public Task<ServiceResult> DeleteAsync(AttachmentBundleInterface attachment)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int attachmentID)
         {
-        
             var attachment = await GetByIDAsync(attachmentID);
+            var syncResult = new NetworkSyncServiceResult();
 
             if (attachment == null)
             {
-                var syncResult = new NetworkSyncServiceResult();
-                syncResult.Add("The Attachment was not found.");
+                syncResult.Add("The attachment was not found.");
 
                 return syncResult;
+            }
+
+            // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
+            // is to be deleted, and one or more VPNs are bound to the  VRF, 
+            // then quit and warn the user
+
+            if (attachment.VrfID != null)
+            {
+                var checkVpnAttachmentSetsResult = await CheckVpnAttachmentSets(attachment.VrfID.Value);
+                if (!checkVpnAttachmentSetsResult.IsSuccess)
+                {
+                    syncResult.Add(checkVpnAttachmentSetsResult.GetMessage());
+
+                    return syncResult;
+                }
             }
 
             if (attachment.IsTagged)
             {
                 var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
-                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" 
-                    + attachment.Device.Name 
+                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
+                    + attachment.Device.Name
                     + "/tagged-attachment-interface/"
-                    + taggedAttachmentServiceModelData.InterfaceType + "," 
+                    + taggedAttachmentServiceModelData.InterfaceType + ","
                     + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                 return attachmentSyncResult;
@@ -309,8 +320,8 @@ namespace SCM.Services.SCMServices
                 if (attachment.IsLayer3)
                 {
                     var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                    var vrfSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" 
-                        + attachment.Device.Name 
+                    var vrfSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
+                        + attachment.Device.Name
                         + "/vrf/" + vrfServiceModelData.VrfName);
 
                     if (!vrfSyncResult.IsSuccess)
@@ -320,14 +331,59 @@ namespace SCM.Services.SCMServices
                 }
 
                 var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
-                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" 
-                    + attachment.Device.Name 
+                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
+                    + attachment.Device.Name
                     + "/untagged-attachment-interface/"
                     + untaggedAttachmentServiceModelData.InterfaceType + ","
                     + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-            
-            return attachmentSyncResult;
+
+                return attachmentSyncResult;
+            }
         }
-    }
+
+        public async Task<ServiceResult> ValidateAttachmentRequest(AttachmentRequest request)
+        {
+            var result = new ServiceResult();
+            result.IsSuccess = true;
+
+            var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => 
+                q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties:"Interfaces,BundleInterface");
+
+            var contractBandwidthPool = dbResult.Single();
+
+            if (contractBandwidthPool.Interfaces.Count > 0 )
+            {
+                var port = contractBandwidthPool.Interfaces.Single().Port;
+                result.Add($"The Contract Bandwidth Pool is in-use for interface {port.Type} {port.Name}");
+                result.IsSuccess = false;    
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Check if one or more VPNs are bound to a VRF which belongs to an Attachment Set
+        /// </summary>
+        /// <param name="vrfID"></param>
+        /// <returns></returns>
+        private async Task<ServiceResult> CheckVpnAttachmentSets(int vrfID) 
+        {
+            var result = new ServiceResult();
+            result.IsSuccess = true;
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSet.AttachmentSetVrfs
+                    .Where(v => v.VrfID == vrfID).Count() > 0,
+                    includeProperties: "Vpn");
+
+            if (vpnAttachmentSets.Count() > 0)
+            {
+                result.Add("This attachment cannot be deleted because the following VPN services are bound to the VRF: "
+                    + string.Join(",", vpnAttachmentSets.Select(q => q.Vpn.Name)));
+
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
     }
 }

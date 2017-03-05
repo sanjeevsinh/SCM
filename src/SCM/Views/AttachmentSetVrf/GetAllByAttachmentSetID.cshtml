@@ -19,25 +19,25 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Vrf)
+                @Html.DisplayNameFor(model => model.Attachment.Vrf)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Preference)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentSet)
+                @Html.DisplayNameFor(model => model.Attachment.ContractBandwidthPool)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion.Region)
+                @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location.SubRegion.Region)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion)
+                @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location.SubRegion)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Vrf.Device.Location)
+                @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Vrf.Device.Plane)
+                @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Plane)
             </th>
             <th></th>
         </tr>
@@ -47,25 +47,25 @@
     {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Vrf.Name)
+                @Html.DisplayFor(modelItem => item.Attachment.Vrf.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Preference)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.AttachmentSet.Name)
+                @Html.DisplayFor(modelItem => item.Attachment.ContractBandwidthPool.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SubRegion.Region.Name)
+                @Html.DisplayFor(modelItem => item.Attachment.Vrf.Device.Location.SubRegion.Region.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SubRegion.Name)
+                @Html.DisplayFor(modelItem => item.Attachment.Vrf.Device.Location.SubRegion.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Vrf.Device.Location.SiteName)
+                @Html.DisplayFor(modelItem => item.Attachment.Vrf.Device.Location.SiteName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Vrf.Device.Plane.Name)
+                @Html.DisplayFor(modelItem => item.Attachment.Vrf.Device.Plane.Name)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetVrfID }) |

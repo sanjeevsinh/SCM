@@ -18,11 +18,13 @@ namespace SCM.Models
         public string SubnetMask { get; set; }
         public int InterfaceBandwidthID { get; set; }
         public int? VrfID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth { get; set; }
         public virtual Port Port { get; set; }
+        public virtual ContractBandwidthPool ContractBandwidthPool { get; set; }
         public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

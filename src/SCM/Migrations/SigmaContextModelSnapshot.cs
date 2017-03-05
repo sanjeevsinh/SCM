@@ -44,8 +44,6 @@ namespace SCM.Migrations
 
                     b.Property<int>("AttachmentRedundancyID");
 
-                    b.Property<int>("ContractBandwidthID");
-
                     b.Property<string>("Description")
                         .HasMaxLength(250);
 
@@ -66,8 +64,6 @@ namespace SCM.Migrations
                     b.HasKey("AttachmentSetID");
 
                     b.HasIndex("AttachmentRedundancyID");
-
-                    b.HasIndex("ContractBandwidthID");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -261,13 +257,26 @@ namespace SCM.Migrations
 
                     b.Property<int>("ContractBandwidthID");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<int>("TenantID");
 
                     b.Property<bool>("TrustReceivedCosDscp");
 
                     b.HasKey("ContractBandwidthPoolID");
 
                     b.HasIndex("ContractBandwidthID");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("TenantID");
 
                     b.ToTable("ContractBandwidthPool");
                 });
@@ -308,6 +317,8 @@ namespace SCM.Migrations
                 {
                     b.Property<int>("ID");
 
+                    b.Property<int?>("ContractBandwidthPoolID");
+
                     b.Property<int>("InterfaceBandwidthID");
 
                     b.Property<string>("IpAddress")
@@ -327,6 +338,8 @@ namespace SCM.Migrations
                     b.Property<int?>("VrfID");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("ContractBandwidthPoolID");
 
                     b.HasIndex("InterfaceBandwidthID");
 
@@ -653,13 +666,9 @@ namespace SCM.Migrations
 
                     b.Property<int>("TenantID");
 
-                    b.Property<int?>("TenantID1");
-
                     b.HasKey("TenantCommunityID");
 
                     b.HasIndex("TenantID");
-
-                    b.HasIndex("TenantID1");
 
                     b.HasIndex("AutonomousSystemNumber", "Number")
                         .IsUnique();
@@ -685,13 +694,9 @@ namespace SCM.Migrations
 
                     b.Property<int>("TenantID");
 
-                    b.Property<int?>("TenantID1");
-
                     b.HasKey("TenantNetworkID");
 
                     b.HasIndex("TenantID");
-
-                    b.HasIndex("TenantID1");
 
                     b.HasIndex("IpPrefix", "Length")
                         .IsUnique();
@@ -934,10 +939,6 @@ namespace SCM.Migrations
                         .WithMany()
                         .HasForeignKey("AttachmentRedundancyID");
 
-                    b.HasOne("SCM.Models.ContractBandwidth", "ContractBandwidth")
-                        .WithMany()
-                        .HasForeignKey("ContractBandwidthID");
-
                     b.HasOne("SCM.Models.Region", "Region")
                         .WithMany()
                         .HasForeignKey("RegionID");
@@ -960,7 +961,8 @@ namespace SCM.Migrations
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany()
-                        .HasForeignKey("VrfID");
+                        .HasForeignKey("VrfID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.BgpPeer", b =>
@@ -1020,7 +1022,11 @@ namespace SCM.Migrations
                 {
                     b.HasOne("SCM.Models.ContractBandwidth", "ContractBandwidth")
                         .WithMany()
-                        .HasForeignKey("ContractBandwidthID")
+                        .HasForeignKey("ContractBandwidthID");
+
+                    b.HasOne("SCM.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantID")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -1037,6 +1043,10 @@ namespace SCM.Migrations
 
             modelBuilder.Entity("SCM.Models.Interface", b =>
                 {
+                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
+                        .WithMany("Interfaces")
+                        .HasForeignKey("ContractBandwidthPoolID");
+
                     b.HasOne("SCM.Models.Port", "Port")
                         .WithOne("Interface")
                         .HasForeignKey("SCM.Models.Interface", "ID")
@@ -1135,23 +1145,17 @@ namespace SCM.Migrations
             modelBuilder.Entity("SCM.Models.TenantCommunity", b =>
                 {
                     b.HasOne("SCM.Models.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantID");
-
-                    b.HasOne("SCM.Models.Tenant")
                         .WithMany("TenantCommunities")
-                        .HasForeignKey("TenantID1");
+                        .HasForeignKey("TenantID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.TenantNetwork", b =>
                 {
                     b.HasOne("SCM.Models.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantID");
-
-                    b.HasOne("SCM.Models.Tenant")
                         .WithMany("TenantNetworks")
-                        .HasForeignKey("TenantID1");
+                        .HasForeignKey("TenantID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SCM.Models.Vpn", b =>

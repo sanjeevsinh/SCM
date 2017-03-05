@@ -38,8 +38,6 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A tenant must be selected")]
         public int TenantID { get; set; }
         public TenantViewModel Tenant { get; set; }
-        public int DeviceID { get; set; }
-        public DeviceViewModel Device { get; set; }
         [Required(ErrorMessage = "A region must be selected")]
         public int RegionID { get; set; }
         public RegionViewModel Region { get; set; }
@@ -56,6 +54,11 @@ namespace SCM.Models.ViewModels
         public int BandwidthID { get; set; }
         [Display(Name = "Bandwidth (Gigabits/Second)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
+        [Required(ErrorMessage = "A contract bandwidth pool option must be selected")]
+        public int? ContractBandwidthPoolID { get; set; }
+        [Display(Name = "Contract Bandwidth Pool")]
+        public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
+
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -86,6 +89,19 @@ namespace SCM.Models.ViewModels
                 {
                     yield return new ValidationResult(
                         "A VRF Assigned Number Sub-Field cannot be specified for tagged attachments.");
+                }
+                if (ContractBandwidthPoolID != null)
+                {
+                    yield return new ValidationResult(
+                        "A Contract Bandwidth Pool cannot be specified for tagged attachments.");
+                }
+            }
+            else
+            {
+                if (ContractBandwidthPoolID == null)
+                {
+                    yield return new ValidationResult(
+                        "A Contract Bandwidth Pool must be specified for untagged attachments.");
                 }
             }
 

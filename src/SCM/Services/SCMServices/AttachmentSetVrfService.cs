@@ -79,7 +79,7 @@ namespace SCM.Services.SCMServices
             {
                 if (attachmentSetVrfs.Count != 1)
                 {
-                    validationResult.Add("One, and no more than one, VRF for a Bronze Attachment Set must be defined.");
+                    validationResult.Add($"One, and no more than one, VRF for bronze attachment set '{attachmentSet.Name}' must be defined.");
                     validationResult.IsSuccess = false;
                 }
             }
@@ -92,7 +92,7 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationResult.Add("Two, and no more than two, VRFs for a Silver Attachment Set must be defined."
+                        validationResult.Add($"Two, and no more than two, VRFs for silver attachment set '{attachmentSet.Name}' must be defined. "
                             + "Each VRF must be in the same location.");
                         validationResult.IsSuccess = false;
                         return validationResult;
@@ -105,13 +105,13 @@ namespace SCM.Services.SCMServices
 
                     if (locationA.LocationID != locationB.LocationID)
                     {
-                        validationResult.Add("The Location for each VRF in a Silver Attachment Set must be the same.");
+                        validationResult.Add($"The location for each VRF in silver attachment set '{attachmentSet.Name}' must be the same.");
                         validationResult.IsSuccess = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
-                        validationResult.Add("The Plane for each VRF in a Silver Attachment Set must be different.");
+                        validationResult.Add($"The plane for each VRF in silver attachment set '{attachmentSet.Name}' must be different.");
                         validationResult.IsSuccess = false;
                     }
                 }
@@ -121,7 +121,7 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count != 2)
                     {
-                        validationResult.Add("Two, and no more than two, VRFs for a Gold Attachment Set must be defined. "
+                        validationResult.Add($"Two, and no more than two, VRFs for gold attachment set '{attachmentSet.Name}' must be defined. "
                             + "Each VRF must be in a different location.");
                         validationResult.IsSuccess = false;
                         return validationResult;
@@ -136,19 +136,19 @@ namespace SCM.Services.SCMServices
 
                     if (subRegionA.SubRegionID != subRegionB.SubRegionID)
                     {
-                        validationResult.Add("The Sub-Region for each VRF in a Gold Attachment Set must be the same.");
+                        validationResult.Add($"The sub-region for each VRF in gold attachment set '{attachmentSet.Name}' must be the same.");
                         validationResult.IsSuccess = false;
                     }
 
                     if (locationA.LocationID == locationB.LocationID)
                     {
-                        validationResult.Add("The Location for each VRF in a Gold Attachment Set must be different.");
+                        validationResult.Add($"The location for each VRF in gold attachment set '{attachmentSet.Name}' must be different.");
                         validationResult.IsSuccess = false;
                     }
 
                     if (planeA.PlaneID == planeB.PlaneID)
                     {
-                        validationResult.Add("The Plane for each VRF in a Gold Attachment Set must be different.");
+                        validationResult.Add($"The plane for each VRF in gold attachment set '{attachmentSet.Name}' must be different.");
                         validationResult.IsSuccess = false;
                     }
                 }
@@ -157,7 +157,7 @@ namespace SCM.Services.SCMServices
 
                     if (attachmentSetVrfs.Count == 0)
                     {
-                        validationResult.Add("At least one VRF is required for a Custom Attachment Set.");
+                        validationResult.Add($"At least one VRF is required for custom attachment set '{attachmentSet.Name}'.");
                         validationResult.IsSuccess = false;
                     }
                 }

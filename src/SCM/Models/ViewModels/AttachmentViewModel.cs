@@ -7,9 +7,10 @@ using System.Linq;
 
 namespace SCM.Models.ViewModels
 {
-    public class AttachmentInterfaceViewModel
+    public class AttachmentViewModel
     {
         public int ID { get; set; }
+        public int TenantID { get; set; }
         [Display(Name = "Enabled for Layer 3")]
         public bool IsLayer3 { get; set; }
         [Display(Name = "Enabled with Tagging")]
@@ -18,15 +19,11 @@ namespace SCM.Models.ViewModels
         public string IpAddress { get; set; }
         [Display(Name = "Subnet Mask")]
         public string SubnetMask { get; set; }
-        public int? VrfID { get; set; }
-        public int TenantID { get; set; }
-        public int DeviceID { get; set; }
-        public int LocationID { get; set; }
-        public int RegionID { get; set; }
-        public int SubRegionID { get; set; }
-        public int PlaneID { get; set; }
-        public int BandwidthID { get; set; }
         public PortViewModel Port { get; set; }
+        [Display(Name = "Multiport Ports")]
+        public ICollection<PortViewModel> MultiPortPorts { get; set; }
+        [Display(Name = "Bundle Interface Ports")]
+        public ICollection<PortViewModel> BundleInterfacePorts { get; set; }
         public TenantViewModel Tenant { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
@@ -38,6 +35,7 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Bandwidth (Gbps)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
         public PlaneViewModel Plane { get; set; }
-        public ICollection<InterfaceVlanViewModel> InterfaceVlans { get; set; }
+        [Display(Name = "Contract Bandwidth Pool")]
+        public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
     }
 }

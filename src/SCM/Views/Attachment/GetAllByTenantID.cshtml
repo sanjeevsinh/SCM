@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.TenantAttachmentsViewModel
+@model IEnumerable<SCM.Models.ViewModels.AttachmentViewModel>
 
 @{
     ViewData["Title"] = "GetByTenantID";
@@ -19,29 +19,32 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Port.Type)
+                @Html.DisplayNameFor(model => model.Port.Type)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Port.Name)
+                @Html.DisplayNameFor(model => model.Port.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Location)
+                @Html.DisplayNameFor(model => model.Location)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Device)
+                @Html.DisplayNameFor(model => model.Device)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Vrf)
+                @Html.DisplayNameFor(model => model.Vrf)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentInterfaces.FirstOrDefault().Bandwidth)
+                @Html.DisplayNameFor(model => model.Bandwidth)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContractBandwidthPool)
             </th>
             <th></th>
         </tr>
     </thead>
 
     <tbody>
-        @foreach (var item in Model.AttachmentInterfaces)
+        @foreach (var item in Model)
         {
             <tr>
                 <td>
@@ -61,6 +64,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Bandwidth.BandwidthGbps)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
                 </td>
                 <td>
                     @Html.ActionLink("Details", "Details", "Attachment", new { id = item.ID }) |

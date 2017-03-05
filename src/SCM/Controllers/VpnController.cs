@@ -395,14 +395,18 @@ namespace SCM.Controllers
             }
             else
             {
-                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                var message = "There was a problem deleting the VPN from the network. ";
+
+                if (syncResult.NetworkHttpResponse != null)
                 {
-                    ViewData["SyncErrorMessage"] = "The VPN has already been deleted from the network.";
+                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        message += "The VPN resource is not present in the network. ";
+                    }
                 }
-                else
-                {
-                    ViewData["SyncErrorMessage"] = "There was a problem deleting the VPN from the network. " + syncResult.GetAllMessages();
-                }
+
+                message += syncResult.GetAllMessages();
+                ViewData["SyncErrorMessage"] = message;
             }
 
             return View("Delete", Mapper.Map<VpnViewModel>(vpn));

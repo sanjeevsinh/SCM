@@ -24,6 +24,7 @@ namespace SCM.Models.ViewModels
         public string SubnetMask { get; set; }
         [Required(ErrorMessage = "An interface bandwidth must be selected")]
         public int InterfaceBandwidthID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public int? VrfID { get; set; }
         public byte[] RowVersion { get; set; }
         [Display(Name = "VRF")]
@@ -31,6 +32,8 @@ namespace SCM.Models.ViewModels
         [Display(Name ="Interface Bandwidth (Gbps)")]
         public InterfaceBandwidthViewModel InterfaceBandwidth { get; set; }
         public Port Port { get; set; }
+        [Display(Name = "Contract Bandwidth Pool")]
+        public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged)
@@ -50,6 +53,19 @@ namespace SCM.Models.ViewModels
                 {
                     yield return new ValidationResult(
                         "A VRF cannot be selected for tagged interfaces.");
+                }
+                if (ContractBandwidthPoolID != null)
+                {
+                    yield return new ValidationResult(
+                        "A Contract Bandwidth Pool cannot be selected for tagged interfaces.");
+                }
+            }
+            else
+            {
+                if (ContractBandwidthPoolID == null)
+                {
+                    yield return new ValidationResult(
+                        "A Contract Bandwidth Pool must be selected for untagged interfaces.");
                 }
             }
 

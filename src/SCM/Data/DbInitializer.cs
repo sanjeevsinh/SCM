@@ -153,7 +153,7 @@ namespace SCM.Data
 
             foreach (ContractBandwidth p in contractBandwidths)
             {
-                context.ContractBandwidths.Add(p);
+                context.ContractBandwidth.Add(p);
             }
 
             var attachmentRedundancies = new List<AttachmentRedundancy>

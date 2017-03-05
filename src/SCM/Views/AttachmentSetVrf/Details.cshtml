@@ -10,10 +10,10 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf)
+            @Html.DisplayNameFor(model => model.Attachment.Vrf)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Name)
+            @Html.DisplayFor(model => model.Attachment.Vrf.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Preference)
@@ -28,34 +28,40 @@
             @Html.DisplayFor(model => model.AttachmentSet.Name)
         </dd>
         <dt>
+            @Html.DisplayNameFor(model => model.Attachment.ContractBandwidthPool)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Attachment.ContractBandwidthPool.Name)
+        </dd>
+        <dt>
             @Html.DisplayNameFor(model => model.AttachmentSet.Tenant)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.AttachmentSet.Tenant.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion.Region)
+            @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location.SubRegion.Region)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Device.Location.SubRegion.Region.Name)
+            @Html.DisplayFor(model => model.Attachment.Vrf.Device.Location.SubRegion.Region.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf.Device.Location.SubRegion)
+            @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location.SubRegion)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Device.Location.SubRegion.Name)
+            @Html.DisplayFor(model => model.Attachment.Vrf.Device.Location.SubRegion.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf.Device.Location)
+            @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Location)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Device.Location.SiteName)
+            @Html.DisplayFor(model => model.Attachment.Vrf.Device.Location.SiteName)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Vrf.Device.Plane)
+            @Html.DisplayNameFor(model => model.Attachment.Vrf.Device.Plane)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Vrf.Device.Plane.Name)
+            @Html.DisplayFor(model => model.Attachment.Vrf.Device.Plane.Name)
         </dd>
     </dl>
 </div>

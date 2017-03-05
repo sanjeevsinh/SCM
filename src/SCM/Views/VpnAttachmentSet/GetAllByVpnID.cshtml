@@ -15,9 +15,6 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Vpn)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.AttachmentSet)
             </th>
             <th>
@@ -30,9 +27,6 @@
     @foreach (var item in Model)
     {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Vpn.Name)
-            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.AttachmentSet.Name)
             </td>

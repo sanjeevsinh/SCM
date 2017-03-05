@@ -10,11 +10,19 @@ namespace SCM.Models.ViewModels
     {
         [Display(AutoGenerateField = false)]
         public int ContractBandwidthPoolID { get; set; }
+        [Required(AllowEmptyStrings = false, ErrorMessage = "A name must be specified")]
+        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The name must contain letters, numbers, and dashes (-) only and no whitespace.")]
+        [StringLength(50)]
+        [Display(Name = "Contract Bandwidth Pool Name")]
         public string Name { get; set; }
+        [Required(ErrorMessage = "A Contract Bandwidth option must be selected.")]
         public int ContractBandwidthID { get; set; }
+        public int TenantID { get; set; }
         [Display(Name = "Trust received COS or DSCP markings")]
         public bool TrustReceivedCosDscp { get; set; }
         [Display(Name = "Contract Bandwidth (Kbps)")]
         public ContractBandwidthViewModel ContractBandwidth { get; set; }
+        public Tenant Tenant { get; set; }
+        public byte[] RowVersion { get; set; }
     }
 }

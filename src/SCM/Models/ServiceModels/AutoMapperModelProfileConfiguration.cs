@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
-using SCM.Models;
 
-namespace SCM.Models
+namespace SCM.Models.ServiceModels
 {
-    public class AutoMapperModelProfileConfiguration : Profile
+    public class AutoMapperServiceModelProfileConfiguration : Profile
     {
-       public AutoMapperModelProfileConfiguration()
+       public AutoMapperServiceModelProfileConfiguration()
         {
-            CreateMap<Interface, AttachmentInterface>()
+            CreateMap<Interface, Attachment>()
                 .ForMember(dest => dest.Bandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth))
                 .ForMember(dest => dest.BandwidthID, conf => conf.MapFrom(src => src.InterfaceBandwidthID))
                 .ForMember(dest => dest.Device, conf => conf.MapFrom(src => src.Port.Device))

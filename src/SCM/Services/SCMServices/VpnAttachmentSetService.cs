@@ -9,8 +9,11 @@ namespace SCM.Services.SCMServices
 {
     public class VpnAttachmentSetService : BaseService, IVpnAttachmentSetService
     {
-        public VpnAttachmentSetService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
+
+        public VpnAttachmentSetService(IUnitOfWork unitOfWork, IAttachmentSetVrfService attachmentSetVrfService) : base(unitOfWork)
         {
+            AttachmentSetVrfService = attachmentSetVrfService;
         }
 
         public async Task<IEnumerable<VpnAttachmentSet>> GetAllAsync()
@@ -63,52 +66,51 @@ namespace SCM.Services.SCMServices
 
             if (attachmentSet == null)
             {
-                validationResult.Add("The Attachment Set was not found");
+                validationResult.Add("The attachment set was not found");
                 validationResult.IsSuccess = false;
                 return validationResult;
             }
 
+            // First validate the vrfs in the attachment set
+
+            var attachmentSetVrfValidationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
+            if (!attachmentSetVrfValidationResult.IsSuccess)
+            {
+                return attachmentSetVrfValidationResult;
+            }
+
+            // Now validate the attachment set with the vpn binding
+
             var attachmentRedundancyName = attachmentSet.AttachmentRedundancy.Name;
 
-            if (vpn.Plane == null)
+            if (vpn.Plane != null)
             {
-
                 if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Gold")
                 {
-
-                    var redPlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Red").Count();
-                    var bluePlaneAttachmentCount = attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == "Blue").Count();
-
-                    if (redPlaneAttachmentCount == 0)
-                    {
-                        validationResult.Add("This Attachment Set does not contain any attachments into the Red Plane. "
-                            + " There must be at least one Red Plane attachment in the set.");
-                        validationResult.IsSuccess = false;
-                    }
-
-                    if (bluePlaneAttachmentCount == 0)
-                    {
-                        validationResult.Add("This Attachment Set does not contain any attachments into the Blue Plane. "
-                            + " There must be at least one Blue Plane attachment in the set.");
-                        validationResult.IsSuccess = false;
-                    }
-                }
-            }
-            else 
-            {
-                if (attachmentRedundancyName == "Gold")
-                {
-                    validationResult.Add("A Gold Attachment Set cannot be used with a Planar-Scoped VPN. The VPN is scoped to the '" + vpn.Plane.Name + "' Plane. " +
-                        "A Gold Attachment Set provides connectivity into both Planes.");
+                    validationResult.Add($"A '{attachmentRedundancyName}' attachment set cannot be used with a planar-scoped VPN."
+                        + $"The VPN is scoped to the '{vpn.Plane.Name}' plane. "
+                        + "The attachment set provides connectivity into both planes.");
                     validationResult.IsSuccess = false;
                 }
 
-                else if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Custom")
+                else if (attachmentRedundancyName == "Bronze")
                 {
+                    var attachmentPlane = attachmentSet.AttachmentSetVrfs.Single().Vrf.Device.Plane.Name;
+                    if (attachmentPlane != vpn.Plane.Name)
+                    {
+                        validationResult.Add($"Bronze attachment {attachmentSet.Name} cannot be used with VPN {vpn.Name} because "
+                        + $"the VPN is scoped to the '{vpn.Plane.Name}' plane. "
+                        + $"The attachment set provides connectivity into the {attachmentPlane} plane.");
+                        validationResult.IsSuccess = false;
+                    }
+                }
 
+                else if (attachmentRedundancyName == "Custom")
+                {
                     if (attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == vpn.Plane.Name).Count() != attachmentSet.AttachmentSetVrfs.Count())
                     {
-                        validationResult.Add("One or more VRFs in the Attachment Set are not located in the required Plane ('" + vpn.Plane.Name + "') for the VPN.");
+                        validationResult.Add($"The VPN is scoped to the {vpn.Plane.Name} plane. "
+                            + "One or more VRFs in the attachment set are not located in this plane.");
                         validationResult.IsSuccess = false;
                     }
                 }

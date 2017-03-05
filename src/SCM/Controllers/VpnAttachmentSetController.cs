@@ -50,7 +50,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id, 
-                includeProperties: "AttachmentSet.Tenant,AttachmentSet.ContractBandwidth,Vpn");
+                includeProperties: "AttachmentSet.Tenant,Vpn");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)

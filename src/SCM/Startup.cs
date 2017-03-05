@@ -12,8 +12,9 @@ using Microsoft.Extensions.Logging;
 using SCM.Data;
 using SCM.Models;
 using SCM.Models.ViewModels;
-using SCM.Models.NetModels.Attachment;
-using SCM.Models.NetModels.IpVpn;
+using SCM.Models.ServiceModels;
+using SCM.Models.NetModels.AttachmentNetModels;
+using SCM.Models.NetModels.IpVpnNetModels;
 using SCM.Services;
 using SCM.Services.SCMServices;
 using AutoMapper;
@@ -44,7 +45,7 @@ namespace SCM
 
             MapperConfiguration = new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile(new AutoMapperModelProfileConfiguration());
+                cfg.AddProfile(new AutoMapperServiceModelProfileConfiguration());
                 cfg.AddProfile(new AutoMapperViewModelProfileConfiguration());
                 cfg.AddProfile(new AutoMapperAttachmentServiceProfileConfiguration());
                 cfg.AddProfile(new AutoMapperIpVpnServiceProfileConfiguration());
@@ -84,6 +85,7 @@ namespace SCM
             services.AddScoped<IBundleInterfaceService, BundleInterfaceService>();
             services.AddScoped<IBundleInterfacePortService, BundleInterfacePortService>();
             services.AddScoped<IBundleInterfaceVlanService, BundleInterfaceVlanService>();
+            services.AddScoped<IContractBandwidthPoolService, ContractBandwidthPoolService>();
             services.AddScoped<IVpnService, VpnService>();
             services.AddScoped<IRouteTargetService, RouteTargetService>();
             services.AddScoped<IAttachmentSetService, AttachmentSetService>();
@@ -95,7 +97,6 @@ namespace SCM
             services.AddScoped<IVpnTenantNetworkService, VpnTenantNetworkService>();
             services.AddScoped<IVpnTenantCommunityService, VpnTenantCommunityService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
-            services.AddScoped<ITenantAttachmentsService, TenantAttachmentsService>();
             services.AddScoped<INetworkSyncService, NetworkSyncService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());

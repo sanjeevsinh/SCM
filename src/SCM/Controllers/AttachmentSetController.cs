@@ -39,7 +39,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, includeProperties: "Tenant,SubRegion.Region,ContractBandwidth,AttachmentRedundancy");
+            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, includeProperties: 
+                "Tenant,SubRegion.Region,AttachmentRedundancy");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -62,7 +63,6 @@ namespace SCM.Controllers
         {
             await PopulateTenantsDropDownList();
             await PopulateSubRegionsDropDownList(region.RegionID);
-            await PopulateContractBandwidthsDropDownList();
             await PopulateAttachmentRedundancyDropDownList();
             ViewBag.Region = region;
             return View();
@@ -70,7 +70,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
+        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,RegionID,SubRegionID,TenantID,ContractBandwidthID,AttachmentRedundancyID,RowVersion")] AttachmentSetViewModel attachmentSet)
+        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID,RowVersion")] AttachmentSetViewModel attachmentSet)
         {
             if (id != attachmentSet.AttachmentSetID)
             {
@@ -186,12 +186,6 @@ namespace SCM.Controllers
                 if (currentAttachmentSet.AttachmentRedundancyID != proposedAttachmentRedundancyID)
                 {
                     ModelState.AddModelError("AttachmentRedundancyID", $"Current value: {currentAttachmentSet.AttachmentRedundancy.Name}");
-                }
-
-                var proposedContractBandwidthID = (int)exceptionEntry.Property("ContractBandwidthID").CurrentValue;
-                if (currentAttachmentSet.ContractBandwidthID != proposedContractBandwidthID)
-                {
-                    ModelState.AddModelError("ContractBandwidthID", $"Current value: {currentAttachmentSet.ContractBandwidth.BandwidthKbps}");
                 }
 
                 var proposedTenantID = (int)exceptionEntry.Property("TenantID").CurrentValue;
@@ -285,7 +279,6 @@ namespace SCM.Controllers
         {
             await PopulateTenantsDropDownList();
             await PopulateSubRegionsDropDownList(attachmentSet.RegionID);
-            await PopulateContractBandwidthsDropDownList();
             await PopulateAttachmentRedundancyDropDownList();
 
         }
@@ -312,12 +305,6 @@ namespace SCM.Controllers
         {
             var tenants = await AttachmentSetService.UnitOfWork.TenantRepository.GetAsync();
             ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
-        }
-
-        private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)
-        {
-            var contractBandwidths = await AttachmentSetService.UnitOfWork.ContractBandwidthRepository.GetAsync();
-            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths, "ContractBandwidthID", "BandwidthKbps", selectedContractBandwidth);
         }
     }
 }

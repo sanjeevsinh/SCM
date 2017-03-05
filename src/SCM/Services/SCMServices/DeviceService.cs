@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Data;
-using SCM.Models.NetModels.Attachment;
+using SCM.Models.NetModels.AttachmentNetModels;
 using AutoMapper;
 using System.Net;
 

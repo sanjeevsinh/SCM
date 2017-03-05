@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.AttachmentInterfaceViewModel
+@model SCM.Models.ViewModels.AttachmentViewModel
 
 @{
     ViewData["Title"] = "Delete";
@@ -62,6 +62,12 @@
             @Html.DisplayFor(model => model.IsTagged)
         </dd>
         <dt>
+            @Html.DisplayNameFor(model => model.Vrf)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Name)
+        </dd>
+        <dt>
             @Html.DisplayNameFor(model => model.Bandwidth)
         </dt>
         <dd>
@@ -74,7 +80,7 @@
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" asp-route-TenantID="@ViewBag.Tenant.TenantID" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" asp-route-TenantID="@ViewBag.Tenant.TenantID" class="btn btn-default" /> |
-            <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="TenantAttachments">Back to Attachments List</a>
+            <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Attachments List</a>
         </div>
     </form>
 </div>

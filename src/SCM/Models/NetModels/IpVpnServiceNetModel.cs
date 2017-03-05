@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace SCM.Models.NetModels.IpVpn
+namespace SCM.Models.NetModels.IpVpnNetModels
 {
 
     public class RouteTargetNetModel

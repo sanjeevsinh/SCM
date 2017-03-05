@@ -19,14 +19,13 @@ namespace SCM.Models
         public string IpAddress { get; set; }
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }
-        public int? DeviceID { get; set; }
         public int LocationID { get; set; }
         public int RegionID { get; set; }
         public int SubRegionID { get; set; }
         public int? PlaneID { get; set; }
         public int BandwidthID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public Tenant Tenant { get; set; }
-        public Device Device { get; set; }
         public Region Region { get; set; }
         public SubRegion SubRegion { get; set; }
         public Location Location { get; set; }

@@ -14,7 +14,8 @@ namespace SCM.Data
         public DbSet<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
         public DbSet<VpnAttachmentSet> VpnAttachmentSets { get; set; }
         public DbSet<AttachmentRedundancy> AttachmentRedundancy { get; set; }
-        public DbSet<ContractBandwidth> ContractBandwidths { get; set; }
+        public DbSet<ContractBandwidth> ContractBandwidth { get; set; }
+        public DbSet<ContractBandwidthPool> ContractBandwidthPool { get; set; }
         public DbSet<VpnProtocolType> VpnProtocolTypes { get; set; }
         public DbSet<VpnTopologyType> VpnTopologyTypes { get; set; }
         public DbSet<VpnTenancyType> VpnTenancyTypes { get; set; }
@@ -52,6 +53,7 @@ namespace SCM.Data
             builder.Entity<BundleInterfacePort>().ToTable("BundleInterfacePort");
             builder.Entity<BundleInterfaceVlan>().ToTable("BundleInterfaceVlan");
             builder.Entity<ContractBandwidth>().ToTable("ContractBandwidth");
+            builder.Entity<ContractBandwidthPool>().ToTable("ContractBandwidthPool");
             builder.Entity<Device>().ToTable("Device");
             builder.Entity<Interface>().ToTable("Interface");
             builder.Entity<InterfaceVlan>().ToTable("InterfaceVlan");
@@ -88,11 +90,6 @@ namespace SCM.Data
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<AttachmentSet>()
-                   .HasOne(c => c.ContractBandwidth)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<AttachmentSet>()
                    .HasOne(c => c.AttachmentRedundancy)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
@@ -104,6 +101,11 @@ namespace SCM.Data
 
             builder.Entity<BundleInterfacePort>()
                    .HasOne(c => c.Port)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ContractBandwidthPool>()
+                   .HasOne(c => c.ContractBandwidth)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
@@ -142,16 +144,6 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<TenantNetwork>()
-                   .HasOne(c => c.Tenant)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<TenantCommunity>()
-                   .HasOne(c => c.Tenant)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
             builder.Entity<Vrf>()
                    .HasOne(c => c.Tenant)
                    .WithMany()
@@ -184,11 +176,6 @@ namespace SCM.Data
 
             builder.Entity<VpnTopologyType>()
                    .HasOne(c => c.VpnProtocolType)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<AttachmentSetVrf>()
-                   .HasOne(c => c.Vrf)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
@@ -291,6 +278,11 @@ namespace SCM.Data
 
             builder.Entity<ContractBandwidth>()
             .HasIndex(p => new { p.BandwidthKbps }).IsUnique();
+
+            // Contract bandwidth pool names must be unique
+
+            builder.Entity<ContractBandwidthPool>()
+            .HasIndex(p => new { p.Name }).IsUnique();
 
             // Attachment Redundancy names must be unique (e.g. Gold)
 

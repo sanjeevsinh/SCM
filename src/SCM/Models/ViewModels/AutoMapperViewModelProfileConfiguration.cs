@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
-using SCM.Models;
+using SCM.Models.ServiceModels;
+using System.Linq;
 
 namespace SCM.Models.ViewModels
 {
     public class AutoMapperViewModelProfileConfiguration : Profile
     {
-       public AutoMapperViewModelProfileConfiguration()
+        public AutoMapperViewModelProfileConfiguration()
         {
             CreateMap<Tenant, TenantViewModel>().ReverseMap();
             CreateMap<Port, PortViewModel>().ReverseMap();
@@ -29,18 +30,41 @@ namespace SCM.Models.ViewModels
             CreateMap<AttachmentSet, AttachmentSetViewModel>().ReverseMap();
             CreateMap<SubRegion, SubRegionViewModel>().ReverseMap();
             CreateMap<ContractBandwidth, ContractBandwidthViewModel>().ReverseMap();
+            CreateMap<ContractBandwidthPool, ContractBandwidthPoolViewModel>().ReverseMap();
             CreateMap<AttachmentRedundancy, AttachmentRedundancyViewModel>().ReverseMap();
-            CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>().ReverseMap();
+            CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>()
+                .ForMember(dest => dest.Attachment, conf => conf.ResolveUsing(new AttachmentSetVrfTypeResolver()))
+                .ReverseMap();
             CreateMap<VpnAttachmentSet, VpnAttachmentSetViewModel>().ReverseMap();
             CreateMap<BgpPeer, BgpPeerViewModel>().ReverseMap();
             CreateMap<TenantNetwork, TenantNetworkViewModel>().ReverseMap();
             CreateMap<TenantCommunity, TenantCommunityViewModel>().ReverseMap();
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
             CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
-            CreateMap<TenantAttachments, TenantAttachmentsViewModel>();
-            CreateMap<AttachmentInterface, AttachmentInterfaceViewModel>().ReverseMap();
-            CreateMap<AttachmentBundleInterface, AttachmentBundleInterfaceViewModel>().ReverseMap();
+            CreateMap<Attachment, AttachmentViewModel>().ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
+        }
+
+        public class AttachmentSetVrfTypeResolver : IValueResolver<AttachmentSetVrf, AttachmentSetVrfViewModel, AttachmentViewModel>
+        {
+            public AttachmentViewModel Resolve(AttachmentSetVrf source, AttachmentSetVrfViewModel destination, AttachmentViewModel destMember, ResolutionContext context)
+            {
+                var mapper = context.Mapper;
+                var vrf = source.Vrf;
+
+                if (vrf.Interfaces.Count == 1)
+                {
+                    var attachment = mapper.Map<Attachment>(vrf.Interfaces.Single());
+                    return mapper.Map<AttachmentViewModel>(attachment);
+                }
+                else if (vrf.BundleInterfaces.Count == 1)
+                {
+                    var attachment = mapper.Map<Attachment>(vrf.BundleInterfaces.Single());
+                    return mapper.Map<AttachmentViewModel>(attachment);
+                }
+
+                return null;
+            }
         }
     }
 }

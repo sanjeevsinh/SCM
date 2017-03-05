@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace SCM.Models.NetModels.IpVpn
+namespace SCM.Models.NetModels.IpVpnNetModels
 {
     public class AutoMapperIpVpnServiceProfileConfiguration : Profile
     {

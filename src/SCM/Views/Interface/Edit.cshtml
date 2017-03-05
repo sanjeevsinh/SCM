@@ -54,6 +54,15 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
+                    <option value="">-- Select Contract Bandwidth Pool --</option>
+                </select>
+                <span asp-validation-for="ContractBandwidthPoolID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label asp-for="Vrf" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="VrfID" class="form-control" asp-items="ViewBag.VrfID">

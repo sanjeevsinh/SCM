@@ -59,7 +59,7 @@ namespace SCM.Controllers
             var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
             if (checkSyncResult.InSync)
             {
-                ViewData["SyncSuccessMessage"] = "The Device is synchronised with the network.";
+                ViewData["SyncSuccessMessage"] = "The device is synchronised with the network.";
             }
             else
             {
@@ -69,7 +69,7 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    ViewData["SyncErrorMessage"] = "The Device is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["SyncErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
             }
 
@@ -308,25 +308,29 @@ namespace SCM.Controllers
             if (device == null)
             {
 
-                ViewData["DeviceDeletedMessage"] = "The Device has been deleted by another user. Return to the list.";
+                ViewData["DeviceDeletedMessage"] = "The device has been deleted by another user. Return to the list.";
                 return View("DeviceDeleted");
             }
 
             var syncResult = await DeviceService.DeleteFromNetworkAsync(id.Value);
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The Device has been deleted from the network.";
+                ViewData["SyncSuccessMessage"] = "The device has been deleted from the network.";
             }
             else
             {
-                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                var message = "There was a problem deleting the device from the network. ";
+
+                if (syncResult.NetworkHttpResponse != null)
                 {
-                    ViewData["SyncErrorMessage"] = "The Device has already been deleted from the network.";
+                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        message += "The device resource is not present in the network. ";
+                    }
                 }
-                else
-                {
-                    ViewData["SyncErrorMessage"] = "There was a problem deleting the Device from the network. " + syncResult.GetAllMessages();
-                }
+
+                message += syncResult.GetAllMessages();
+                ViewData["SyncErrorMessage"] = message;
             }
 
             return View("Delete", Mapper.Map<DeviceViewModel>(device));

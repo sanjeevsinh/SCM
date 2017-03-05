@@ -16,7 +16,7 @@
         <input type="hidden" name="PlaneID" value="@ViewBag.AttachmentSelection.PlaneID" />
         <input type="hidden" name="LocationID" value="@ViewBag.AttachmentSelection.LocationID" />
         <div class="form-group">
-            <label asp-for="Vrf" class="col-md-2 control-label"></label>
+            <label asp-for="Attachment.Vrf" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="VrfID" class="form-control" asp-items="ViewBag.VrfID">
                     <option value="">-- Select a VRF --</option>

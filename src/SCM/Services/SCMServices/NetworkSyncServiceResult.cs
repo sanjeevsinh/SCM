@@ -21,7 +21,10 @@ namespace SCM.Services.SCMServices
         public string GetAllMessages()
         {
             var message = GetMessage();
-            message += NetworkHttpResponse.GetMessage();
+            if (NetworkHttpResponse != null)
+            {
+                message += NetworkHttpResponse.GetMessage();
+            }
 
             return message;
         }

@@ -17,6 +17,7 @@ namespace SCM.Data
         private GenericRepository<BundleInterfacePort> bundleInterfacePortRepository;
         private GenericRepository<BundleInterfaceVlan> bundleInterfaceVlanRepository;
         private GenericRepository<ContractBandwidth> contractBandwidthRepository;
+        private GenericRepository<ContractBandwidthPool> contractBandwidthPoolRepository;
         private GenericRepository<Device> deviceRepository;
         private GenericRepository<Interface> interfaceRepository;
         private GenericRepository<InterfaceVlan> interfaceVlanRepository;
@@ -148,6 +149,17 @@ namespace SCM.Data
                     this.contractBandwidthRepository = new GenericRepository<ContractBandwidth>(context);
                 }
                 return contractBandwidthRepository;
+            }
+        }
+        public GenericRepository<ContractBandwidthPool> ContractBandwidthPoolRepository
+        {
+            get
+            {
+                if (this.contractBandwidthPoolRepository == null)
+                {
+                    this.contractBandwidthPoolRepository = new GenericRepository<ContractBandwidthPool>(context);
+                }
+                return contractBandwidthPoolRepository;
             }
         }
 

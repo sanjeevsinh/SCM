@@ -36,7 +36,7 @@ namespace SCM.Controllers
             ViewBag.AttachmentSet = attachmentSet;
 
             var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
-                includeProperties:"Vrf.Device.Location.SubRegion.Region");
+                includeProperties:"Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces,Vrf.BundleInterfaces,Vrf.InterfaceVlans,Vrf.BundleInterfaceVlans");
 
             var validationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
             if (!validationResult.IsSuccess)
@@ -60,7 +60,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces,Vrf.BundleInterfaces");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -147,7 +147,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties:"AttachmentSet,Vrf.Device.Location");
+                includeProperties:"AttachmentSet,Vrf.Device.Location,Vrf.Interfaces,Vrf.BundleInterfaces");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -176,7 +176,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties:"AttachmentSet,Vrf.Device", AsTrackable: false);
+                includeProperties:"AttachmentSet,Vrf.Device,Vrf.Interfaces,Vrf.BundleInterfaces", AsTrackable: false);
             var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
             try
@@ -262,8 +262,10 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, includeProperties: "Vrf");
+            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
+                includeProperties: "Vrf.Interfaces,Vrf.BundleInterfaces");
             var attachmentSetVrf = dbResult.SingleOrDefault();
+
             if (attachmentSetVrf == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -295,7 +297,7 @@ namespace SCM.Controllers
             try
             {
                 var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
-                    includeProperties:"AttachmentSet,Vrf", AsTrackable:false);
+                    includeProperties:"AttachmentSet,Vrf.Interfaces,Vrf.BundleInterfaces", AsTrackable:false);
                 var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
                 if (currentAttachmentSetVrf != null)
@@ -342,12 +344,12 @@ namespace SCM.Controllers
         private async Task PopulateVrfsDropDownList(AttachmentSetVrfSelectionViewModel attachmentSelection, object selectedVrf = null)
         {
 
-            IEnumerable<Vrf> vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSelection.LocationID 
+            var vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSelection.LocationID 
                 && q.TenantID == attachmentSelection.TenantID, includeProperties:"Device");
 
             if (attachmentSelection.PlaneID != null)
             {
-                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSelection.PlaneID);
+                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSelection.PlaneID).ToList();
             }
      
             ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);

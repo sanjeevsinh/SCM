@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using SCM.Models;
+using SCM.Models.ServiceModels;
 using System.Collections.Generic;
 using System;
 
-namespace SCM.Models.NetModels.Attachment
+namespace SCM.Models.NetModels.AttachmentNetModels
 {
     public class AutoMapperAttachmentServiceProfileConfiguration : Profile
     {
@@ -80,28 +80,27 @@ namespace SCM.Models.NetModels.Attachment
 
             CreateMap<Device, AttachmentServiceNetModel>().ConvertUsing(new DeviceTypeConverter());
 
-            CreateMap<AttachmentInterface, UntaggedAttachmentInterfaceServiceNetModel>()
+            CreateMap<Attachment, UntaggedAttachmentInterfaceServiceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
                 .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new Layer3NetModelTypeResolver()));
 
-            CreateMap<AttachmentInterface, TaggedAttachmentInterfaceServiceNetModel>()
+            CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>()
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
-                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
-                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type));
 
-            CreateMap<AttachmentInterface, VrfServiceNetModel>()
+            CreateMap<Attachment, VrfServiceNetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
                 .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
         }
 
-        public class Layer3NetModelTypeResolver : IValueResolver<AttachmentInterface, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
+        public class Layer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
         {
-            public Layer3NetModel Resolve(AttachmentInterface source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
+            public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
                 var result = new Layer3NetModel();
                 var mapper = context.Mapper;

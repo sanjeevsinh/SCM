@@ -32,6 +32,9 @@
                 @Html.DisplayNameFor(model => model.InterfaceBandwidth)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.ContractBandwidthPool)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Vrf)
             </th>
             <th></th>
@@ -55,6 +58,9 @@
             </td>
             <td>
                 @Html.DisplayFor(model => model.InterfaceBandwidth.BandwidthGbps)
+            </td>
+            <td>
+                @Html.DisplayFor(model => model.ContractBandwidthPool.Name)
             </td>
             <td>
                 @Html.DisplayFor(model => model.Vrf.Name)

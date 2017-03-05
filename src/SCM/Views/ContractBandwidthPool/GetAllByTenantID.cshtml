@@ -1,0 +1,50 @@
+@model IEnumerable<SCM.Models.ViewModels.ContractBandwidthPoolViewModel>
+
+@{
+    ViewData["Title"] = "Contract Bandwidth Pools";
+}
+
+<h2>Contract Bandwidth Pools for Tenant @ViewBag.Tenant.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContractBandwidth)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TrustReceivedCosDscp)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ContractBandwidth.BandwidthKbps)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TrustReceivedCosDscp)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.ContractBandwidthPoolID }) |
+                @Html.ActionLink("Details", "Details", new { id=item.ContractBandwidthPoolID }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.ContractBandwidthPoolID })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+</div>

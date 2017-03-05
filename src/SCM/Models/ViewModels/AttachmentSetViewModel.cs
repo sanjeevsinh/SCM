@@ -23,11 +23,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A Region option must be selected.")]
         public int RegionID { get; set; }
         public int? SubRegionID { get; set; }
-        [Required(ErrorMessage = "A Contract Bandwidth option must be selected.")]
-        public int ContractBandwidthID { get; set; }
         public byte[] RowVersion { get; set; }
-        [Display(Name = "Contract Bandwidth (Kbps)")]
-        public ContractBandwidthViewModel ContractBandwidth { get; set; }
         [Display(Name = "Attachment Redundancy")]
         public virtual AttachmentRedundancyViewModel AttachmentRedundancy { get; set; }
         [Display(Name = "Tenant")]

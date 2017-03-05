@@ -70,6 +70,15 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
+                    <option value="">Select Contract Bandwidth Pool</option>
+                </select>
+                <span asp-validation-for="ContractBandwidthPoolID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label asp-for="VrfName" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="VrfName" class="form-control" />
@@ -113,7 +122,7 @@
 </form>
 
 <div>
-    <a asp-action="GetByTenantID" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="TenantAttachments">Back to Attachments List</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Attachments List</a>
 </div>
 
 @section Scripts {
@@ -142,9 +151,11 @@
             $vrfAdminSubField = $('#VrfAdministratorSubField'),
             vrfAdminSubField = $vrfAdminSubField[0],
             $vrfAssignedNumberSubField = $('#VrfAssignedNumberSubField'),
-            vrfAssignedNumberSubField = $vrfAssignedNumberSubField[0];
+            vrfAssignedNumberSubField = $vrfAssignedNumberSubField[0],
+            $contractBandwidthPool = $('#ContractBandwidthPoolID'),
+            contractBandwidthPool = $contractBandwidthPool[0];
 
-            if (location.value == null) {
+            if (location.value == null || location.value == "" || region.value == null || region.value == "") {
 
                 subregion.disabled = true;
                 location.disabled = true;
@@ -161,16 +172,26 @@
 
             $region.on('change', function (e) {
 
-                subregion.disabled = false;
-                location.selectedIndex = '0';
-                location.disabled = true;
-
                 var regionID = this.value;
 
-                $.get("/Attachment/SubRegions", { id: regionID })
-                .done(function (data) {
-                    $subregion.html(data);
-                });
+                if (regionID == null || regionID == "") {
+
+                    subregion.selectedIndex = 0;
+                    subregion.disabled = true;
+                    location.selectedIndex = 0;
+                    location.disabled = true;
+                }
+                else {
+
+                    subregion.disabled = false;
+                    location.selectedIndex = 0;
+                    location.disabled = true;
+
+                    $.get("/Attachment/SubRegions", { id: regionID })
+                    .done(function (data) {
+                        $subregion.html(data);
+                    });
+                }
             });
 
             $subregion.on('change', function (e) {
@@ -193,16 +214,18 @@
                 vrfAdminSubField.disabled = !isLayer3Checked;
                 vrfAssignedNumberSubField.disabled = !isLayer3Checked;
 
-                if (!isLayer3Checked) {
+                if (isLayer3Checked) {
+
+                    contractBandwidthPool.disabled = false;
+                    isTagged.checked = false;
+                }
+                else
+                {
                     ipAddress.value = null;
                     subnetMask.value = null;
                     vrfName.value = null;
                     vrfAdminSubField.value = null;
                     vrfAssignedNumberSubField.value = null;
-                }
-                else
-                {
-                    isTagged.checked = false;
                 }
             });
 
@@ -221,6 +244,11 @@
                     vrfName.disabled = true;
                     vrfAdminSubField.disabled = true;
                     vrfAssignedNumberSubField.disabled = true;
+                    contractBandwidthPool.selectedIndex = 0;
+                    contractBandwidthPool.disabled = true;
+                }
+                else {
+                    contractBandwidthPool.disabled = false;
                 }
             });
 

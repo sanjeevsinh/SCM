@@ -14,6 +14,7 @@ namespace SCM.Data
         GenericRepository<BundleInterfacePort> BundleInterfacePortRepository { get; }
         GenericRepository<BundleInterfaceVlan> BundleInterfaceVlanRepository { get; }
         GenericRepository<ContractBandwidth> ContractBandwidthRepository { get; }
+        GenericRepository<ContractBandwidthPool> ContractBandwidthPoolRepository { get; }
         GenericRepository<Device> DeviceRepository { get; }
         GenericRepository<Interface> InterfaceRepository { get; }
         GenericRepository<InterfaceVlan> InterfaceVlanRepository { get; }

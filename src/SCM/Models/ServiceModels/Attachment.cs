@@ -5,15 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 
-namespace SCM.Models.ViewModels
+namespace SCM.Models.ServiceModels
 {
-    public class AttachmentBundleInterfaceViewModel
+    public class Attachment
     {
         public int ID { get; set; }
-        public string InterfaceName { get; set; }
-        public string VrfName { get; set; }
-        public int VrfAdministratorSubField { get; set; }
-        public int VrfAssignedNumberSubField { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public string IpAddress { get; set; }
@@ -25,11 +21,18 @@ namespace SCM.Models.ViewModels
         public int SubRegionID { get; set; }
         public int PlaneID { get; set; }
         public int BandwidthID { get; set; }
-        public TenantViewModel Tenant { get; set; }
-        public DeviceViewModel Device { get; set; }
-        public RegionViewModel Region { get; set; }
-        public SubRegionViewModel SubRegion { get; set; }
-        public LocationViewModel Location { get; set; }
-        public InterfaceBandwidthViewModel Bandwidth { get; set; }
+        public int? VrfID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
+        public Port Port { get; set; }
+        public Tenant Tenant { get; set; }
+        public Device Device { get; set; }
+        public Region Region { get; set; }
+        public SubRegion SubRegion { get; set; }
+        public Location Location { get; set; }
+        public InterfaceBandwidth Bandwidth { get; set; }
+        public Plane Plane { get; set; }
+        public Vrf Vrf { get; set; }
+        public ContractBandwidthPool ContractBandwidthPool { get; set; }
+        public ICollection<InterfaceVlan> Vifs { get; set; }
     }
 }

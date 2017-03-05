@@ -26,6 +26,21 @@ namespace SCM.Controllers
         private IMapper Mapper { get; set; }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllByTenantID(int id)
+        {
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id);
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            var attachments = await AttachmentService.GetAllByTenantAsync(tenant);
+            await PopulateTenantItem(id);
+
+            return View(Mapper.Map<List<AttachmentViewModel>>(attachments));
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -39,7 +54,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            return View(Mapper.Map<AttachmentInterfaceViewModel>(item));
+            return View(Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpGet]
@@ -54,6 +69,7 @@ namespace SCM.Controllers
             await PopulatePlanesDropDownList();
             await PopulateRegionsDropDownList();
             await PopulateBandwidthsDropDownList();
+            await PopulateContractBandwidthPoolsDropDownList(id.Value);
 
             return View();
         }
@@ -62,7 +78,7 @@ namespace SCM.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID," +
-            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged")] AttachmentRequestViewModel request)
+            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
         {
             try
             {
@@ -75,7 +91,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = request.TenantID });
+                        return RedirectToAction("GetAllByTenantID", new { id = request.TenantID });
                     }
                 }
             }
@@ -93,6 +109,7 @@ namespace SCM.Controllers
             await PopulateSubRegionsDropDownList(request.RegionID, request.SubRegionID);
             await PopulateLocationsDropDownList(request.SubRegionID, request.LocationID);
             await PopulateBandwidthsDropDownList();
+            await PopulateContractBandwidthPoolsDropDownList(request.TenantID);
             return View(request);
         }
 
@@ -123,7 +140,7 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = Request.Query["TenantID"] });
+                    return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
                 }
 
                 return NotFound();
@@ -140,12 +157,12 @@ namespace SCM.Controllers
             }
 
             await PopulateTenantItem(currentAttachment.TenantID);
-            return View(Mapper.Map<AttachmentInterfaceViewModel>(currentAttachment));
+            return View(Mapper.Map<AttachmentViewModel>(currentAttachment));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(AttachmentInterfaceViewModel attachment)
+        public async Task<IActionResult> Delete(AttachmentViewModel attachment)
         {
             try
             {
@@ -159,11 +176,11 @@ namespace SCM.Controllers
                         ViewData["DeleteErrorMessage"] = result.GetMessage();
                         await PopulateTenantItem(currentAttachment.TenantID);
 
-                        return View(Mapper.Map<AttachmentInterfaceViewModel>(currentAttachment));
+                        return View(Mapper.Map<AttachmentViewModel>(currentAttachment));
                     }
                 }
 
-                return RedirectToAction("GetByTenantID", "TenantAttachments", new { id = attachment.TenantID });
+                return RedirectToAction("GetAllByTenantID", new { id = attachment.TenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
@@ -184,7 +201,7 @@ namespace SCM.Controllers
             var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(id.Value);
             if (checkSyncResult.InSync)
             {
-                ViewData["SyncSuccessMessage"] = "The Attachment Interface is synchronised with the network.";
+                ViewData["SyncSuccessMessage"] = "The attachment is synchronised with the network.";
             }
             else
             {
@@ -194,7 +211,7 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    ViewData["SyncErrorMessage"] = "The Attachment Interface is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["SyncErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
             }
 
@@ -204,7 +221,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            return View("Details", Mapper.Map<AttachmentInterfaceViewModel>(item));
+            return View("Details", Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
@@ -232,7 +249,7 @@ namespace SCM.Controllers
                 ViewData["SyncErrorMessage"] = syncResult.GetMessage();
             }
 
-            return View("Details", Mapper.Map<AttachmentInterfaceViewModel>(item));
+            return View("Details", Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
@@ -248,7 +265,7 @@ namespace SCM.Controllers
             if (attachment == null)
             {
 
-                ViewData["AttachmentDeletedMessage"] = "The Attachment has been deleted by another user. Return to the list.";
+                ViewData["AttachmentDeletedMessage"] = "The attachment has been deleted by another user. Return to the list.";
 
                 return View("AttachmentDeleted", new { TenantID = Request.Query["TenantID"] });
             }
@@ -256,22 +273,26 @@ namespace SCM.Controllers
             var syncResult = await AttachmentService.DeleteFromNetworkAsync(id.Value);
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The Attachment has been deleted from the network.";
+                ViewData["SyncSuccessMessage"] = "The attachment has been deleted from the network.";
             }
             else
             {
-                if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                var message = "There was a problem deleting the attachment from the network. ";
+
+                if (syncResult.NetworkHttpResponse != null)
                 {
-                    ViewData["SyncErrorMessage"] = "The Attachment has already been deleted from the network.";
+                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        message += "The attachment resource is not present in the network. ";
+                    }
                 }
-                else
-                {
-                    ViewData["SyncErrorMessage"] = "There was a problem deleting the Attachment from the network. " + syncResult.GetAllMessages();
-                }
+
+                message += syncResult.GetAllMessages();
+                ViewData["SyncErrorMessage"] = message;
             }
 
             await PopulateTenantItem(attachment.TenantID);
-            return View("Delete", Mapper.Map<AttachmentInterfaceViewModel>(attachment));
+            return View("Delete", Mapper.Map<AttachmentViewModel>(attachment));
         }
 
         private async Task PopulateTenantItem(int tenantID)
@@ -307,6 +328,11 @@ namespace SCM.Controllers
         {
             var bandwidths = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
             ViewBag.BandwidthID = new SelectList(bandwidths, "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
+        }
+        private async Task PopulateContractBandwidthPoolsDropDownList(int tenantID, object selectedContractBandwidthPool = null)
+        {
+            var contractBandwidthPools = await AttachmentService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == tenantID);
+            ViewBag.ContractBandwidthPoolID = new SelectList(contractBandwidthPools, "ContractBandwidthPoolID", "Name", selectedContractBandwidthPool);
         }
     }
 }
