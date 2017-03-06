@@ -14,9 +14,12 @@ namespace SCM.Services.SCMServices
 {
     public class AttachmentService : BaseService, IAttachmentService
     {
+        private IVrfService VrfService { get; set; }
 
-        public AttachmentService(IUnitOfWork unitOfWork, IMapper mapper, INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
+        public AttachmentService(IUnitOfWork unitOfWork, IMapper mapper, 
+            INetworkSyncService netSync, IVrfService vrfService) : base(unitOfWork, mapper, netSync)
         {
+            VrfService = vrfService;
         }
 
         public async Task<Attachment> GetByIDAsync(int id)
@@ -150,10 +153,10 @@ namespace SCM.Services.SCMServices
 
             if (attachment.VrfID != null)
             {
-                var checkVpnAttachmentSetsResult = await CheckVpnAttachmentSets(attachment.VrfID.Value);
-                if (!checkVpnAttachmentSetsResult.IsSuccess)
+                var vrfValidationResult = await VrfService.ValidateDelete(attachment.VrfID.Value);
+                if (!vrfValidationResult.IsSuccess)
                 {
-                    return checkVpnAttachmentSetsResult;
+                    return vrfValidationResult;
                 }
             }
 
@@ -295,12 +298,10 @@ namespace SCM.Services.SCMServices
 
             if (attachment.VrfID != null)
             {
-                var checkVpnAttachmentSetsResult = await CheckVpnAttachmentSets(attachment.VrfID.Value);
-                if (!checkVpnAttachmentSetsResult.IsSuccess)
+                var vrfValidationResult = await VrfService.ValidateDelete(attachment.VrfID.Value);
+                if (!vrfValidationResult.IsSuccess)
                 {
-                    syncResult.Add(checkVpnAttachmentSetsResult.GetMessage());
-
-                    return syncResult;
+                    syncResult.Add(vrfValidationResult.GetMessage());
                 }
             }
 
@@ -341,46 +342,32 @@ namespace SCM.Services.SCMServices
             }
         }
 
+        /// <summary>
+        /// Validates an attachment request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<ServiceResult> ValidateAttachmentRequest(AttachmentRequest request)
         {
             var result = new ServiceResult();
             result.IsSuccess = true;
 
             var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => 
-                q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties:"Interfaces,BundleInterface");
+                q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties:"Interfaces.Port");
 
-            var contractBandwidthPool = dbResult.Single();
+            var contractBandwidthPool = dbResult.SingleOrDefault();
+            if (contractBandwidthPool == null)
+            {
+                result.Add("The requested contract bandwidth pool was not found.");
+                result.IsSuccess = false;
+                return result;
+            }
 
             if (contractBandwidthPool.Interfaces.Count > 0 )
             {
                 var port = contractBandwidthPool.Interfaces.Single().Port;
-                result.Add($"The Contract Bandwidth Pool is in-use for interface {port.Type} {port.Name}");
+                result.Add($"The selected contract bandwidth pool is in-use for interface {port.Type} {port.Name}. Select another contract bandwidth pool.");
                 result.IsSuccess = false;    
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Check if one or more VPNs are bound to a VRF which belongs to an Attachment Set
-        /// </summary>
-        /// <param name="vrfID"></param>
-        /// <returns></returns>
-        private async Task<ServiceResult> CheckVpnAttachmentSets(int vrfID) 
-        {
-            var result = new ServiceResult();
-            result.IsSuccess = true;
-
-            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSet.AttachmentSetVrfs
-                    .Where(v => v.VrfID == vrfID).Count() > 0,
-                    includeProperties: "Vpn");
-
-            if (vpnAttachmentSets.Count() > 0)
-            {
-                result.Add("This attachment cannot be deleted because the following VPN services are bound to the VRF: "
-                    + string.Join(",", vpnAttachmentSets.Select(q => q.Vpn.Name)));
-
-                result.IsSuccess = false;
             }
 
             return result;

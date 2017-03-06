@@ -55,8 +55,8 @@ namespace SCM.Services.SCMServices
                 includeProperties:"Vpn", AsTrackable: false);
             if (vpnAttachmentSets.Count() > 0)
             {
-                validationResult.Add("VRFs cannot be added, removed or changed because the Attachment Set is bound to the following VPNs: ");
-                validationResult.Add(string.Join(",", vpnAttachmentSets.Select(v => v.Vpn.Name).ToArray()) + ". ");
+                validationResult.Add("VRFs cannot be added, removed or changed because the attachment set is bound to the following VPNs: ");
+                validationResult.AddRange(vpnAttachmentSets.Select(v => v.Vpn.Name + "."));
                 validationResult.Add("Remove the Attachment Set from the VPNs first.");
                 validationResult.IsSuccess = false;
             }

@@ -305,7 +305,7 @@ namespace SCM.Controllers
                     var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
                     if (!validationResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = validationResult.GetMessage();
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
                         ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
                         return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
                     }

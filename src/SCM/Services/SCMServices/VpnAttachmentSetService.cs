@@ -10,10 +10,14 @@ namespace SCM.Services.SCMServices
     public class VpnAttachmentSetService : BaseService, IVpnAttachmentSetService
     {
         private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
+        private IRouteTargetService RouteTargetService { get; set; }
 
-        public VpnAttachmentSetService(IUnitOfWork unitOfWork, IAttachmentSetVrfService attachmentSetVrfService) : base(unitOfWork)
+        public VpnAttachmentSetService(IUnitOfWork unitOfWork,
+            IAttachmentSetVrfService attachmentSetVrfService, 
+            IRouteTargetService routeTargetService) : base(unitOfWork)
         {
             AttachmentSetVrfService = attachmentSetVrfService;
+            RouteTargetService = routeTargetService;
         }
 
         public async Task<IEnumerable<VpnAttachmentSet>> GetAllAsync()
@@ -76,10 +80,28 @@ namespace SCM.Services.SCMServices
             var attachmentSetVrfValidationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
             if (!attachmentSetVrfValidationResult.IsSuccess)
             {
-                return attachmentSetVrfValidationResult;
+                validationResult.Add($"The VRFs in attachment set {attachmentSet.Name} are not configured correctly. "
+                    + "Resolve this issue and try again. ");
+                validationResult.Add(attachmentSetVrfValidationResult.GetMessage());
+                validationResult.IsSuccess = false;
+
+                return validationResult;
             }
 
-            // Now validate the attachment set with the vpn binding
+            // Validate the VPN route targets
+
+            var routeTargetsValidationResult = await RouteTargetService.ValidateRouteTargetsAsync(vpn.VpnID);
+            if (!routeTargetsValidationResult.IsSuccess)
+            {
+                validationResult.Add($"The route targets for VPN {vpn.Name} are not configured correctly. "
+                    + "Resolve this issue and try again. ");
+                validationResult.Add(routeTargetsValidationResult.GetMessage());
+                validationResult.IsSuccess = false;
+
+                return validationResult;
+            }
+
+            // Validate the attachment set with the vpn binding
 
             var attachmentRedundancyName = attachmentSet.AttachmentRedundancy.Name;
 

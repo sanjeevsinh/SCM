@@ -32,7 +32,7 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Sub-Region")]
         public SubRegionViewModel SubRegion { get; set; }
         public LocationViewModel Location { get; set; }
-        [Display(Name = "Bandwidth (Gbps)")]
+        [Display(Name = "Interface Bandwidth (Gbps)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
         public PlaneViewModel Plane { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]

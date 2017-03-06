@@ -9,8 +9,11 @@ namespace SCM.Services.SCMServices
 {
     public class InterfaceService : BaseService, IInterfaceService
     {
-        public InterfaceService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        private IVrfService VrfService { get; set; }
+
+        public InterfaceService(IUnitOfWork unitOfWork, IVrfService vrfService) : base(unitOfWork)
         {
+            VrfService = vrfService;
         }
 
         public async Task<Interface> GetByIDAsync(int key)
@@ -41,7 +44,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="iface"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateInterface(Interface iface)
+        public async Task<ServiceResult> Validate(Interface iface)
         {
             var validationResult = new ServiceResult();
             validationResult.IsSuccess = true;
@@ -129,7 +132,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="iface"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateInterfaceChanges(Interface iface, Interface currentIface)
+        public async Task<ServiceResult> ValidateChanges(Interface iface, Interface currentIface)
         {
 
             var validationResult = new ServiceResult();
@@ -155,7 +158,30 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            return await ValidateInterface(iface);
+            return await Validate(iface);
+        }
+
+        /// <summary>
+        /// Validate deletion of an interface
+        /// </summary>
+        /// <param name="iface"></param>
+        /// <returns></returns>
+        public async Task<ServiceResult> ValidateDelete(Interface iface)
+        {
+            var result = new ServiceResult{IsSuccess = true };
+
+            if (iface.VrfID != null)
+            {
+                var vrfValidation = await VrfService.ValidateDelete(iface.VrfID.Value);
+                if (!vrfValidation.IsSuccess)
+                {
+                    result.Add("The interface cannot deleted because the of the following problem: ");
+                    result.AddRange(vrfValidation.GetMessageList());
+                    result.IsSuccess = false;
+                }
+            }
+
+            return result;
         }
     }
 }

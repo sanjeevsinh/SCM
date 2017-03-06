@@ -118,7 +118,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ContractBandwidthPoolID,TenantID,TrustReceivedCosDscp,ContractBandwidthID,RowVersion")] ContractBandwidthPoolViewModel contractBandwidthPool)
+        public async Task<ActionResult> Edit(int id, [Bind("ContractBandwidthPoolID,TenantID,Name,TrustReceivedCosDscp,ContractBandwidthID,RowVersion")] ContractBandwidthPoolViewModel contractBandwidthPool)
         {
             if (id != contractBandwidthPool.ContractBandwidthPoolID)
             {
@@ -135,7 +135,7 @@ namespace SCM.Controllers
                 {
                     if (currentContractBandwidthPool == null)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The Contract Bandwidth Pool was deleted by another user.");
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The contract bandwidth pool was deleted by another user.");
 
                         await PopulateContractBandwidthsDropDownList();
                         await PopulateTenantItem(contractBandwidthPool.TenantID);
@@ -179,7 +179,7 @@ namespace SCM.Controllers
                 ModelState.Remove("RowVersion");
             }
 
-            catch (DbUpdateException /* ex */)
+            catch (DbUpdateException /** ex **/)
             {
                 //Log the error (uncomment ex variable name and write a log.
                 ModelState.AddModelError("", "Unable to save changes. " +

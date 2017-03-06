@@ -84,14 +84,24 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var result = await AttachmentService.AddAsync(Mapper.Map<AttachmentRequest>(request));
-                    if (!result.IsSuccess)
+                    var mappedRequest = Mapper.Map<AttachmentRequest>(request);
+                    var validationResult = await AttachmentService.ValidateAttachmentRequest(mappedRequest);
+
+                    if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, result.GetMessage());
+                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
                     }
                     else
                     {
-                        return RedirectToAction("GetAllByTenantID", new { id = request.TenantID });
+                        var result = await AttachmentService.AddAsync(mappedRequest);
+                        if (!result.IsSuccess)
+                        {
+                            ModelState.AddModelError(string.Empty, result.GetMessage());
+                        }
+                        else
+                        {
+                            return RedirectToAction("GetAllByTenantID", new { id = request.TenantID });
+                        }
                     }
                 }
             }

@@ -51,7 +51,7 @@ namespace SCM.Services.SCMServices
 
             if (vpnAttachmentSets.Count > 0)
             {
-                validationResult.Add("A Route Target cannot be added, deleted, or changed because the following Attachment Sets are bound to the VPN:");
+                validationResult.Add("Route targets cannot be changed because the following attachment sets are bound to the VPN:");
                 validationResult.Add(string.Join(",", vpnAttachmentSets.Select(a => a.AttachmentSet.Name).ToArray()) + ". ");
                 validationResult.IsSuccess = false;
             }
@@ -88,7 +88,7 @@ namespace SCM.Services.SCMServices
                 {
                     if (countOfExportRouteTarget > 0)
                     {
-                        serviceValidationData.Add("A Hub Export route target cannot be defined for Ethernet VPN types.");
+                        serviceValidationData.Add("A hub export route target cannot be defined for Ethernet VPN types.");
                         serviceValidationData.IsSuccess = false;
                     }
                 }

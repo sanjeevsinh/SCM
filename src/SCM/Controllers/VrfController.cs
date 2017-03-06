@@ -255,7 +255,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -278,6 +278,14 @@ namespace SCM.Controllers
 
                 if (currentVrf != null)
                 {
+                    var validationResult = await VrfService.ValidateDelete(currentVrf.VrfID);
+                    if (!validationResult.IsSuccess)
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+
+                        return View(Mapper.Map<VrfViewModel>(currentVrf));
+                    }
+
                     await VrfService.DeleteAsync(Mapper.Map<Vrf>(vrf));
                 }
 

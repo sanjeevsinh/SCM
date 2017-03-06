@@ -13,11 +13,27 @@ namespace SCM.Services.SCMServices
 
         public string GetMessage()
         {
-            return string.Join("\r\n", Messages);
+            return string.Concat(Messages);
         }
+
+        public List<string> GetMessageList()
+        {
+            return Messages;
+        }
+
+        public string GetHtmlListMessage()
+        {
+            var message = string.Concat(Messages.Select(q => $"<li>{q}</li>"));
+            return $"<ul>{message}</ul>";
+        }
+
         public void Add(string message)
         {
             Messages.Add(message);
+        }
+        public void AddRange(IEnumerable<string> messages)
+        {
+            Messages.AddRange(messages);
         }
     }
 }

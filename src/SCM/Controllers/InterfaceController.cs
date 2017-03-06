@@ -96,7 +96,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedIface = Mapper.Map<Interface>(iface);
-                    var validationResult = await InterfaceService.ValidateInterface(mappedIface);
+                    var validationResult = await InterfaceService.Validate(mappedIface);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -165,7 +165,7 @@ namespace SCM.Controllers
                 {
 
                     var mappedIface = Mapper.Map<Interface>(iface);
-                    var validationResult = await InterfaceService.ValidateInterfaceChanges(mappedIface, currentIface);
+                    var validationResult = await InterfaceService.ValidateChanges(mappedIface, currentIface);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -265,7 +265,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -288,6 +288,14 @@ namespace SCM.Controllers
 
                 if (currentInterface != null)
                 {
+                    var validationResult = await InterfaceService.ValidateDelete(currentInterface);
+                    if (!validationResult.IsSuccess)
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+
+                        return View(Mapper.Map<InterfaceViewModel>(currentInterface));
+                    }
+
                     await InterfaceService.DeleteAsync(Mapper.Map<Interface>(iface));
                 }
                 return RedirectToAction("GetByPortID", new { id = iface.ID });
