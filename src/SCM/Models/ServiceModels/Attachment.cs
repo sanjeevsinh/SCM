@@ -12,6 +12,7 @@ namespace SCM.Models.ServiceModels
         public int ID { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
+        public bool IsBundle { get; set; }
         public string IpAddress { get; set; }
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }

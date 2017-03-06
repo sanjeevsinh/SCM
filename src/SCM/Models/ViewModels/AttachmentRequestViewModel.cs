@@ -54,7 +54,6 @@ namespace SCM.Models.ViewModels
         public int BandwidthID { get; set; }
         [Display(Name = "Bandwidth (Gigabits/Second)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
-        [Required(ErrorMessage = "A contract bandwidth pool option must be selected")]
         public int? ContractBandwidthPoolID { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }

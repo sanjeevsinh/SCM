@@ -76,14 +76,8 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
-                    if (Request.Query["tenantContext"] == "True")
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, tenantContext = true });
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, deviceContext = true });
-                    }
+
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -143,14 +137,8 @@ namespace SCM.Controllers
                     }
 
                     await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
-                    if (Request.Query["tenantContext"] == "True")
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, tenantContext = true });
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, deviceContext = true });
-                    }
+
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                 }
             }
 
@@ -199,14 +187,7 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    if (Request.Query["tenantContext"] == "True")
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, tenantContext = true });
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, deviceContext = true });
-                    }
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                 }
 
                 return NotFound();
@@ -239,14 +220,8 @@ namespace SCM.Controllers
                 {
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
-                if (Request.Query["tenantContext"] == "True")
-                {
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, tenantContext = true });
-                }
-                else
-                {
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, deviceContext = true });
-                }
+
+                return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)

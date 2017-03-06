@@ -39,8 +39,7 @@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.ID }) |
-                @Html.ActionLink("Delete", "Delete", new { id= item.ID }) |
-                <a asp-controller="Interface" asp-action="GetByPortID" asp-route-id="@item.ID">Interface</a>
+                @Html.ActionLink("Delete", "Delete", new { id= item.ID })
             </td>
         </tr>
 }

@@ -37,5 +37,18 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.PortRepository.Delete(port);
             return await this.UnitOfWork.SaveAsync();
         }
+        public ServiceResult ValidateDelete (Port port)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            if (port.TenantID != null)
+            {
+                result.Add("The port cannot be deleted because it is assigned to a tenant.");
+                result.Add("Delete the attachment resource first for this port and try again.");
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
     }
 }

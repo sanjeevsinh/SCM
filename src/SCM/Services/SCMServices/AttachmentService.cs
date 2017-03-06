@@ -22,12 +22,22 @@ namespace SCM.Services.SCMServices
             VrfService = vrfService;
         }
 
-        public async Task<Attachment> GetByIDAsync(int id)
+        public async Task<Attachment> GetFullAsync(Attachment attachment)
         {
-            var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == id, includeProperties:
-                "Port.Device.Location,Port.Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth",
-                AsTrackable: false);
-            return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
+            if (attachment.IsBundle)
+            {
+
+            }
+            else 
+            {
+                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.ID == attachment.ID, includeProperties:
+                    "Port.Device.Location,Port.Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth",
+                    AsTrackable: false);
+
+                return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
+            }
+
+            return null;
         }
 
         public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
@@ -39,106 +49,26 @@ namespace SCM.Services.SCMServices
             return Mapper.Map<List<Attachment>>(ifaces);
         }
 
-        public async Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest)
+        public async Task<ServiceResult> AddAsync(AttachmentRequest request)
         {
-            var serviceResult = new ServiceResult();
-            serviceResult.IsSuccess = true;
+            var result = new ServiceResult { IsSuccess = true };
 
-            // Get all devices in the requested location
-
-            var devices = await UnitOfWork.DeviceRepository.GetAsync(q => q.LocationID == attachmentRequest.LocationID,
-                includeProperties: "Ports.PortBandwidth");
-
-            // Filter devices collection to include only those devices which belong to the requested plane (if specified)
-
-            if (attachmentRequest.PlaneID != null)
+            var ports = await FindPorts(request, result);
+            if (ports.Count() == 0)
             {
-                devices = devices.Where(q => q.PlaneID == attachmentRequest.PlaneID).ToList();
+                return result;
             }
 
-            // Filter devices collection to only those devices which have free ports (ports which are not already assigned to a tenant) whcih are
-            // of the requested bandwidth
-
-            var bandwidth = await UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(attachmentRequest.BandwidthID);
-            devices = devices.Where(q => q.Ports.Where(p => p.TenantID == null && p.PortBandwidth.BandwidthGbps == bandwidth.BandwidthGbps).Count() > 0).ToList();
-
-            Device device = null;
-
-            if (devices.Count == 0)
+            if (request.BundleRequired)
             {
-                serviceResult.Add("A device with a free attachment port matching the requested location and bandwidth parameters could not be found. "
-                    + "Please change the input parameters and try again, or contact your system adminstrator to report this issue.");
-
-                serviceResult.IsSuccess = false;
-
-                return serviceResult;
-            }
-            else if (devices.Count > 1)
-            {
-                // Get device with the least number of tenant-assigned ports.
-
-                device = devices.Aggregate((current, x) =>
-                (x.Ports.Where(p => p.TenantID != null).Count() < current.Ports.Where(p => p.TenantID != null).Count() ? x : current));
+                await AddBundleAttachment(request, ports, result); 
             }
             else
             {
-                device = devices.Single();
+                await AddAttachment(request, ports.First(), result);   
             }
 
-            Port port;
-            var ports = device.Ports.Where(q => q.TenantID == null && q.PortBandwidth.BandwidthGbps == bandwidth.BandwidthGbps);
-            if (ports.Count() > 0)
-            {
-                port = ports.First();
-            }
-            else
-            {
-                serviceResult.Add("A port matching the requested bandwidth parameter could not be found. "
-                    + "Please change your bandwidth request and try again, or contact your system adminstrator and report this issue.");
-
-                serviceResult.IsSuccess = false;
-
-                return serviceResult;
-            }
-
-            port.TenantID = attachmentRequest.TenantID;
-
-            var iface = Mapper.Map<Interface>(attachmentRequest);
-            iface.ID = port.ID;
-
-            Vrf vrf = null;
-            if (attachmentRequest.IsLayer3)
-            {
-                vrf = Mapper.Map<Vrf>(attachmentRequest);
-                vrf.DeviceID = device.ID;
-            }
-
-            // Need to implement Transaction Scope here when available in dotnet core
-
-            try
-            {
-                UnitOfWork.PortRepository.Update(port);
-                if (vrf != null)
-                {
-                    UnitOfWork.VrfRepository.Insert(vrf);
-                    await this.UnitOfWork.SaveAsync();
-                    iface.VrfID = vrf.VrfID;
-                }
-                UnitOfWork.InterfaceRepository.Insert(iface);
-                await this.UnitOfWork.SaveAsync();
-            }
-
-            catch (Exception /** ex **/)
-            {
-                // Add logging for the exception here
-                serviceResult.Add("Something went wrong during the database update. The issue has been logged."
-                   + "Please try again, and contact your system admin if the problem persists.");
-                serviceResult.IsSuccess = false;
-
-                return serviceResult;
-            }
-
-            return serviceResult;
+            return result;
         }
 
         public async Task<ServiceResult> DeleteAsync(Attachment attachment)
@@ -162,7 +92,7 @@ namespace SCM.Services.SCMServices
 
             // Delete from the network first
 
-            var syncResult = await DeleteFromNetworkAsync(attachment.ID);
+            var syncResult = await DeleteFromNetworkAsync(attachment);
 
             if (!syncResult.IsSuccess && syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
             {
@@ -178,7 +108,6 @@ namespace SCM.Services.SCMServices
 
             try
             {
-
                 UnitOfWork.PortRepository.Update(port);
                 await UnitOfWork.InterfaceRepository.DeleteAsync(attachment.ID);
                 if (attachment.VrfID != null)
@@ -200,10 +129,8 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(int id)
+        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment)
         {
-            var attachment = await GetByIDAsync(id);
-
             if (attachment.IsTagged)
             {
                 var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
@@ -238,10 +165,8 @@ namespace SCM.Services.SCMServices
                 return attachmentCheckSyncResult;
             }
         }
-        public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(int attachmentID)
-        {
-            var attachment = await GetByIDAsync(attachmentID);
-
+        public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment)
+        { 
             if (attachment.IsTagged)
             {
                 var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
@@ -280,17 +205,9 @@ namespace SCM.Services.SCMServices
             }
         }
 
-        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int attachmentID)
+        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment)
         {
-            var attachment = await GetByIDAsync(attachmentID);
             var syncResult = new NetworkSyncServiceResult();
-
-            if (attachment == null)
-            {
-                syncResult.Add("The attachment was not found.");
-
-                return syncResult;
-            }
 
             // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
             // is to be deleted, and one or more VPNs are bound to the  VRF, 
@@ -347,30 +264,200 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateAttachmentRequest(AttachmentRequest request)
+        public async Task<ServiceResult> Validate(AttachmentRequest request)
         {
-            var result = new ServiceResult();
-            result.IsSuccess = true;
+            var result = new ServiceResult { IsSuccess = true };
 
-            var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => 
-                q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties:"Interfaces.Port");
-
-            var contractBandwidthPool = dbResult.SingleOrDefault();
-            if (contractBandwidthPool == null)
+            if (request.BundleRequired)
             {
-                result.Add("The requested contract bandwidth pool was not found.");
-                result.IsSuccess = false;
-                return result;
+                if (!request.Bandwidth.SupportedByBundle)
+                {
+                    result.Add("The rquested bandwidth is not supported by a bundle.");
+                    result.IsSuccess = false;
+                }
             }
 
-            if (contractBandwidthPool.Interfaces.Count > 0 )
+            if (!request.IsTagged)
             {
-                var port = contractBandwidthPool.Interfaces.Single().Port;
-                result.Add($"The selected contract bandwidth pool is in-use for interface {port.Type} {port.Name}. Select another contract bandwidth pool.");
-                result.IsSuccess = false;    
+
+                var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
+                    q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "Interfaces.Port");
+
+                var contractBandwidthPool = dbResult.SingleOrDefault();
+                if (contractBandwidthPool == null)
+                {
+                    result.Add("The requested contract bandwidth pool was not found.");
+                    result.IsSuccess = false;
+                    return result;
+                }
+
+                if (contractBandwidthPool.Interfaces.Count > 0)
+                {
+                    var port = contractBandwidthPool.Interfaces.Single().Port;
+                    result.Add($"The selected contract bandwidth pool is in-use for interface {port.Type} {port.Name}. Select another contract bandwidth pool.");
+                    result.IsSuccess = false;
+                }
             }
 
             return result;
+        }
+
+        private async Task<IEnumerable<Port>> FindPorts(AttachmentRequest request, ServiceResult result)
+        {
+            var device = await FindDevice(request, result);
+
+            if (device == null)
+            {
+                return Enumerable.Empty<Port>();
+            }
+
+            var ports = device.Ports.Where(q => q.TenantID == null && q.PortBandwidth.BandwidthGbps == request.Bandwidth.BandwidthGbps);
+
+            if (ports.Count() == 0)
+            {
+                result.Add("Ports matching the requested bandwidth parameter could not be found. "
+                    + "Please change your request and try again, or contact your system adminstrator and report this issue.");
+
+                result.IsSuccess = false;
+            }
+
+            return ports;
+        }
+
+        private async Task<Device> FindDevice(AttachmentRequest request, ServiceResult result)
+        {
+            // Find all devices in the requested location
+
+            var devices = await UnitOfWork.DeviceRepository.GetAsync(q => q.LocationID == request.LocationID,
+                includeProperties: "Ports.PortBandwidth,Ports.Device");
+
+            // Filter devices collection to include only those devices which belong to the requested plane (if specified)
+
+            if (request.PlaneID != null)
+            {
+                devices = devices.Where(q => q.PlaneID == request.PlaneID).ToList();
+            }
+
+            // Filter devices collection to only those devices which have the required number of free ports
+            // of the required bandwidth.
+            // Free ports are not already assigned to a tenant.
+
+            int numPortsRequired = 1;
+            int bandwidthRequired = 0;
+            if (request.BundleRequired)
+            {
+                numPortsRequired = request.Bandwidth.BandwidthGbps / request.Bandwidth.BundleOrMultiPortMemberBandwidthGbps.Value;
+                bandwidthRequired = request.Bandwidth.BandwidthGbps / numPortsRequired;
+            }
+
+            devices = devices.Where(q => q.Ports.Where(p => p.TenantID == null 
+                && p.PortBandwidth.BandwidthGbps == bandwidthRequired).Count() >= numPortsRequired).ToList();
+
+            Device device = null;
+
+            if (devices.Count == 0)
+            {
+                result.Add("A device with a free attachment port matching the requested location and bandwidth parameters could not be found. "
+                    + "Please change the input parameters and try again, or contact your system adminstrator to report this issue.");
+
+                result.IsSuccess = false;
+
+            }
+            else if (devices.Count > 1)
+            {
+                // Get device with the least number of tenant-assigned ports.
+
+                device = devices.Aggregate((current, x) =>
+                (x.Ports.Where(p => p.TenantID != null).Count() < current.Ports.Where(p => p.TenantID != null).Count() ? x : current));
+            }
+            else
+            {
+                device = devices.Single();
+            }
+
+            return device;
+        }
+
+        private async Task AddAttachment(AttachmentRequest request, Port port, ServiceResult result)
+        {
+            port.TenantID = request.TenantID;
+
+            var iface = Mapper.Map<Interface>(request);
+            iface.ID = port.ID;
+
+            Vrf vrf = null;
+            if (request.IsLayer3)
+            {
+                vrf = Mapper.Map<Vrf>(request);
+                vrf.DeviceID = port.Device.ID;
+            }
+
+            // Need to implement Transaction Scope here when available in dotnet core
+
+            try
+            {
+                UnitOfWork.PortRepository.Update(port);
+                if (vrf != null)
+                {
+                    UnitOfWork.VrfRepository.Insert(vrf);
+                    await this.UnitOfWork.SaveAsync();
+                    iface.VrfID = vrf.VrfID;
+                }
+                UnitOfWork.InterfaceRepository.Insert(iface);
+                await this.UnitOfWork.SaveAsync();
+            }
+
+            catch (Exception /** ex **/)
+            {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the database update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+                result.IsSuccess = false;
+            }
+        }
+
+        private async Task AddBundleAttachment(AttachmentRequest request, IEnumerable<Port> ports, ServiceResult result)
+        {
+            Vrf vrf = null;
+            if (request.IsLayer3)
+            {
+                vrf = Mapper.Map<Vrf>(request);
+                vrf.DeviceID = ports.First().Device.ID;
+            }
+
+            var bundleIface = Mapper.Map<BundleInterface>(request);
+
+            // Need to implement Transaction Scope here when available in dotnet core
+
+            try
+            {
+                if (vrf != null)
+                {
+                    UnitOfWork.VrfRepository.Insert(vrf);
+                    await this.UnitOfWork.SaveAsync();
+                    bundleIface.VrfID = vrf.VrfID;
+                }
+
+                UnitOfWork.BundleInterfaceRepository.Insert(bundleIface);
+                await this.UnitOfWork.SaveAsync();
+
+                foreach (var port in ports)
+                {
+                    port.TenantID = request.TenantID;
+                    UnitOfWork.PortRepository.Update(port);
+
+                    var bundleIfacePort = new BundleInterfacePort { PortID = port.ID, BundleInterfaceID = bundleIface.BundleInterfaceID };
+                }
+            }
+
+            catch (Exception /** ex **/)
+            {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the database update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+
+                result.IsSuccess = false;
+            }
         }
     }
 }

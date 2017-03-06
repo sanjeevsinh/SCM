@@ -11,13 +11,13 @@ namespace SCM.Services.SCMServices
     public interface IAttachmentService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<Attachment> GetByIDAsync(int id);
+        Task<Attachment> GetFullAsync(Attachment attachment);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
-        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(int attachmentID);
-        Task<NetworkSyncServiceResult> SyncToNetworkAsync(int attachmentID);
-        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int attachmentID);
-        Task<ServiceResult> ValidateAttachmentRequest(AttachmentRequest request);
+        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment);
+        Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment);
+        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment);
+        Task<ServiceResult> Validate(AttachmentRequest request);
     }
 }

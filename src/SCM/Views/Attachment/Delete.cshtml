@@ -7,24 +7,14 @@
 <h2>Delete</h2>
 
 
-@if (@ViewData["DeleteErrorMessage"] != null)
+@if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["DeleteErrorMessage"]</div>
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
 }
 
-@if (@ViewData["ConcurrencyErrorMessage"] != null)
+@if (@ViewData["SuccessMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["ConcurrencyErrorMessage"]</div>
-}
-
-@if (@ViewData["SyncErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@ViewData["SyncErrorMessage"]</div>
-}
-
-@if (@ViewData["SyncSuccessMessage"] != null)
-{
-    <div class="alert alert-success">@ViewData["SyncSuccessMessage"]</div>
+    <div class="alert alert-success">@ViewData["SuccessMessage"]</div>
 }
 
 <h3>Are you sure you want to delete this?</h3>
@@ -77,6 +67,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="IsBundle" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" asp-route-TenantID="@ViewBag.Tenant.TenantID" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" asp-route-TenantID="@ViewBag.Tenant.TenantID" class="btn btn-default" /> |

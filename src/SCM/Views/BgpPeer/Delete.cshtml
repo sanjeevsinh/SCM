@@ -51,17 +51,9 @@
         <input type="hidden" asp-for="VrfID" />
         <input type="hidden" asp-for="BgpPeerID" />
         <input type="hidden" asp-for="RowVersion" />
-        <div class="form-actions no-color">
-             @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
-             {            
-                <input type="submit" value="Delete" asp-route-tenantContext = "True" class="btn btn-default" /> <span>|</span>
-                <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantContext="True">Back to BGP Peers List</a>
-             }
-             else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
-             {
-                <input type="submit" value="Delete" asp-route-deviceContext="True" class="btn btn-default" /> <span>|</span>
-                <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
-             }
+        <div class="form-actions no-color">          
+            <input type="submit" value="Delete" class="btn btn-default" /> <span>|</span>
+            <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID">Back to BGP Peers List</a>
         </div>
     </form>
 </div>

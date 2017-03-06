@@ -49,12 +49,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.BgpPeerID }) |
-    @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
-    {
-        <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantContext="True">Back to BGP Peers List</a>
-    }
-    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
-    {
-        <a asp-action="GetAllByVrfIDD" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
-    }
+    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID">Back to BGP Peers List</a>
 </div>

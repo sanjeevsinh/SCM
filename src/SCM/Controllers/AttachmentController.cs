@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using SCM.Models;
+using SCM.Models.ServiceModels;
 using SCM.Models.ViewModels;
 using SCM.Services;
 using SCM.Services.SCMServices;
@@ -41,14 +41,9 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(AttachmentViewModel attachment)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var item = await AttachmentService.GetByIDAsync(id.Value);
+            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
             if (item == null)
             {
                 return NotFound();
@@ -74,18 +69,20 @@ namespace SCM.Controllers
             return View();
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID," +
-            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
+            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged,BundleRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     var mappedRequest = Mapper.Map<AttachmentRequest>(request);
-                    var validationResult = await AttachmentService.ValidateAttachmentRequest(mappedRequest);
+                    var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
+                    mappedRequest.Bandwidth = bandwidth;
+
+                    var validationResult = await AttachmentService.Validate(mappedRequest);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -138,15 +135,11 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(AttachmentViewModel attachment, bool? concurrencyError = false)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var currentAttachment = await AttachmentService.GetByIDAsync(id.Value);
-            if (currentAttachment == null)
+            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+            if (item == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
@@ -158,7 +151,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -166,8 +159,8 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulateTenantItem(currentAttachment.TenantID);
-            return View(Mapper.Map<AttachmentViewModel>(currentAttachment));
+            await PopulateTenantItem(item.TenantID);
+            return View(Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
@@ -176,17 +169,17 @@ namespace SCM.Controllers
         {
             try
             {
-                var currentAttachment = await AttachmentService.GetByIDAsync(attachment.ID);
+                var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
 
-                if (currentAttachment != null)
+                if (item != null)
                 {
-                    var result = await AttachmentService.DeleteAsync(currentAttachment);
+                    var result = await AttachmentService.DeleteAsync(item);
                     if (!result.IsSuccess)
                     {
-                        ViewData["DeleteErrorMessage"] = result.GetMessage();
-                        await PopulateTenantItem(currentAttachment.TenantID);
+                        ViewData["ErrorMessage"] = result.GetMessage();
+                        await PopulateTenantItem(item.TenantID);
 
-                        return View(Mapper.Map<AttachmentViewModel>(currentAttachment));
+                        return View(Mapper.Map<AttachmentViewModel>(item));
                     }
                 }
 
@@ -201,78 +194,66 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(int? id)
+        public async Task<IActionResult> CheckSync(AttachmentViewModel attachment)
         {
-            if (id == null)
+            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+
+            if (item == null)
             {
                 return NotFound();
             }
 
-            var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(id.Value);
+            var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(item);
             if (checkSyncResult.InSync)
             {
-                ViewData["SyncSuccessMessage"] = "The attachment is synchronised with the network.";
+                ViewData["SuccessMessage"] = "The attachment is synchronised with the network.";
             }
             else
             {
                 if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
                 {
-                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
                 }
                 else
                 {
-                    ViewData["SyncErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
             }
 
-            var item = await AttachmentService.GetByIDAsync(id.Value);
-            if (item == null)
-            {
-                return NotFound();
-            }
-
             return View("Details", Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(int? id)
+        public async Task<IActionResult> Sync(AttachmentViewModel attachment)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var item = await AttachmentService.GetByIDAsync(id.Value);
+
+            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
             if (item == null)
             {
                 return NotFound();
             }
 
-            var syncResult = await AttachmentService.SyncToNetworkAsync(id.Value);
+            var syncResult = await AttachmentService.SyncToNetworkAsync(item);
 
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The network is synchronised.";
+                ViewData["SuccessMessage"] = "The network is synchronised.";
             }
             else
             {
-                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessage();
             }
 
             return View("Details", Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteFromNetwork(int? id)
+        public async Task<IActionResult> DeleteFromNetwork(Attachment attachment)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var item = await AttachmentService.GetFullAsync(attachment);
 
-            var attachment = await AttachmentService.GetByIDAsync(id.Value);
-
-            if (attachment == null)
+            if (item == null)
             {
 
                 ViewData["AttachmentDeletedMessage"] = "The attachment has been deleted by another user. Return to the list.";
@@ -280,10 +261,10 @@ namespace SCM.Controllers
                 return View("AttachmentDeleted", new { TenantID = Request.Query["TenantID"] });
             }
 
-            var syncResult = await AttachmentService.DeleteFromNetworkAsync(id.Value);
+            var syncResult = await AttachmentService.DeleteFromNetworkAsync(item);
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The attachment has been deleted from the network.";
+                ViewData["SuccessMessage"] = "The attachment has been deleted from the network.";
             }
             else
             {
@@ -298,11 +279,11 @@ namespace SCM.Controllers
                 }
 
                 message += syncResult.GetAllMessages();
-                ViewData["SyncErrorMessage"] = message;
+                ViewData["ErrorMessage"] = message;
             }
 
-            await PopulateTenantItem(attachment.TenantID);
-            return View("Delete", Mapper.Map<AttachmentViewModel>(attachment));
+            await PopulateTenantItem(item.TenantID);
+            return View("Delete", Mapper.Map<AttachmentViewModel>(item));
         }
 
         private async Task PopulateTenantItem(int tenantID)

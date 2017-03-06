@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 
-namespace SCM.Models
+namespace SCM.Models.ServiceModels
 {
     public class AttachmentRequest
     {
@@ -25,10 +25,6 @@ namespace SCM.Models
         public int? PlaneID { get; set; }
         public int BandwidthID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
-        public Tenant Tenant { get; set; }
-        public Region Region { get; set; }
-        public SubRegion SubRegion { get; set; }
-        public Location Location { get; set; }
         public InterfaceBandwidth Bandwidth { get; set; }
     }
 }

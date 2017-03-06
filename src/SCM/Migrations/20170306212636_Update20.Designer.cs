@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170306212636_Update20")]
+    partial class Update20
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -355,17 +356,9 @@ namespace SCM.Migrations
 
                     b.Property<int>("BandwidthGbps");
 
-                    b.Property<int?>("BundleOrMultiPortMemberBandwidthGbps");
-
-                    b.Property<bool>("MustBeBundleOrMultiPort");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<bool>("SupportedByBundle");
-
-                    b.Property<bool>("SupportedByMultiPort");
 
                     b.HasKey("InterfaceBandwidthID");
 

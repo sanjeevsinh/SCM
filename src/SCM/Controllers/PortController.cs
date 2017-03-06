@@ -256,7 +256,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -279,6 +279,14 @@ namespace SCM.Controllers
 
                 if (currentPort != null)
                 {
+                    var validationResult = PortService.ValidateDelete(currentPort);
+                    if (!validationResult.IsSuccess)
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+
+                        return View(Mapper.Map<PortViewModel>(currentPort));
+                    }
+
                     await PortService.DeleteAsync(Mapper.Map<Port>(port));
                 }
                 return RedirectToAction("GetAllByDeviceID", new { id = port.DeviceID });

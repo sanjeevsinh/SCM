@@ -6,14 +6,14 @@
 
 <h2>Details for Attachment '@Model.Port.Type @Model.Port.Name'</h2>
 
-@if (@ViewData["SyncErrorMessage"] != null)
+@if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["SyncErrorMessage"]</div>
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
 }
 
-@if (@ViewData["SyncSuccessMessage"] != null)
+@if (@ViewData["SuccessMessage"] != null)
 {
-    <p class="alert alert-success">@ViewData["SyncSuccessMessage"]</p>
+    <p class="alert alert-success">@ViewData["SuccessMessage"]</p>
 }
 
 <div>
@@ -113,6 +113,7 @@
 </div>
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id" />
+    <input type="hidden" asp-for="IsBundle" />
     <div class="form-actions no-color">
         <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
         <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |

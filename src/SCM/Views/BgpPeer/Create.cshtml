@@ -42,27 +42,13 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-@if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
-{
-                <input type="submit" value="Create" asp-route-tenantContext="True" class="btn btn-default" />
-}
-@if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
-{
-    <input type="submit" value="Create" asp-route-deviceContext="True" class="btn btn-default" />
-}
+                <input type="submit" value="Create" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 <div>
-    @if (ViewContext.HttpContext.Request.Query["tenantContext"] == "True")
-    {
-        <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantContext="True">Back to BGP Peers List</a>
-    }
-    else if (ViewContext.HttpContext.Request.Query["deviceContext"] == "True")
-    {
-        <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-deviceContext="True">Back to BGP Peers List</a>
-    }
+    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID">Back to BGP Peers List</a>
 </div>
 
     @section Scripts {

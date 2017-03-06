@@ -14,5 +14,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(Port port);
         Task<int> UpdateAsync(Port port);
         Task<int> DeleteAsync(Port port);
+        ServiceResult ValidateDelete(Port port);
     }
 }

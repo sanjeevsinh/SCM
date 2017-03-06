@@ -149,11 +149,6 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Port>()
-                   .HasOne(c => c.Tenant)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
             builder.Entity<Vpn>()
                    .HasOne(c => c.Plane)
                    .WithMany()
