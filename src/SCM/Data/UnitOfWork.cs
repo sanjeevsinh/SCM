@@ -13,9 +13,7 @@ namespace SCM.Data
         private GenericRepository<VpnAttachmentSet> vpnAttachmentSetRepository;
         private GenericRepository<AttachmentRedundancy> attachmentRedundancyRepository;
         private GenericRepository<BgpPeer> bgpPeerRepository;
-        private GenericRepository<BundleInterface> bundleInterfaceRepository;
         private GenericRepository<BundleInterfacePort> bundleInterfacePortRepository;
-        private GenericRepository<BundleInterfaceVlan> bundleInterfaceVlanRepository;
         private GenericRepository<ContractBandwidth> contractBandwidthRepository;
         private GenericRepository<ContractBandwidthPool> contractBandwidthPoolRepository;
         private GenericRepository<Device> deviceRepository;
@@ -105,17 +103,6 @@ namespace SCM.Data
             }
         }
 
-        public GenericRepository<BundleInterface> BundleInterfaceRepository
-        {
-            get
-            {
-                if (this.bundleInterfaceRepository == null)
-                {
-                    this.bundleInterfaceRepository = new GenericRepository<BundleInterface>(context);
-                }
-                return bundleInterfaceRepository;
-            }
-        }
         public GenericRepository<BundleInterfacePort> BundleInterfacePortRepository
         {
             get
@@ -125,18 +112,6 @@ namespace SCM.Data
                     this.bundleInterfacePortRepository = new GenericRepository<BundleInterfacePort>(context);
                 }
                 return bundleInterfacePortRepository;
-            }
-        }
-
-        public GenericRepository<BundleInterfaceVlan> BundleInterfaceVlanRepository
-        {
-            get
-            {
-                if (this.bundleInterfaceVlanRepository == null)
-                {
-                    this.bundleInterfaceVlanRepository = new GenericRepository<BundleInterfaceVlan>(context);
-                }
-                return bundleInterfaceVlanRepository;
             }
         }
 

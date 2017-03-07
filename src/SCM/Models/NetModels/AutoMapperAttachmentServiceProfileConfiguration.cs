@@ -9,42 +9,35 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         public AutoMapperAttachmentServiceProfileConfiguration()
         {
-            CreateMap<Port, UntaggedAttachmentInterfaceNetModel>()
-                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interface.Port.Type))
-                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Interface.Port.Name))
-                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Interface.IsLayer3))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Interface.IsLayer3 ? src.Interface : null));
-
-            CreateMap<BundleInterface, UntaggedAttachmentBundleInterfaceNetModel>()
-                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
-                .ForMember(dest => dest.BundleInterfaceID, conf => conf.MapFrom(src => src.Name))
+            CreateMap<Interface, UntaggedAttachmentInterfaceNetModel>()
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
-            CreateMap<BundleInterface, TaggedAttachmentBundleInterfaceNetModel>()
-                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
-                .ForMember(dest => dest.BundleInterfaceID, conf => conf.MapFrom(src => src.Name))
+            CreateMap<Interface, TaggedAttachmentInterfaceNetModel>()
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
-                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.BundleInterfaceVlans));
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
+
+            CreateMap<Interface, UntaggedAttachmentBundleInterfaceNetModel>()
+                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
+                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
+
+            CreateMap<Interface, TaggedAttachmentBundleInterfaceNetModel>()
+                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
 
             CreateMap<BundleInterfacePort, BundleInterfaceMemberNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name));
 
-            CreateMap<Port, TaggedAttachmentInterfaceNetModel>()
-                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interface.Port.Type))
-                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Interface.Port.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
-                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Interface.InterfaceVlans));
-
             CreateMap<InterfaceVlan, VifNetModel>()
-                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
-                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.Layer3Vrf, conf => conf.MapFrom(src => src));
-
-            CreateMap<BundleInterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.Layer3Vrf, conf => conf.MapFrom(src => src));
@@ -55,16 +48,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<InterfaceVlan, Layer3NetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
-                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
-
-            CreateMap<BundleInterface, Layer3NetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
-                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
-
-            CreateMap<BundleInterfaceVlan, Layer3NetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
@@ -85,12 +68,24 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
-                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new Layer3NetModelTypeResolver()));
+                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new AttachmentLayer3NetModelTypeResolver()));
 
             CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>()
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type));
+
+            CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>()
+                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+                .ForMember(dest => dest.BundleID, conf => conf.MapFrom(src => src.Name))
+                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
+                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new BundleAttachmentLayer3NetModelTypeResolver()));
+
+            CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>()
+               .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+               .ForMember(dest => dest.BundleID, conf => conf.MapFrom(src => src.Name))
+               .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts));
 
             CreateMap<Attachment, VrfServiceNetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
@@ -98,9 +93,33 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
         }
 
-        public class Layer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
+        public class AttachmentLayer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
         {
             public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
+            {
+                var result = new Layer3NetModel();
+                var mapper = context.Mapper;
+
+                if (source.IsLayer3)
+                {
+                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
+                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
+                    result.IpAddress = source.IpAddress;
+                    result.SubnetMask = source.SubnetMask;
+                    result.VrfName = source.Vrf.Name;
+
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public class BundleAttachmentLayer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel, Layer3NetModel>
+        {
+            public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentBundleInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
                 var result = new Layer3NetModel();
                 var mapper = context.Mapper;
@@ -136,35 +155,32 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 result.PEName = source.Name;
                 result.Vrfs = mapper.Map<List<VrfNetModel>>(source.Vrfs);
 
-                if (source.Ports != null)
+                if (source.Interfaces != null)
                 {
-                    foreach (Port port in source.Ports)
+                    foreach (Interface iface in source.Interfaces)
                     {
-                        if (port.Interface != null)
+                        if (iface.IsBundle)
                         {
-                            if (port.Interface.IsTagged)
+                            if (iface.IsTagged)
                             {
-                                taggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(port));
+                                taggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(iface));
                             }
                             else
                             {
-                                untaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(port));
+                                untaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(iface));
                             }
                         }
-                    }
-                }
-
-                if (source.BundleInterfaces != null)
-                {
-
-                    foreach (BundleInterface bundleInterface in source.BundleInterfaces)
-                    {
-                        if (bundleInterface.IsTagged)
-                        {
-                            taggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
-                        }
                         else
-                            untaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(bundleInterface));
+                        {
+                            if (iface.IsTagged)
+                            {
+                                taggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(iface));
+                            }
+                            else
+                            {
+                                untaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(iface));
+                            }
+                        }
                     }
                 }
 

@@ -8,7 +8,8 @@ namespace SCM.Models.ViewModels
     {
         [Display(AutoGenerateField = false)]
         public int PolicyBandwidthID { get; set; }
-        public int BandwidthKbps { get; set; }
+        [Display(Name = "Contract Bandwidth (Mbps))")]
+        public int BandwidthMbps { get; set; }
         public byte[] RowVersion { get; set; }
     }
 }

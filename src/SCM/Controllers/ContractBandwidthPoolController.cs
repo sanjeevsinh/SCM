@@ -47,7 +47,10 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var item = await ContractBandwidthPoolService.GetByIDAsync(id.Value);
+            var dbResult = await ContractBandwidthPoolService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.ContractBandwidthPoolID == id.Value, 
+                includeProperties:"ContractBandwidth");
+            var item = dbResult.SingleOrDefault();
+
             if (item == null)
             {
                 return NotFound();
@@ -264,7 +267,7 @@ namespace SCM.Controllers
         private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)
         {
             var contractBandwidths = await ContractBandwidthPoolService.UnitOfWork.ContractBandwidthRepository.GetAsync();
-            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths, "ContractBandwidthID", "BandwidthKbps", selectedContractBandwidth);
+            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(q => q.BandwidthMbps), "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace SCM.Models.NetModels.IpVpnNetModels
                 .ForMember(dest => dest.Vrfs, conf => conf.Ignore());
 
             CreateMap<VpnTenantNetwork, TenantPrefixNetModel>()
-                .ForMember(dest => dest.Prefix, conf => conf.MapFrom(src => src.TenantNetwork.IpPrefix + "/" + src.TenantNetwork.Length));
+                .ForMember(dest => dest.Prefix, conf => conf.MapFrom(src => $"{src.TenantNetwork.IpPrefix}/{src.TenantNetwork.Length}"));
 
             CreateMap<VpnTenantCommunity, TenantCommunityNetModel>()
                 .ForMember(dest => dest.AutonomousSystemNumber, conf => conf.MapFrom(src => src.TenantCommunity.AutonomousSystemNumber))

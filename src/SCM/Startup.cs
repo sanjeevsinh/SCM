@@ -79,12 +79,7 @@ namespace SCM
             services.AddScoped<IPortService, PortService>();
             services.AddScoped<ITenantService, TenantService>();
             services.AddScoped<IDeviceService, DeviceService>();
-            services.AddScoped<IInterfaceService, InterfaceService>();
             services.AddScoped<IVrfService, VrfService>();
-            services.AddScoped<IInterfaceVlanService, InterfaceVlanService>();
-            services.AddScoped<IBundleInterfaceService, BundleInterfaceService>();
-            services.AddScoped<IBundleInterfacePortService, BundleInterfacePortService>();
-            services.AddScoped<IBundleInterfaceVlanService, BundleInterfaceVlanService>();
             services.AddScoped<IContractBandwidthPoolService, ContractBandwidthPoolService>();
             services.AddScoped<IVpnService, VpnService>();
             services.AddScoped<IRouteTargetService, RouteTargetService>();

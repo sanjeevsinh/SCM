@@ -10,6 +10,7 @@ namespace SCM.Models.ServiceModels
     public class Attachment
     {
         public int ID { get; set; }
+        public string Name { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public bool IsBundle { get; set; }
@@ -34,6 +35,7 @@ namespace SCM.Models.ServiceModels
         public Plane Plane { get; set; }
         public Vrf Vrf { get; set; }
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
-        public ICollection<InterfaceVlan> Vifs { get; set; }
+        public ICollection<MultiPortPort> MultiPortPorts { get; set; }
+        public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
     }
 }

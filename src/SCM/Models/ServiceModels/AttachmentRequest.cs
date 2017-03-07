@@ -25,6 +25,8 @@ namespace SCM.Models.ServiceModels
         public int? PlaneID { get; set; }
         public int BandwidthID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
+        public int PortBandwidthRequired { get; set; }
+        public int NumPortsRequired { get; set; }
         public InterfaceBandwidth Bandwidth { get; set; }
     }
 }

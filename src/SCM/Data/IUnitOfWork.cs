@@ -10,9 +10,7 @@ namespace SCM.Data
         GenericRepository<VpnAttachmentSet> VpnAttachmentSetRepository { get; }
         GenericRepository<AttachmentRedundancy> AttachmentRedundancyRepository { get; }
         GenericRepository<BgpPeer> BgpPeerRepository { get; }
-        GenericRepository<BundleInterface> BundleInterfaceRepository { get; }
         GenericRepository<BundleInterfacePort> BundleInterfacePortRepository { get; }
-        GenericRepository<BundleInterfaceVlan> BundleInterfaceVlanRepository { get; }
         GenericRepository<ContractBandwidth> ContractBandwidthRepository { get; }
         GenericRepository<ContractBandwidthPool> ContractBandwidthPoolRepository { get; }
         GenericRepository<Device> DeviceRepository { get; }

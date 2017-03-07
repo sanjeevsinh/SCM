@@ -29,6 +29,11 @@ namespace SCM.Services.SCMServices
             return message;
         }
 
+        public List<string> GetMessageList()
+        {
+            return Messages;
+        }
+
         public void Add(string message)
         {
             Messages.Add(message);

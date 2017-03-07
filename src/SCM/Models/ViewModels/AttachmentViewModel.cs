@@ -10,8 +10,9 @@ namespace SCM.Models.ViewModels
     public class AttachmentViewModel
     {
         public int ID { get; set; }
+        public string Name { get; set; }
         public int TenantID { get; set; }
-        [Display(Name = "Require Bundle Attachment")]
+        [Display(Name = "Bundle Attachment")]
         public bool IsBundle { get; set; }
         [Display(Name = "Enabled for Layer 3")]
         public bool IsLayer3 { get; set; }
@@ -25,7 +26,7 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Multiport Ports")]
         public ICollection<PortViewModel> MultiPortPorts { get; set; }
         [Display(Name = "Bundle Interface Ports")]
-        public ICollection<PortViewModel> BundleInterfacePorts { get; set; }
+        public ICollection<BundleInterfacePortViewModel> BundleInterfacePorts { get; set; }
         public TenantViewModel Tenant { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }

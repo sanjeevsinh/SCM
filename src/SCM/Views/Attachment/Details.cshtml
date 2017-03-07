@@ -4,7 +4,7 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details for Attachment '@Model.Port.Type @Model.Port.Name'</h2>
+<h2>Details for Attachment '@Model.Name'</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
 {
@@ -20,16 +20,16 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Port.Type)
+            @Html.DisplayNameFor(model => model.Name)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Port.Type)
+            @Html.DisplayFor(model => model.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Port.Name)
+            @Html.DisplayNameFor(model => model.IsBundle)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Port.Name)
+            @Html.DisplayFor(model => model.IsBundle)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Location)
@@ -77,7 +77,7 @@
             @Html.DisplayNameFor(model => model.ContractBandwidthPool.ContractBandwidth)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.ContractBandwidthPool.ContractBandwidth.BandwidthKbps)
+            @Html.DisplayFor(model => model.ContractBandwidthPool.ContractBandwidth.BandwidthMbps)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Vrf.Name)

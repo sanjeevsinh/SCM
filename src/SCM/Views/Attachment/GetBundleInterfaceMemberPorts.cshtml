@@ -1,0 +1,51 @@
+@model IEnumerable<SCM.Models.ViewModels.BundleInterfacePortViewModel>
+
+@{
+    ViewData["Title"] = "Bundle Ports";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/Attachment/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">Bundle Ports</li>
+</ol>
+
+<h2>Ports for Bundle @ViewBag.Attachment.Name</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Port.Device.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Port.Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Port.Name)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Port.Device.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Port.Type)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Port.Name)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Attachment.TenantID">Back to Attachments</a>
+</div>

@@ -16,6 +16,6 @@ namespace SCM.Models
         public virtual ICollection<TenantNetwork> TenantNetworks { get; set; }
         public virtual ICollection<TenantCommunity> TenantCommunities { get; set; }
         public virtual ICollection<Port> Ports { get; set; }
-        public virtual ICollection<BundleInterface> BundleInterfaces { get; set; }
+        public virtual ICollection<Interface> Interfaces { get; set; }
     }
 }

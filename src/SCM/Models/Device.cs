@@ -22,7 +22,7 @@ namespace SCM.Models
         public virtual Location Location { get; set;}
         public virtual Plane Plane { get; set; }
         public virtual ICollection<Port> Ports { get; set; }
-        public virtual ICollection<BundleInterface> BundleInterfaces { get; set; }
+        public virtual ICollection<Interface> Interfaces { get; set; }
         public virtual ICollection<Vrf> Vrfs { get; set; }
     }
 }

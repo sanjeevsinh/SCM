@@ -9,11 +9,11 @@ namespace SCM.Models
     public class BundleInterfacePort
     {
         public int BundleInterfacePortID { get; set; }
-        public int BundleInterfaceID { get; set; }
+        public int InterfaceID { get; set; }
         public int PortID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Port Port { get; set; }
-        public virtual BundleInterface BundleInterface { get; set; }
+        public virtual Interface Interface { get; set; }
     }
 }

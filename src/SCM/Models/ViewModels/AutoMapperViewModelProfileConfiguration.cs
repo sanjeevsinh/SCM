@@ -18,9 +18,7 @@ namespace SCM.Models.ViewModels
             CreateMap<InterfaceBandwidth, InterfaceBandwidthViewModel>().ReverseMap();
             CreateMap<Vrf, VrfViewModel>().ReverseMap();
             CreateMap<InterfaceVlan, InterfaceVlanViewModel>().ReverseMap();
-            CreateMap<BundleInterface, BundleInterfaceViewModel>().ReverseMap();
             CreateMap<BundleInterfacePort, BundleInterfacePortViewModel>().ReverseMap();
-            CreateMap<BundleInterfaceVlan, BundleInterfaceVlanViewModel>().ReverseMap();
             CreateMap<Vpn, VpnViewModel>().ReverseMap();
             CreateMap<Region, RegionViewModel>().ReverseMap();
             CreateMap<VpnTopologyType, VpnTopologyTypeViewModel>().ReverseMap();
@@ -55,11 +53,6 @@ namespace SCM.Models.ViewModels
                 if (vrf.Interfaces.Count == 1)
                 {
                     var attachment = mapper.Map<Attachment>(vrf.Interfaces.Single());
-                    return mapper.Map<AttachmentViewModel>(attachment);
-                }
-                else if (vrf.BundleInterfaces.Count == 1)
-                {
-                    var attachment = mapper.Map<Attachment>(vrf.BundleInterfaces.Single());
                     return mapper.Map<AttachmentViewModel>(attachment);
                 }
 

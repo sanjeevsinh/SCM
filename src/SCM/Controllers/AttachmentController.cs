@@ -26,8 +26,13 @@ namespace SCM.Controllers
         private IMapper Mapper { get; set; }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByTenantID(int id)
+        public async Task<IActionResult> GetAllByTenantID(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id);
             if (tenant == null)
             {
@@ -35,7 +40,7 @@ namespace SCM.Controllers
             }
 
             var attachments = await AttachmentService.GetAllByTenantAsync(tenant);
-            await PopulateTenantItem(id);
+            await PopulateTenantItem(id.Value);
 
             return View(Mapper.Map<List<AttachmentViewModel>>(attachments));
         }
@@ -50,6 +55,21 @@ namespace SCM.Controllers
             }
 
             return View(Mapper.Map<AttachmentViewModel>(item));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBundleInterfaceMemberPorts(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var bundleInterfacePorts = await AttachmentService.UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == id.Value,
+                includeProperties:"Port.Device", AsTrackable:false);
+            ViewBag.Attachment = await AttachmentService.GetFullAsync(new Attachment { ID = id.Value, IsBundle = true });
+           
+            return View(Mapper.Map<List<BundleInterfacePortViewModel>>(bundleInterfacePorts));
         }
 
         [HttpGet]
@@ -82,7 +102,7 @@ namespace SCM.Controllers
                     var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
                     mappedRequest.Bandwidth = bandwidth;
 
-                    var validationResult = await AttachmentService.Validate(mappedRequest);
+                    var validationResult = await AttachmentService.ValidateAsync(mappedRequest);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -318,7 +338,7 @@ namespace SCM.Controllers
         private async Task PopulateBandwidthsDropDownList(object selectedBandwidth = null)
         {
             var bandwidths = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
-            ViewBag.BandwidthID = new SelectList(bandwidths, "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
+            ViewBag.BandwidthID = new SelectList(bandwidths.OrderBy(f => f.BandwidthGbps), "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
         }
         private async Task PopulateContractBandwidthPoolsDropDownList(int tenantID, object selectedContractBandwidthPool = null)
         {

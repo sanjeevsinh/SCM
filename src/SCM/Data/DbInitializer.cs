@@ -106,7 +106,9 @@ namespace SCM.Data
                 new Location {SiteName = "UK2", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID, Tier = 1 },
                 new Location {SiteName = "THW", SubRegionID = subregions.Single(s => s.Name == "UK").SubRegionID, Tier = 1 },
                 new Location {SiteName = "FR4", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID, Tier = 1},
-                new Location {SiteName = "FR5", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID, Tier = 1}
+                new Location {SiteName = "FR5", SubRegionID = subregions.Single(s => s.Name == "Frankfurt").SubRegionID, Tier = 1},
+                new Location {SiteName = "NJ2", SubRegionID = subregions.Single(s => s.Name == "East Coast").SubRegionID, Tier = 1},
+                new Location {SiteName = "NJH", SubRegionID = subregions.Single(s => s.Name == "East Coast").SubRegionID, Tier = 1}
             };
 
             foreach (Location l in locations)
@@ -131,8 +133,20 @@ namespace SCM.Data
             {
                 new InterfaceBandwidth {BandwidthGbps = 1 },
                 new InterfaceBandwidth {BandwidthGbps = 10 },
-                new InterfaceBandwidth {BandwidthGbps = 20 },
-                new InterfaceBandwidth {BandwidthGbps = 40 },
+                new InterfaceBandwidth
+                {
+                    BandwidthGbps = 20,
+                    BundleOrMultiPortMemberBandwidthGbps = 10,
+                    SupportedByBundle = true,
+                    SupportedByMultiPort = true,
+                    MustBeBundleOrMultiPort = true
+                },
+                new InterfaceBandwidth {
+                    BandwidthGbps = 40,
+                    BundleOrMultiPortMemberBandwidthGbps = 10,
+                    SupportedByBundle = true,
+                    SupportedByMultiPort = true
+                },
                 new InterfaceBandwidth {BandwidthGbps = 100 }
             };
 
@@ -143,12 +157,18 @@ namespace SCM.Data
 
             var contractBandwidths = new List<ContractBandwidth>
             {
-                new ContractBandwidth {BandwidthKbps = 10 },
-                new ContractBandwidth {BandwidthKbps = 20 },
-                new ContractBandwidth {BandwidthKbps = 30 },
-                new ContractBandwidth {BandwidthKbps = 40 },
-                new ContractBandwidth {BandwidthKbps = 50 },
-                new ContractBandwidth {BandwidthKbps = 100 }
+                new ContractBandwidth {BandwidthMbps = 10 },
+                new ContractBandwidth {BandwidthMbps = 20 },
+                new ContractBandwidth {BandwidthMbps = 30 },
+                new ContractBandwidth {BandwidthMbps = 40 },
+                new ContractBandwidth {BandwidthMbps = 50 },
+                new ContractBandwidth {BandwidthMbps = 100 },
+                new ContractBandwidth {BandwidthMbps = 500 },
+                new ContractBandwidth {BandwidthMbps = 1000 },
+                new ContractBandwidth {BandwidthMbps = 2000 },
+                new ContractBandwidth {BandwidthMbps = 4000 },
+                new ContractBandwidth {BandwidthMbps = 6000 },
+                new ContractBandwidth {BandwidthMbps = 10000 }
             };
 
             foreach (ContractBandwidth p in contractBandwidths)

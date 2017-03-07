@@ -1,7 +1,7 @@
 @model IEnumerable<SCM.Models.ViewModels.AttachmentViewModel>
 
 @{
-    ViewData["Title"] = "GetByTenantID";
+    ViewData["Title"] = "Attachments";
 }
 
 <ol class="breadcrumb">
@@ -15,14 +15,15 @@
 <p>
     <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="Attachment">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Port.Type)
+                @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Port.Name)
+                @Html.DisplayNameFor(model => model.IsBundle)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Location)
@@ -48,10 +49,10 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Port.Type)
+                    @Html.DisplayFor(modelItem => item.Name)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Port.Name)
+                    @Html.DisplayFor(modelItem => item.IsBundle)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Location.SiteName)
@@ -69,8 +70,12 @@
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", "Attachment", new { id = item.ID }) |
-                    @Html.ActionLink("Delete", "Delete", "Attachment", new { ID = item.ID, TenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.ID }) |
+                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, TenantID = item.TenantID })
+                    @if (item.IsBundle)
+                    {
+                        <span>|</span> @Html.ActionLink("Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID })
+                    }
                 </td>
             </tr>
         }

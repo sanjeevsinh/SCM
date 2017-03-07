@@ -10,6 +10,7 @@ namespace SCM.Models.ViewModels
     {
         [Display(AutoGenerateField = false)]
         public int ID { get; set; }
+        [Display(Name = "Device Name")]
         [StringLength(50)]
         [Required(AllowEmptyStrings = false, ErrorMessage = "A device name must be specified")]
         [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The device name must contain letters, numbers, or dashes (-) only and no whitespace.")]

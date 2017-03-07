@@ -18,6 +18,6 @@ namespace SCM.Services.SCMServices
         Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment);
         Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment);
-        Task<ServiceResult> Validate(AttachmentRequest request);
+        Task<ServiceResult> ValidateAsync(AttachmentRequest request);
     }
 }

@@ -30,10 +30,8 @@ namespace SCM.Data
         public DbSet<Interface> Interfaces { get; set; }
         public DbSet<PortBandwidth> PortBandwidth { get; set; }
         public DbSet<InterfaceBandwidth> InterfaceBandwidth { get; set; }
-        public DbSet<BundleInterface> BundleInterfaces { get; set; }
         public DbSet<BundleInterfacePort> BundleInterfacePorts { get; set; }
         public DbSet<InterfaceVlan> InterfaceVlans { get; set; }
-        public DbSet<BundleInterfaceVlan> BundleInterfaceVlans { get; set; }
         public DbSet<Vrf> Vrfs { get; set; }
         public DbSet<BgpPeer> BgpPeers { get; set; }
         public DbSet<Tenant> Tenant { get; set; }
@@ -49,9 +47,7 @@ namespace SCM.Data
             builder.Entity<AttachmentSetVrf>().ToTable("AttachmentSetVrf");
             builder.Entity<AttachmentRedundancy>().ToTable("AttachmentRedundancy");
             builder.Entity<BgpPeer>().ToTable("BgpPeer");
-            builder.Entity<BundleInterface>().ToTable("BundleInterface");
             builder.Entity<BundleInterfacePort>().ToTable("BundleInterfacePort");
-            builder.Entity<BundleInterfaceVlan>().ToTable("BundleInterfaceVlan");
             builder.Entity<ContractBandwidth>().ToTable("ContractBandwidth");
             builder.Entity<ContractBandwidthPool>().ToTable("ContractBandwidthPool");
             builder.Entity<Device>().ToTable("Device");
@@ -91,11 +87,6 @@ namespace SCM.Data
 
             builder.Entity<AttachmentSet>()
                    .HasOne(c => c.AttachmentRedundancy)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<BundleInterface>()
-                   .HasOne(c => c.InterfaceBandwidth)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
@@ -218,9 +209,6 @@ namespace SCM.Data
             builder.Entity<InterfaceVlan>()
             .HasIndex(p => new { p.InterfaceID, p.VlanTag }).IsUnique();
 
-            builder.Entity<BundleInterfaceVlan>()
-            .HasIndex(p => new { p.BundleInterfaceID, p.VlanTag }).IsUnique();
-
             // Device names must be unique
 
             builder.Entity<Device>()
@@ -272,7 +260,7 @@ namespace SCM.Data
             // Contract bandwidth options must be unique
 
             builder.Entity<ContractBandwidth>()
-            .HasIndex(p => new { p.BandwidthKbps }).IsUnique();
+            .HasIndex(p => new { p.BandwidthMbps }).IsUnique();
 
             // Contract bandwidth pool names must be unique
 
@@ -309,9 +297,6 @@ namespace SCM.Data
 
             builder.Entity<VpnTenantNetwork>()
             .HasIndex(p => new { p.TenantNetworkID, p.VpnAttachmentSetID }).IsUnique();
-
-            builder.Entity<BundleInterface>()
-            .HasIndex(p => new { p.DeviceID, p.Name }).IsUnique();
 
             builder.Entity<BgpPeer>()
             .HasIndex(p => new { p.VrfID, p.IpAddress }).IsUnique();

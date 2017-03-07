@@ -15,6 +15,6 @@ namespace SCM.Models.ViewModels
         public int PortID { get; set; }
         public byte[] RowVersion { get; set; }
         public PortViewModel Port { get; set; }
-        public BundleInterfaceViewModel BundleInterface { get; set; }
+        public InterfaceViewModel Interface { get; set; }
     }
 }

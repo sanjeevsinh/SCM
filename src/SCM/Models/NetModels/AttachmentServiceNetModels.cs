@@ -74,7 +74,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     public class UntaggedAttachmentBundleInterfaceNetModel
     {
         [XmlElement(ElementName = "bundle-interface-id")]
-        public string BundleInterfaceID { get; set; }
+        public int BundleID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
@@ -88,7 +88,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     public class TaggedAttachmentBundleInterfaceNetModel
     {
         [XmlElement(ElementName = "bundle-interface-id")]
-        public string BundleInterfaceID { get; set; }
+        public int BundleID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "bundle-interface-member")]
@@ -144,5 +144,13 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
     }
 
+    [XmlRoot(ElementName = "untagged-attachment-bundle-interface", Namespace = "urn:thomsonreuters:attachment")]
+    public class UntaggedAttachmentBundleInterfaceServiceNetModel : UntaggedAttachmentBundleInterfaceNetModel
+    {
+    }
 
+    [XmlRoot(ElementName = "tagged-attachment-bundle-interface", Namespace = "urn:thomsonreuters:attachment")]
+    public class TaggedAttachmentBundleInterfaceServiceNetModel : TaggedAttachmentBundleInterfaceNetModel
+    {
+    }
 }

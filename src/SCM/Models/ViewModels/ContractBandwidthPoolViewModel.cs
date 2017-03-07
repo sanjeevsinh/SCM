@@ -20,7 +20,7 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         [Display(Name = "Trust received COS or DSCP markings")]
         public bool TrustReceivedCosDscp { get; set; }
-        [Display(Name = "Contract Bandwidth (Kbps)")]
+        [Display(Name = "Contract Bandwidth (Mbps)")]
         public ContractBandwidthViewModel ContractBandwidth { get; set; }
         public Tenant Tenant { get; set; }
         public byte[] RowVersion { get; set; }
