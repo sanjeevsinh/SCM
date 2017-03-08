@@ -97,19 +97,17 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedVpnTenantCommunity = Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity);
-                    var validationResult = await VpnTenantCommunityService.ValidateVpnTenantCommunityAsync(mappedVpnTenantCommunity);
+                    var validationResult = await VpnTenantCommunityService.ValidateAsync(mappedVpnTenantCommunity);
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        ViewBag.VpnAttachmentSet = vpnAttachmentSet;
-                        await PopulateTenantCommunitysDropDownList(vpnTenantCommunity.VpnAttachmentSetID);
-
-                        return View(vpnTenantCommunity);
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
-
-                    await VpnTenantCommunityService.AddAsync(mappedVpnTenantCommunity);
-                    return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
+                    else
+                    {
+                        await VpnTenantCommunityService.AddAsync(mappedVpnTenantCommunity);
+                        return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -167,14 +165,21 @@ namespace SCM.Controllers
                     if (currentVpnTenantCommunity == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
-
-                        ViewBag.VpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantCommunity.VpnAttachmentSetID);
-                        await PopulateTenantCommunitysDropDownList(vpnTenantCommunity.VpnAttachmentSetID);
-                        return View(vpnTenantCommunity);
                     }
-
-                    await VpnTenantCommunityService.UpdateAsync(Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity));
-                    return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
+                    else
+                    {
+                        var mappedVpnTenantCommunity = Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity);
+                        var validationResult = await VpnTenantCommunityService.ValidateAsync(mappedVpnTenantCommunity);
+                        if (!validationResult.IsSuccess)
+                        {
+                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        }
+                        else
+                        {
+                            await VpnTenantCommunityService.UpdateAsync(mappedVpnTenantCommunity);
+                            return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
+                        }
+                    }
                 }
             }
 
@@ -234,7 +239,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "

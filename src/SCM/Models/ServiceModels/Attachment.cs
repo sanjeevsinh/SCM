@@ -11,6 +11,7 @@ namespace SCM.Models.ServiceModels
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public int? BundleID { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public bool IsBundle { get; set; }

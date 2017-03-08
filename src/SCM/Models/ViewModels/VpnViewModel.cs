@@ -17,11 +17,11 @@ namespace SCM.Models.ViewModels
         [Display(Name="Extranet")]
         public bool IsExtranet { get; set; }
         [Required(ErrorMessage = "A VPN Topology Type must be selected.")]
-        public int VpnTopologyTypeID { get; set; }
+        public int? VpnTopologyTypeID { get; set; }
         [Required(ErrorMessage = "A VPN Tenancy Type must be selected.")]
-        public int VpnTenancyTypeID { get; set; }
+        public int? VpnTenancyTypeID { get; set; }
         [Required(ErrorMessage = "A Tenant must be selected.")]
-        public int TenantID { get; set; }
+        public int? TenantID { get; set; }
         public int? PlaneID { get; set; }
         public int? RegionID { get; set; }
         public byte[] RowVersion { get; set; }

@@ -69,10 +69,10 @@ namespace SCM.Services.SCMServices
             var checkSyncResult = new NetworkCheckSyncServiceResult();
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
-                           includeProperties: "Vrfs,Ports.Interface.InterfaceBandwidth,"
-                               + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,Ports.Interface.Vrf.BgpPeers,BundleInterfaces.Vrf.BgpPeers,"
-                               + "BundleInterfaces.InterfaceBandwidth,BundleInterfaces.BundleInterfacePorts,"
-                               + "BundleInterfaces.BundleInterfaceVlans.Vrf.BgpPeers");
+                           includeProperties: "Vrfs,Interfaces.Port,Interfaces.InterfaceBandwidth,"
+                               + "Interfaces.Vrf.BgpPeers,"
+                               + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
+                               + "Interfaces.BundleInterfacePorts.Port");
 
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)
@@ -94,10 +94,10 @@ namespace SCM.Services.SCMServices
             syncResult.IsSuccess = true;
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, 
-                includeProperties: "Vrfs,Ports.Interface.InterfaceBandwidth," 
-                    + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,Ports.Interface.Vrf.BgpPeers,BundleInterfaces.Vrf.BgpPeers,"
-                    + "BundleInterfaces.InterfaceBandwidth,BundleInterfaces.BundleInterfacePorts," 
-                    + "BundleInterfaces.BundleInterfaceVlans.Vrf.BgpPeers");
+                includeProperties: "Vrfs,Interfaces.Port,Interfaces.InterfaceBandwidth,"
+                               + "Interfaces.Vrf.BgpPeers,"
+                               + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
+                               + "Interfaces.BundleInterfacePorts.Port");
 
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)

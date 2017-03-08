@@ -92,7 +92,7 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                         await PopulateVpnItem(routeTarget.VpnID);
                         return View(routeTarget);
                     }
@@ -161,7 +161,7 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                         await PopulateVpnItem(currentRouteTarget.VpnID);
 
                         return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));

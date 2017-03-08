@@ -96,21 +96,17 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
-                    var validationResult = await VpnAttachmentSetService.ValidateVpnAttachmentSetAsync(mappedAttachmentSet);
+                    var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedAttachmentSet);
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
-                        ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
-                        await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
-
-                        return View("CreateStep2", vpnAttachmentSet);
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
-
-                    await VpnAttachmentSetService.AddAsync(Mapper.Map<VpnAttachmentSet>(mappedAttachmentSet));
-
-                    return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                    else
+                    {
+                        await VpnAttachmentSetService.AddAsync(Mapper.Map<VpnAttachmentSet>(mappedAttachmentSet));
+                        return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -177,8 +173,18 @@ namespace SCM.Controllers
                         return View(vpnAttachmentSet);
                     }
 
-                    await VpnAttachmentSetService.UpdateAsync(Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet));
-                    return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                    var mappedVpnAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
+                    var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedVpnAttachmentSet);
+
+                    if (!validationResult.IsSuccess)
+                    {
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                    }
+                    else
+                    {
+                        await VpnAttachmentSetService.UpdateAsync(mappedVpnAttachmentSet);
+                        return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                    }
                 }
             }
 
@@ -247,7 +253,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "

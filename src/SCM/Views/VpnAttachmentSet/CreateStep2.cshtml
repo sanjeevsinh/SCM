@@ -4,17 +4,15 @@
     ViewData["Title"] = "CreateStep2";
 }
 
-<h2>Add</h2>
-
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Add Attachment Set to VPN @ViewBag.Vpn.Name</h4>
+        <h4>Add Attachment Set to VPN '@ViewBag.Vpn.Name'</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.VpnAttachmentSetSelection.VpnID" />
         <input type="hidden" name="TenantID" value="@ViewBag.VpnAttachmentSetSelection.TenantID" />
         <div class="form-group">
-            <label asp-for="Vpn" class="col-md-2 control-label"></label>
+            <label asp-for="AttachmentSet" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="AttachmentSetID" class="form-control" asp-items="ViewBag.AttachmentSetID">
                     <option value="">-- Select an Attachment Set --</option>

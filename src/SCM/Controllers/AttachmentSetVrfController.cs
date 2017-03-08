@@ -36,16 +36,16 @@ namespace SCM.Controllers
             ViewBag.AttachmentSet = attachmentSet;
 
             var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
-                includeProperties:"Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces,Vrf.BundleInterfaces,Vrf.InterfaceVlans,Vrf.BundleInterfaceVlans");
+                includeProperties:"Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.InterfaceVlans,Vrf.Interfaces.ContractBandwidthPool");
 
             var validationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
             if (!validationResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
             }
             else
             {
-                ViewData["ValidationSuccessMessage"] = "The VRFs for this Attachment Set are configured correctly!";
+                ViewData["ValidationSuccessMessage"] = "The VRFs for this attachment set are configured correctly!";
             }
 
             return View(Mapper.Map<List<AttachmentSetVrfViewModel>>(attachmentSetVrfs));
@@ -60,7 +60,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces,Vrf.BundleInterfaces");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -147,7 +147,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties:"AttachmentSet,Vrf.Device.Location,Vrf.Interfaces,Vrf.BundleInterfaces");
+                includeProperties:"AttachmentSet,Vrf.Device.Location,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -176,7 +176,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties:"AttachmentSet,Vrf.Device,Vrf.Interfaces,Vrf.BundleInterfaces", AsTrackable: false);
+                includeProperties:"AttachmentSet,Vrf.Device,Vrf.Interfaces", AsTrackable: false);
             var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
             try
@@ -185,28 +185,22 @@ namespace SCM.Controllers
                 {
                     if (currentAttachmentSetVrf == null)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The VRF was deleted by another user.");
-                        return View(attachmentSetVrf);
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The record was deleted by another user.");
                     }
-
-                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
-                    if (!validationResult.IsSuccess)
+                    else
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
+                        var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
 
-                        await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
+                        if (!validationResult.IsSuccess)
                         {
-                            LocationID = currentAttachmentSetVrf.Vrf.Device.LocationID,
-                            TenantID = currentAttachmentSetVrf.AttachmentSet.TenantID,
-                            PlaneID = currentAttachmentSetVrf.Vrf.Device.PlaneID
-                        });
-
-                        return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
+                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        }
+                        else
+                        {
+                            await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
+                            return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
+                        }
                     }
-
-                    await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
-                    return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
                 }
             }
 
@@ -263,7 +257,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties: "Vrf.Interfaces,Vrf.BundleInterfaces");
+                includeProperties: "Vrf.Interfaces");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -297,7 +291,7 @@ namespace SCM.Controllers
             try
             {
                 var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
-                    includeProperties:"AttachmentSet,Vrf.Interfaces,Vrf.BundleInterfaces", AsTrackable:false);
+                    includeProperties:"AttachmentSet,Vrf.Interfaces", AsTrackable:false);
                 var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
                 if (currentAttachmentSetVrf != null)

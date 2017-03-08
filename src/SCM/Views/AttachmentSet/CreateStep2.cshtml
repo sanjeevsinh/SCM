@@ -12,20 +12,22 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="RegionID" value="@ViewBag.Region.RegionID" />
+      @if (ViewBag.TenantID != null)
+      {
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.TenantID" />
+      }
+      else
+      {
         <div class="form-group">
-            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <label asp-for="Tenant" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
+                    <option value="">-- Select Tenant --</option>
+                </select>
+                <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="Description" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-        </div>
+      }
         <div class="form-group">
             <label asp-for="SubRegion" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -45,12 +47,17 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Tenant" class="col-md-2 control-label"></label>
+            <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
-                    <option value="">-- Select Tenant --</option>
-                </select>
-                <span asp-validation-for="TenantID" class="text-danger"></span>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">

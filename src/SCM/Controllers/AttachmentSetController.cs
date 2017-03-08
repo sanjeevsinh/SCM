@@ -32,6 +32,21 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAllByTenantID(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Tenant = await AttachmentSetService.UnitOfWork.TenantRepository.GetByIDAsync(id);
+            var attachmentSets = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.TenantID == id,
+                includeProperties: "Tenant,SubRegion,Region,AttachmentRedundancy");
+
+            return View(Mapper.Map<List<AttachmentSetViewModel>>(attachmentSets));
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -51,17 +66,30 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateStep1()
+        public async Task<IActionResult> CreateStep1(int? id)
         {
+            if (id != null)
+            {
+                ViewBag.TenantID = id;
+            }
+
             await PopulateRegionsDropDownList();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("RegionID,Name")] RegionViewModel region)
+        public async Task<IActionResult> CreateStep2(int? id, [Bind("RegionID,Name")] RegionViewModel region)
         {
-            await PopulateTenantsDropDownList();
+            if (id == null)
+            {
+                await PopulateTenantsDropDownList();
+            }
+            else
+            {
+                ViewBag.TenantID = id;
+            }
+
             await PopulateSubRegionsDropDownList(region.RegionID);
             await PopulateAttachmentRedundancyDropDownList();
             ViewBag.Region = region;
@@ -70,14 +98,21 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
+        public async Task<IActionResult> Create(int? id, [Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     await AttachmentSetService.AddAsync(Mapper.Map<AttachmentSet>(attachmentSet));
-                    return RedirectToAction("GetAll");
+                    if (id == null)
+                    {
+                        return RedirectToAction("GetAll");
+                    }
+                    else
+                    {
+                        return RedirectToAction("GetAllByTenantID", new { id = id });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -143,7 +178,7 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
 
                         await PopulateDropDownLists(currentAttachmentSet);
                         return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));

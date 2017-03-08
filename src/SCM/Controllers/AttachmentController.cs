@@ -106,14 +106,14 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
                     else
                     {
                         var result = await AttachmentService.AddAsync(mappedRequest);
                         if (!result.IsSuccess)
                         {
-                            ModelState.AddModelError(string.Empty, result.GetMessage());
+                            result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                         }
                         else
                         {

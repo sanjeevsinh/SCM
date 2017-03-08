@@ -27,7 +27,7 @@ namespace SCM.Services.SCMServices
             if (attachment.IsBundle)
             {
                 var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == attachment.ID, includeProperties:
-                    "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,BundleInterfacePorts",
+                    "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,BundleInterfacePorts.Port",
                     AsTrackable: false);
 
                 return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
@@ -93,9 +93,7 @@ namespace SCM.Services.SCMServices
                 {
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentBundleServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/tagged-attachment-bundle-interface/"
-                        + taggedAttachmentBundleServiceModelData.BundleID);
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentCheckSyncResult;
                 }
@@ -105,7 +103,8 @@ namespace SCM.Services.SCMServices
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
                         var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
-                            "/attachment/pe/" + attachment.Device.Name + "/vrf/" + vrfServiceModelData.VrfName);
+                            $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
+
                         if (!vrfCheckSyncResult.InSync)
                         {
                             return vrfCheckSyncResult;
@@ -114,9 +113,7 @@ namespace SCM.Services.SCMServices
 
                     var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentBundleServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/untagged-attachment-bundle-interface/"
-                        + untaggedAttachmentBundleServiceModelData.BundleID);
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentCheckSyncResult;
                 }
@@ -127,9 +124,7 @@ namespace SCM.Services.SCMServices
                 {
                     var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/tagged-attachment-interface/"
-                        + taggedAttachmentServiceModelData.InterfaceType + ","
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentCheckSyncResult;
@@ -140,7 +135,8 @@ namespace SCM.Services.SCMServices
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
                         var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
-                            "/attachment/pe/" + attachment.Device.Name + "/vrf/" + vrfServiceModelData.VrfName);
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
                         if (!vrfCheckSyncResult.InSync)
                         {
                             return vrfCheckSyncResult;
@@ -149,9 +145,7 @@ namespace SCM.Services.SCMServices
 
                     var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/untagged-attachment-interface/"
-                        + untaggedAttachmentServiceModelData.InterfaceType + ","
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentCheckSyncResult;
@@ -167,9 +161,7 @@ namespace SCM.Services.SCMServices
                 {
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentBundleServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/tagged-attachment-bundle-interface/"
-                        + taggedAttachmentBundleServiceModelData.BundleID);
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentSyncResult;
                 }
@@ -179,9 +171,7 @@ namespace SCM.Services.SCMServices
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
                         var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                            "/attachment/pe/"
-                            + attachment.Device.Name + "/vrf/"
-                            + vrfServiceModelData.VrfName);
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
 
                         if (!vrfSyncResult.IsSuccess)
                         {
@@ -191,9 +181,7 @@ namespace SCM.Services.SCMServices
 
                     var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentBundleServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/untagged-attachment-bundle-interface/"
-                        + untaggedAttachmentBundleServiceModelData.BundleID);
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentSyncResult;
                 }
@@ -204,9 +192,7 @@ namespace SCM.Services.SCMServices
                 {
                     var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/tagged-attachment-interface/"
-                        + taggedAttachmentServiceModelData.InterfaceType + ","
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentSyncResult;
@@ -217,9 +203,7 @@ namespace SCM.Services.SCMServices
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
                         var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                            "/attachment/pe/"
-                            + attachment.Device.Name + "/vrf/"
-                            + vrfServiceModelData.VrfName);
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
 
                         if (!vrfSyncResult.IsSuccess)
                         {
@@ -229,9 +213,7 @@ namespace SCM.Services.SCMServices
 
                     var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentServiceModelData,
-                        "/attachment/pe/" + attachment.Device.Name
-                        + "/untagged-attachment-interface/"
-                        + untaggedAttachmentServiceModelData.InterfaceType + ","
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentSyncResult;
@@ -308,10 +290,8 @@ namespace SCM.Services.SCMServices
                 if (attachment.IsTagged)
                 {
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                        + attachment.Device.Name
-                        + "/tagged-attachment-bundle-interface/"
-                        + taggedAttachmentBundleServiceModelData.BundleID);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                       + $"/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentSyncResult;
                 }
@@ -320,9 +300,8 @@ namespace SCM.Services.SCMServices
                     if (attachment.IsLayer3)
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                            + attachment.Device.Name
-                            + "/vrf/" + vrfServiceModelData.VrfName);
+                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                            + $"/vrf/{vrfServiceModelData.VrfName}");
 
                         if (!vrfSyncResult.IsSuccess)
                         {
@@ -331,10 +310,8 @@ namespace SCM.Services.SCMServices
                     }
 
                     var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                        + attachment.Device.Name
-                        + "/untagged-attachment-bundle-interface/"
-                        + untaggedAttachmentBundleServiceModelData.BundleID);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}" 
+                        + $"/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
 
                     return attachmentSyncResult;
 
@@ -345,10 +322,8 @@ namespace SCM.Services.SCMServices
                 if (attachment.IsTagged)
                 {
                     var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                        + attachment.Device.Name
-                        + "/tagged-attachment-interface/"
-                        + taggedAttachmentServiceModelData.InterfaceType + ","
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentSyncResult;
@@ -358,9 +333,7 @@ namespace SCM.Services.SCMServices
                     if (attachment.IsLayer3)
                     {
                         var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                            + attachment.Device.Name
-                            + "/vrf/" + vrfServiceModelData.VrfName);
+                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
 
                         if (!vrfSyncResult.IsSuccess)
                         {
@@ -369,10 +342,8 @@ namespace SCM.Services.SCMServices
                     }
 
                     var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/"
-                        + attachment.Device.Name
-                        + "/untagged-attachment-interface/"
-                        + untaggedAttachmentServiceModelData.InterfaceType + ","
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
                     return attachmentSyncResult;
@@ -425,9 +396,18 @@ namespace SCM.Services.SCMServices
 
                 if (contractBandwidthPool.Interfaces.Count > 0)
                 {
-                    var port = contractBandwidthPool.Interfaces.Single().Port;
-                    result.Add($"The selected contract bandwidth pool is in-use for interface {port.Type} {port.Name}. " 
-                        + "Select another contract bandwidth pool.");
+                    var iface = contractBandwidthPool.Interfaces.Single();
+                    if (iface.IsBundle)
+                    {
+                        result.Add($"The selected contract bandwidth pool is in-use for attachment bundle {iface.BundleID}. "
+                            + "Select another contract bandwidth pool.");
+                    }
+                    else
+                    {
+                        result.Add($"The selected contract bandwidth pool is in-use for attachment {iface.Port.Type}{iface.Port.Name}. "
+                            + "Select another contract bandwidth pool.");
+                    }
+
                     result.IsSuccess = false;
                 }
             }

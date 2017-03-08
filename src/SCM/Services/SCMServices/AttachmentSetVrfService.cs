@@ -87,9 +87,7 @@ namespace SCM.Services.SCMServices
             {
 
                 if (attachmentRedundancy == "Silver")
-
                 {
-
                     if (attachmentSetVrfs.Count != 2)
                     {
                         validationResult.Add($"Two, and no more than two, VRFs for silver attachment set '{attachmentSet.Name}' must be defined. "

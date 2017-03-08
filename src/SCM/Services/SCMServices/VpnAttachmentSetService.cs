@@ -48,10 +48,9 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceResult> ValidateVpnAttachmentSetAsync(VpnAttachmentSet vpnAttachmentSet)
+        public async Task<ServiceResult> ValidateAsync(VpnAttachmentSet vpnAttachmentSet)
         {
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
+            var validationResult = new ServiceResult { IsSuccess = true };
 
             var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnAttachmentSet.VpnID, 
                 includeProperties:"Plane", AsTrackable:false);
@@ -80,7 +79,7 @@ namespace SCM.Services.SCMServices
             var attachmentSetVrfValidationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
             if (!attachmentSetVrfValidationResult.IsSuccess)
             {
-                validationResult.Add($"The VRFs in attachment set {attachmentSet.Name} are not configured correctly. "
+                validationResult.Add($"The VRFs in attachment set '{attachmentSet.Name}' are not configured correctly. "
                     + "Resolve this issue and try again. ");
                 validationResult.Add(attachmentSetVrfValidationResult.GetMessage());
                 validationResult.IsSuccess = false;
@@ -93,7 +92,7 @@ namespace SCM.Services.SCMServices
             var routeTargetsValidationResult = await RouteTargetService.ValidateRouteTargetsAsync(vpn.VpnID);
             if (!routeTargetsValidationResult.IsSuccess)
             {
-                validationResult.Add($"The route targets for VPN {vpn.Name} are not configured correctly. "
+                validationResult.Add($"The route targets for VPN '{vpn.Name}' are not configured correctly. "
                     + "Resolve this issue and try again. ");
                 validationResult.Add(routeTargetsValidationResult.GetMessage());
                 validationResult.IsSuccess = false;
@@ -109,7 +108,7 @@ namespace SCM.Services.SCMServices
             {
                 if (attachmentRedundancyName == "Silver" || attachmentRedundancyName == "Gold")
                 {
-                    validationResult.Add($"A '{attachmentRedundancyName}' attachment set cannot be used with a planar-scoped VPN."
+                    validationResult.Add($"A '{attachmentRedundancyName}' attachment set cannot be used with a planar-scoped VPN. "
                         + $"The VPN is scoped to the '{vpn.Plane.Name}' plane. "
                         + "The attachment set provides connectivity into both planes.");
                     validationResult.IsSuccess = false;
@@ -120,9 +119,9 @@ namespace SCM.Services.SCMServices
                     var attachmentPlane = attachmentSet.AttachmentSetVrfs.Single().Vrf.Device.Plane.Name;
                     if (attachmentPlane != vpn.Plane.Name)
                     {
-                        validationResult.Add($"Bronze attachment {attachmentSet.Name} cannot be used with VPN {vpn.Name} because "
+                        validationResult.Add($"Bronze attachment '{attachmentSet.Name}' cannot be used with VPN '{vpn.Name}' because "
                         + $"the VPN is scoped to the '{vpn.Plane.Name}' plane. "
-                        + $"The attachment set provides connectivity into the {attachmentPlane} plane.");
+                        + $"The attachment set provides connectivity into the '{attachmentPlane}' plane.");
                         validationResult.IsSuccess = false;
                     }
                 }
@@ -131,7 +130,7 @@ namespace SCM.Services.SCMServices
                 {
                     if (attachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Plane.Name == vpn.Plane.Name).Count() != attachmentSet.AttachmentSetVrfs.Count())
                     {
-                        validationResult.Add($"The VPN is scoped to the {vpn.Plane.Name} plane. "
+                        validationResult.Add($"The VPN is scoped to the '{vpn.Plane.Name}' plane. "
                             + "One or more VRFs in the attachment set are not located in this plane.");
                         validationResult.IsSuccess = false;
                     }

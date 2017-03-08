@@ -6,14 +6,14 @@
 
 <h2>Details for Device @Model.Name</h2>
 
-@if (@ViewData["SyncErrorMessage"] != null)
+@if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["SyncErrorMessage"]</div>
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
 }
 
-@if (@ViewData["SyncSuccessMessage"] != null)
+@if (@ViewData["SuccessMessage"] != null)
 {
-    <p class="alert alert-success">@ViewData["SyncSuccessMessage"]</p>
+    <p class="alert alert-success">@ViewData["SuccessMessage"]</p>
 }
 
 <div>

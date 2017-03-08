@@ -16,8 +16,9 @@ namespace SCM.Services.SCMServices
 
         public string GetMessage()
         {
-            return string.Join("\r\n", Messages);
+            return string.Concat(Messages);
         }
+
         public string GetAllMessages()
         {
             var message = GetMessage();
@@ -31,7 +32,15 @@ namespace SCM.Services.SCMServices
 
         public List<string> GetMessageList()
         {
-            return Messages;
+            var m = new List<string>();
+            if (NetworkHttpResponse != null)
+            {
+                m.Add(NetworkHttpResponse.GetMessage());
+            }
+
+            m.AddRange(Messages);
+
+            return m;
         }
 
         public void Add(string message)

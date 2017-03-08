@@ -1,0 +1,60 @@
+@model IEnumerable<SCM.Models.ViewModels.AttachmentSetViewModel>
+
+@{
+    ViewData["Title"] = "GetAll";
+}
+
+<h2>Attachment Sets for Tenant '@ViewBag.Tenant.Name'</h2>
+
+<p>
+    <a asp-action="CreateStep1" asp-route-id="@ViewBag.Tenant.TenantID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubRegion.Region)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubRegion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentRedundancy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tenant)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SubRegion.Region.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SubRegion.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentRedundancy.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tenant.Name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetID } ) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentSetID }) |
+                <a asp-controller="AttachmentSetVrf" asp-action="GetAllByAttachmentSetID" asp-route-id="@item.AttachmentSetID">VRFs</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

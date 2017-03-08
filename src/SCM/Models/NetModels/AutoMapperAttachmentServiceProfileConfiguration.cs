@@ -78,13 +78,11 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
-                .ForMember(dest => dest.BundleID, conf => conf.MapFrom(src => src.Name))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
                 .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new BundleAttachmentLayer3NetModelTypeResolver()));
 
             CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>()
                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
-               .ForMember(dest => dest.BundleID, conf => conf.MapFrom(src => src.Name))
                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts));
 
             CreateMap<Attachment, VrfServiceNetModel>()
@@ -97,23 +95,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         {
             public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
-                var result = new Layer3NetModel();
-                var mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
-                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
-                    result.IpAddress = source.IpAddress;
-                    result.SubnetMask = source.SubnetMask;
-                    result.VrfName = source.Vrf.Name;
-
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
+                var layer3NetModelResolver = new Layer3NetModelResolver();
+                return layer3NetModelResolver.Create(source, context);
             }
         }
 
@@ -121,23 +104,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         {
             public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentBundleInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
-                var result = new Layer3NetModel();
-                var mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
-                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
-                    result.IpAddress = source.IpAddress;
-                    result.SubnetMask = source.SubnetMask;
-                    result.VrfName = source.Vrf.Name;
-
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
+                var layer3NetModelResolver = new Layer3NetModelResolver();
+                return layer3NetModelResolver.Create(source, context);
             }
         }
 
@@ -190,6 +158,31 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 result.UntaggedAttachmentBundleInterfaces = untaggedAttachmentBundleInterfaces;
 
                 return result;
+            }
+        }
+
+
+        public class Layer3NetModelResolver
+        {
+            public Layer3NetModel Create(Attachment source, ResolutionContext context)
+            {
+                var result = new Layer3NetModel();
+                var mapper = context.Mapper;
+
+                if (source.IsLayer3)
+                {
+                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
+                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
+                    result.IpAddress = source.IpAddress;
+                    result.SubnetMask = source.SubnetMask;
+                    result.VrfName = source.Vrf.Name;
+
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
     }

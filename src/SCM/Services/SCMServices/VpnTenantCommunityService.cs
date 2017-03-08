@@ -46,11 +46,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnTenantCommunity"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateVpnTenantCommunityAsync (VpnTenantCommunity vpnTenantCommunity)
+        public async Task<ServiceResult> ValidateAsync (VpnTenantCommunity vpnTenantCommunity)
         {
 
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
+            var validationResult = new ServiceResult { IsSuccess = true };
                   
             var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantCommunity.VpnAttachmentSetID,
                 includeProperties:"Vpn", AsTrackable:false);

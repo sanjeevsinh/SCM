@@ -4,7 +4,7 @@
     ViewData["Title"] = "Tenant Communities";
 }
 
-<h2>Communities for Tenant @ViewBag.VpnAttachmentSet.AttachmentSet.Tenant.Name in VPN @ViewBag.VpnAttachmentSet.Vpn.Name</h2>
+<h2>Communities for Tenant '@ViewBag.VpnAttachmentSet.AttachmentSet.Tenant.Name' in VPN '@ViewBag.VpnAttachmentSet.Vpn.Name'</h2>
 
 <p>
     <a asp-action="Create" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Add New</a>

@@ -59,17 +59,17 @@ namespace SCM.Controllers
             var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
             if (checkSyncResult.InSync)
             {
-                ViewData["SyncSuccessMessage"] = "The device is synchronised with the network.";
+                ViewData["SuccessMessage"] = "The device is synchronised with the network.";
             }
             else
             {
                 if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
                 {
-                    ViewData["SyncErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
                 }
                 else
                 {
-                    ViewData["SyncErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["ErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
             }
 
@@ -101,11 +101,11 @@ namespace SCM.Controllers
 
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The network is synchronised.";
+                ViewData["SuccessMessage"] = "The network is synchronised.";
             }
             else
             {
-                ViewData["SyncErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessage();
             }
 
             return View("Details", Mapper.Map<DeviceViewModel>(item));
@@ -257,7 +257,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -282,7 +282,7 @@ namespace SCM.Controllers
                     var result = await DeviceService.DeleteAsync(Mapper.Map<Device>(device));
                     if (!result.IsSuccess)
                     {
-                        ViewData["DeleteErrorMessage"] = result.GetMessage();
+                        ViewData["ErrorMessage"] = result.GetMessage();
                         return View(Mapper.Map<DeviceViewModel>(currentDevice));
                     }
                 }
@@ -315,7 +315,7 @@ namespace SCM.Controllers
             var syncResult = await DeviceService.DeleteFromNetworkAsync(id.Value);
             if (syncResult.IsSuccess)
             {
-                ViewData["SyncSuccessMessage"] = "The device has been deleted from the network.";
+                ViewData["SuccessMessage"] = "The device has been deleted from the network.";
             }
             else
             {
@@ -330,7 +330,7 @@ namespace SCM.Controllers
                 }
 
                 message += syncResult.GetAllMessages();
-                ViewData["SyncErrorMessage"] = message;
+                ViewData["ErrorMessage"] = message;
             }
 
             return View("Delete", Mapper.Map<DeviceViewModel>(device));
