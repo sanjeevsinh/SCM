@@ -38,7 +38,7 @@ namespace SCM.Controllers
             var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
                 includeProperties:"Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.InterfaceVlans,Vrf.Interfaces.ContractBandwidthPool");
 
-            var validationResult = await AttachmentSetVrfService.ValidateVrfsAsync(attachmentSet);
+            var validationResult = await AttachmentSetVrfService.ValidateAsync(attachmentSet);
             if (!validationResult.IsSuccess)
             {
                 validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
@@ -107,7 +107,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
-                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(mappedAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateChangesAsync(mappedAttachmentSetVrf);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -176,31 +176,27 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties:"AttachmentSet,Vrf.Device,Vrf.Interfaces", AsTrackable: false);
+                includeProperties: "AttachmentSet,Vrf.Device,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool", AsTrackable: false);
             var currentAttachmentSetVrf = dbResult.SingleOrDefault();
+
+            if (currentAttachmentSetVrf == null)
+            {
+                ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
+            }
+            else
+            {
+                // Only Preference property can be changed
+
+                attachmentSetVrf.VrfID = currentAttachmentSetVrf.VrfID;
+                attachmentSetVrf.AttachmentSetID = currentAttachmentSetVrf.AttachmentSetID;
+            }
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    if (currentAttachmentSetVrf == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The record was deleted by another user.");
-                    }
-                    else
-                    {
-                        var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
-
-                        if (!validationResult.IsSuccess)
-                        {
-                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        }
-                        else
-                        {
-                            await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
-                            return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
-                        }
-                    }
+                    await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
+                    return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
                 }
             }
 
@@ -208,16 +204,10 @@ namespace SCM.Controllers
             {
                 var exceptionEntry = ex.Entries.Single();
 
-                var proposedAttachmentSetID = (int)exceptionEntry.Property("AttachmentSetID").CurrentValue;
-                if (currentAttachmentSetVrf.AttachmentSetID!= proposedAttachmentSetID)
+                var proposedPreference = (int)exceptionEntry.Property("Preference").CurrentValue;
+                if (currentAttachmentSetVrf.Preference!= proposedPreference)
                 {
-                    ModelState.AddModelError("AttachmentSetID", $"Current value: {currentAttachmentSetVrf.AttachmentSet.Name}");
-                }
-
-                var proposedVrfID = (int)exceptionEntry.Property("VrfID").CurrentValue;
-                if (currentAttachmentSetVrf.VrfID != proposedVrfID)
-                {
-                    ModelState.AddModelError("VrfID", $"Current value: {currentAttachmentSetVrf.Vrf.Name}");
+                    ModelState.AddModelError("Preference", $"Current value: {currentAttachmentSetVrf.Preference}");
                 }
 
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
@@ -237,13 +227,6 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
-            {
-                LocationID = currentAttachmentSetVrf.Vrf.Device.LocationID,
-                TenantID = currentAttachmentSetVrf.AttachmentSet.TenantID,
-                PlaneID = currentAttachmentSetVrf.Vrf.Device.PlaneID
-            });
-
             ViewBag.AttachmentSet = await GetAttachmentSet(currentAttachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
         }
@@ -257,14 +240,14 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties: "Vrf.Interfaces");
+                includeProperties: "Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAll");
+                    return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
                 }
 
                 return NotFound();
@@ -291,12 +274,12 @@ namespace SCM.Controllers
             try
             {
                 var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
-                    includeProperties:"AttachmentSet,Vrf.Interfaces", AsTrackable:false);
+                    includeProperties: "AttachmentSet,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool", AsTrackable:false);
                 var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
                 if (currentAttachmentSetVrf != null)
                 {
-                    var validationResult = await AttachmentSetVrfService.ValidateVrfChangesAsync(currentAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateChangesAsync(currentAttachmentSetVrf);
                     if (!validationResult.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();

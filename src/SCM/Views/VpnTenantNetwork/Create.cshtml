@@ -23,14 +23,14 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Add" class="btn btn-default" />
+                <input type="submit" value="Add" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Back to List</a>
+    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]" >Back to List</a>
 </div>
 
 @section Scripts {

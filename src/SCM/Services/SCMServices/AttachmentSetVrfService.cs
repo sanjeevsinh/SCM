@@ -46,10 +46,9 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachmentSetVrf"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateVrfChangesAsync(AttachmentSetVrf attachmentSetVrf)
+        public async Task<ServiceResult> ValidateChangesAsync(AttachmentSetVrf attachmentSetVrf)
         {
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
+            var validationResult = new ServiceResult { IsSuccess = true };
 
             var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID, 
                 includeProperties:"Vpn", AsTrackable: false);
@@ -64,7 +63,7 @@ namespace SCM.Services.SCMServices
             return validationResult;
         }
  
-        public async Task<ServiceResult> ValidateVrfsAsync(AttachmentSet attachmentSet)
+        public async Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet)
         {
 
             var validationResult = new ServiceResult();

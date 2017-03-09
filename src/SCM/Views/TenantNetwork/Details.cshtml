@@ -37,6 +37,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantNetworkID }) |
-    <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantNetworkID, tenantID = Context.Request.Query["tenantID"] }) |
+    <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to List</a>
 </div>

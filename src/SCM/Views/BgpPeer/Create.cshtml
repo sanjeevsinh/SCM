@@ -48,7 +48,7 @@
     </div>
 </form>
 <div>
-    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID">Back to BGP Peers List</a>
+    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to BGP Peers List</a>
 </div>
 
     @section Scripts {

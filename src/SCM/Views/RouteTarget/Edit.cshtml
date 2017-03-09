@@ -39,14 +39,14 @@
 }
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
+                <input type="submit" value="Save" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAllByVpnID" asp-route-id ="@Model.VpnID">Back to List</a>
+    <a asp-action="GetAllByVpnID" asp-route-id ="@Model.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to List</a>
 </div>
 
 @section Scripts {

@@ -25,21 +25,6 @@ namespace SCM.Controllers
         private IMapper Mapper { get; set; }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByTenantID(int id)
-        {
-            var tenant = await PortService.UnitOfWork.TenantRepository.GetByIDAsync(id);
-            if (tenant == null)
-            {
-                return NotFound();
-            }
-
-            var ports = await PortService.UnitOfWork.PortRepository.GetAsync(q => q.TenantID == id,
-                includeProperties: "Tenant");
-            ViewBag.Tenant = tenant;
-            return View(Mapper.Map<List<PortViewModel>>(ports));
-        }
-
-        [HttpGet]
         public async Task<IActionResult> GetAllByDeviceID(int id)
         {
             var device = await PortService.UnitOfWork.DeviceRepository.GetByIDAsync(id);

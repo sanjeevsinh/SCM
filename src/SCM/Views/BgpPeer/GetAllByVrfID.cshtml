@@ -6,7 +6,7 @@
 
 <h2>BGP Peers for VRF '@ViewBag.Vrf.Name'</h2>
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Vrf.VrfID">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -49,14 +49,14 @@
                 @Html.DisplayFor(modelItem => item.IsBfdEnabled)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.BgpPeerID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.BgpPeerID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.BgpPeerID })
+                @Html.ActionLink("Edit", "Edit", new { id = item.BgpPeerID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Details", "Details", new { id = item.BgpPeerID, tenantID = @Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.BgpPeerID, tenantID = @Context.Request.Query["tenantID"] })
             </td>
         </tr>
         }
     </tbody>
 </table>
 <div>
-    <a asp-action="GetAllByTenantID" asp-controller="Attachment" asp-route-id="@ViewBag.Vrf.TenantID">Back to Attachments</a>
+    <a asp-action="GetAllByTenantID" asp-controller="Attachment" asp-route-id="@ViewBag.Vrf.TenantID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to Attachments</a>
 </div>

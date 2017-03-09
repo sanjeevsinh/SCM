@@ -7,7 +7,7 @@
 <h2>Communities for Tenant '@ViewBag.Tenant.Name'</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-route-tenantID="@ViewBag.Tenant.TenantID">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -37,9 +37,9 @@
                 @Html.DisplayFor(modelItem => item.AllowExtranet)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id=item.TenantCommunityID }) |
-                @Html.ActionLink("Details", "Details", new { id=item.TenantCommunityID }) |
-                @Html.ActionLink("Delete", "Delete", new { id=item.TenantCommunityID })
+                @Html.ActionLink("Edit", "Edit", new { id=item.TenantCommunityID, tenantID = item.TenantID }) |
+                @Html.ActionLink("Details", "Details", new { id=item.TenantCommunityID, tenantID = item.TenantID }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.TenantCommunityID, tenantID = item.TenantID })
             </td>
         </tr>
 }

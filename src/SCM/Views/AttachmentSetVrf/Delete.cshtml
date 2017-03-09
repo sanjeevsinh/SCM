@@ -34,8 +34,8 @@
         <input type="hidden" asp-for="AttachmentSetID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Remove" class="btn btn-default" /> |
-            <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+            <input type="submit" value="Remove" asp-route-tenantID = "@Context.Request.Query["tenantID"]"  class="btn btn-default" /> |
+            <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to VRFs</a>
         </div>
     </form>
 </div>

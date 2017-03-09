@@ -13,16 +13,8 @@
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="AttachmentSetVrfID" />
         <input type="hidden" asp-for="AttachmentSetID" />
+        <input type="hidden" asp-for="VrfID" />
         <input type="hidden" asp-for="RowVersion" />
-        <div class="form-group">
-            <label asp-for="Attachment.Vrf" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="VrfID" class="form-control" asp-items="ViewBag.VrfID">
-                    <option value="">-- Select a VRF --</option>
-                </select>
-                <span asp-validation-for="VrfID" class="text-danger"></span>
-            </div>
-        </div> 
         <div class="form-group">
             <label asp-for="Preference" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -39,7 +31,7 @@
 </form>
 
 <div>
-    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to VRFs</a>
 </div>
 
 @section Scripts {

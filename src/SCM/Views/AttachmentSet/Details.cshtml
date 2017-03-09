@@ -50,5 +50,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new {  id = Model.AttachmentSetID  }) |
-    <a asp-action="GetAll">Back to List</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to List</a>
 </div>

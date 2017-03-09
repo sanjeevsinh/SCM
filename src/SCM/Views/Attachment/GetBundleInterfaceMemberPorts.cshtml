@@ -47,5 +47,5 @@
     </tbody>
 </table>
 <div>
-    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Attachment.TenantID">Back to Attachments</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to Attachments</a>
 </div>

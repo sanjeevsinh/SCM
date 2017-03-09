@@ -195,7 +195,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "

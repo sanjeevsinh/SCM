@@ -12,22 +12,7 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="RegionID" value="@ViewBag.Region.RegionID" />
-      @if (ViewBag.TenantID != null)
-      {
-        <input type="hidden" asp-for="TenantID" value="@ViewBag.TenantID" />
-      }
-      else
-      {
-        <div class="form-group">
-            <label asp-for="Tenant" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
-                    <option value="">-- Select Tenant --</option>
-                </select>
-                <span asp-validation-for="TenantID" class="text-danger"></span>
-            </div>
-        </div>
-      }
+        <input type="hidden" asp-for="TenantID" value="@ViewBag.TenantID" id="id" />
         <div class="form-group">
             <label asp-for="SubRegion" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -62,14 +47,14 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAll">Back to List</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.TenantID">Back to List</a>
 </div>
 
 @section Scripts {

@@ -41,8 +41,8 @@
         <input type="hidden" asp-for="TenantID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
-            <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
+            <input type="submit" value="Delete" class="btn btn-default" asp-route-tenantID="@Context.Request.Query["tenantID"]" /> |
+            <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID" asp-route-tenantID="@Context.Request.Query["tenantID"]" >Back to List</a>
         </div>
     </form>
 </div>

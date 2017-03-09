@@ -35,14 +35,14 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to List</a>
+    <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Back to List</a>
 </div>
 
 @section Scripts {

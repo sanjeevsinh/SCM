@@ -9,7 +9,7 @@
 <p class="text-success">@ViewData["ValidationSuccessMessage"]</p>
 
 <p>
-    <a asp-action="CreateStep1" asp-route-id="@ViewBag.Vpn.VpnID">Add New</a>
+    <a asp-action="CreateStep1" asp-route-id="@ViewBag.Vpn.VpnID" asp-route-tenantID="@ViewBag.Tenant.TenantID">Add New</a>
 </p>
 <table class="table">
     <thead>
@@ -34,11 +34,11 @@
                 @Html.DisplayFor(modelItem => item.AttachmentSet.Tenant.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Remove", "Delete", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Tenant Networks", "GetAllByVpnAttachmentSetID", "VpnTenantNetwork", new { id = item.VpnAttachmentSetID }) |
-                @Html.ActionLink("Tenant Communities", "GetAllByVpnAttachmentSetID", "VpnTenantCommunity", new { id = item.VpnAttachmentSetID })
+                @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID, tenantID=Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Remove", "Delete", new { id = item.VpnAttachmentSetID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Tenant Networks", "GetAllByVpnAttachmentSetID", "VpnTenantNetwork", new { id = item.VpnAttachmentSetID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Tenant Communities", "GetAllByVpnAttachmentSetID", "VpnTenantCommunity", new { id = item.VpnAttachmentSetID, tenantID = Context.Request.Query["tenantID"] })
 
             </td>
         </tr>

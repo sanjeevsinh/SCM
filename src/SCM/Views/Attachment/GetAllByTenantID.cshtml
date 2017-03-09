@@ -13,8 +13,9 @@
 <h2>Attachments for Tenant @ViewBag.Tenant.Name</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-controller="Attachment">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-route-tenantID="@ViewBag.Tenant.TenantID" asp-controller="Attachment">Create New</a>
 </p>
+
 
 <table class="table">
     <thead>
@@ -70,11 +71,11 @@
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID }) |
-                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, TenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
                     @if (item.IsBundle)
                     {
-                        <span>|</span> @Html.ActionLink("Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID })
+                        <span>|</span> @Html.ActionLink("Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
                     }
                 </td>
             </tr>

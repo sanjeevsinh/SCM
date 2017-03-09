@@ -68,12 +68,14 @@ namespace SCM.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateStep1(int? id)
         {
-            if (id != null)
+            if (id == null)
             {
-                ViewBag.TenantID = id;
+                return NotFound();
             }
 
+            ViewBag.TenantID = id;
             await PopulateRegionsDropDownList();
+
             return View();
         }
 
@@ -83,36 +85,28 @@ namespace SCM.Controllers
         {
             if (id == null)
             {
-                await PopulateTenantsDropDownList();
-            }
-            else
-            {
-                ViewBag.TenantID = id;
+                return NotFound();
             }
 
+            ViewBag.TenantID = id;
             await PopulateSubRegionsDropDownList(region.RegionID);
             await PopulateAttachmentRedundancyDropDownList();
             ViewBag.Region = region;
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int? id, [Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
+        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     await AttachmentSetService.AddAsync(Mapper.Map<AttachmentSet>(attachmentSet));
-                    if (id == null)
-                    {
-                        return RedirectToAction("GetAll");
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByTenantID", new { id = id });
-                    }
+
+                    return RedirectToAction("GetAllByTenantID", new { id = attachmentSet.TenantID });
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -135,7 +129,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id.Value, includeProperties:"Tenant,SubRegion,Region,ContractBandwidth,AttachmentRedundancy");
+            var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
+                includeProperties:"Tenant,SubRegion,Region,AttachmentRedundancy");
             var attachmentSet = dbResult.SingleOrDefault();
 
             if (attachmentSet == null)
@@ -158,7 +153,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, 
-                includeProperties:"SubRegion,Region,Tenant,ContractBandwidth,AttachmentRedundancy", AsTrackable: false);
+                includeProperties:"SubRegion,Region,Tenant,AttachmentRedundancy", AsTrackable: false);
             var currentAttachmentSet = dbResult.SingleOrDefault();
 
             try
@@ -168,24 +163,22 @@ namespace SCM.Controllers
                     if (currentAttachmentSet == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The attachment set was deleted by another user.");
-
-                        await PopulateDropDownLists(currentAttachmentSet);
-                        return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
                     }
-
-                    var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
-                    var validationResult = await AttachmentSetService.ValidateAttachmentSetChangesAsync(mappedAttachmentSet);
-
-                    if (!validationResult.IsSuccess)
+                    else
                     {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
+                        var validationResult = await AttachmentSetService.ValidateChangesAsync(mappedAttachmentSet);
 
-                        await PopulateDropDownLists(currentAttachmentSet);
-                        return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
+                        if (!validationResult.IsSuccess)
+                        {
+                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        }
+                        else
+                        {
+                            await AttachmentSetService.UpdateAsync(mappedAttachmentSet);
+                            return RedirectToAction("GetAllByTenantID", new { id = attachmentSet.TenantID });
+                        }
                     }
-
-                    await AttachmentSetService.UpdateAsync(Mapper.Map<AttachmentSet>(attachmentSet));
-                    return RedirectToAction("GetAll");
                 }
             }
 
@@ -263,7 +256,7 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAll");
+                    return RedirectToAction("GetAllByTenantID", new { id = attachmentSet.TenantID });
                 }
 
                 return NotFound();
@@ -271,7 +264,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -295,7 +288,7 @@ namespace SCM.Controllers
                 {
                     await AttachmentSetService.DeleteAsync(Mapper.Map<AttachmentSet>(attachmentSet));
                 }
-                return RedirectToAction("GetAll");
+                return RedirectToAction("GetAllByTenantID", new { id = currentAttachmentSet.TenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)

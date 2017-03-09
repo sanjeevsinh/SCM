@@ -79,5 +79,5 @@
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.AttachmentSetVrfID }) |
-    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Back to VRFs</a>
+    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to VRFs</a>
 </div>

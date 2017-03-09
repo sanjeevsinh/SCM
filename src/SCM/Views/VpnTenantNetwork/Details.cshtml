@@ -37,6 +37,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnTenantNetworkID }) |
-    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@Model.VpnAttachmentSetID">Back to List</a>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnTenantNetworkID, tenantID = Context.Request.Query["tenantID"] }) |
+    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@Model.VpnAttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to List</a>
 </div>

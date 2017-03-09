@@ -49,9 +49,9 @@
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id"/>
     <div class="form-actions no-color">
-        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
-        @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+        <input type="submit" asp-action="CheckSync" asp-route-tenantID = "@Context.Request.Query["tenantID"]" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="Sync" value="Sync" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+        @Html.ActionLink("Edit", "Edit", new { id = Model.ID, tenantID = Context.Request.Query["tenantID"] }) |
         <a asp-action="GetAll">Back to List</a>
     </div>
 </form>

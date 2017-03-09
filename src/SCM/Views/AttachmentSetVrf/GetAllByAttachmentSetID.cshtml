@@ -13,7 +13,7 @@
 }
 
 <p>
-    <a asp-action="CreateStep1" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID">Add New</a>
+    <a asp-action="CreateStep1" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Add New</a>
 </p>
 <table class="table">
     <thead>
@@ -68,12 +68,12 @@
                 @Html.DisplayFor(modelItem => item.Attachment.Vrf.Device.Plane.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetVrfID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetVrfID }) |
-                @Html.ActionLink("Remove", "Delete", new { id = item.AttachmentSetVrfID })
+                @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetVrfID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetVrfID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Remove", "Delete", new { id = item.AttachmentSetVrfID, tenantID = Context.Request.Query["tenantID"] })
             </td>
         </tr>
     }
     </tbody>
 </table>
-<a asp-controller="AttachmentSet" asp-action="GetAll" >Back to Attachment Sets</a>
+<a asp-controller="AttachmentSet" asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>

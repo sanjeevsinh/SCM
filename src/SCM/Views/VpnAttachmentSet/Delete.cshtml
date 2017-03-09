@@ -36,8 +36,8 @@
         <input type="hidden" asp-for="VpnID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Remove" class="btn btn-default" /> |
-            <a asp-action="GetAllByVpnID" asp-route-id="@Model.Vpn.VpnID">Back to Attachment Sets</a>
+            <input type="submit" value="Remove" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <a asp-action="GetAllByVpnID" asp-route-id="@Model.Vpn.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>
         </div>
     </form>
 </div>

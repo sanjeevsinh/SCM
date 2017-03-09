@@ -7,7 +7,7 @@
 <h2>Communities for Tenant '@ViewBag.VpnAttachmentSet.AttachmentSet.Tenant.Name' in VPN '@ViewBag.VpnAttachmentSet.Vpn.Name'</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Add New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Add New</a>
 </p>
 <table class="table">
     <thead>
@@ -31,12 +31,12 @@
                 @Html.DisplayFor(modelItem => item.TenantCommunity.Number)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id=item.VpnTenantCommunityID }) |
-                @Html.ActionLink("Details", "Details", new { id=item.VpnTenantCommunityID }) |
-                @Html.ActionLink("Remove", "Delete", new { id=item.VpnTenantCommunityID })
+                @Html.ActionLink("Edit", "Edit", new { id=item.VpnTenantCommunityID, tenantID=Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Details", "Details", new { id=item.VpnTenantCommunityID, tenantID = Context.Request.Query["tenantID"] }) |
+                @Html.ActionLink("Remove", "Delete", new { id=item.VpnTenantCommunityID, tenantID = Context.Request.Query["tenantID"] })
             </td>
         </tr>
 }
     </tbody>
 </table>
-<a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnID">Back to Attachment Sets</a>
+<a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>

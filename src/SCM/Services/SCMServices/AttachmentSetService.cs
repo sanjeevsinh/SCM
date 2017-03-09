@@ -40,7 +40,7 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetRepository.Delete(attachmentSet);
             return await this.UnitOfWork.SaveAsync();
         }
-        public async Task<ServiceResult> ValidateAttachmentSetChangesAsync(AttachmentSet attachmentSet)
+        public async Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet)
         {
             var validationResult = new ServiceResult();
             validationResult.IsSuccess = true;
