@@ -1,0 +1,104 @@
+@model SCM.Models.ViewModels.VifRequestViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+<h2>Create</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <h4>Vlan</h4>
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.ID" />
+        <div class="form-group">
+            <label asp-for="Tenant" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
+                    <option value="">-- Select Tenant --</option>
+                </select>
+                <span asp-validation-for="TenantID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VlanTag" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VlanTag" class="form-control" />
+                <span asp-validation-for="VlanTag" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
+                    <option value="">Select Contract Bandwidth Pool</option>
+                </select>
+                <span asp-validation-for="ContractBandwidthPoolID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsLayer3" class="form-control" />
+                <span asp-validation-for="IsLayer3" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfName" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfName" class="form-control" />
+                <span asp-validation-for="VrfName" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfAdministratorSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfAdministratorSubField" class="form-control" />
+                <span asp-validation-for="VrfAdministratorSubField" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VrfAssignedNumberSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VrfAssignedNumberSubField" class="form-control" />
+                <span asp-validation-for="VrfAssignedNumberSubField" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="IpAddress" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IpAddress" class="form-control" />
+                <span asp-validation-for="IpAddress" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="SubnetMask" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="SubnetMask" class="form-control" />
+                <span asp-validation-for="SubnetMask" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Attachment.ID">Back to VIFs List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

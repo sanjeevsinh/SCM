@@ -132,7 +132,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value,includeProperties:"AttachmentSet");
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value,
+                includeProperties:"AttachmentSet,Vpn");
             var vpnAttachmentSet = dbResult.SingleOrDefault();
 
             if (vpnAttachmentSet == null)
@@ -143,7 +144,7 @@ namespace SCM.Controllers
             await PopulateAttachmentSetsDropDownList(new VpnAttachmentSetSelectionViewModel
             {
                 VpnID = vpnAttachmentSet.VpnID,
-                TenantID = vpnAttachmentSet.AttachmentSet.TenantID
+                TenantID = vpnAttachmentSet.Vpn.TenantID
             });
 
             ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
@@ -152,7 +153,8 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("VpnAttachmentSetID,AttachmentSetID,VpnID,RowVersion")] VpnAttachmentSetViewModel vpnAttachmentSet)
+        public async Task<ActionResult> Edit(int id,
+            [Bind("VpnAttachmentSetID,AttachmentSetID,VpnID,RowVersion")] VpnAttachmentSetViewModel vpnAttachmentSet)
         {
             if (id != vpnAttachmentSet.VpnAttachmentSetID)
             {
@@ -170,20 +172,21 @@ namespace SCM.Controllers
                     if (currentAttachmentSetVpn == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
-                        return View(vpnAttachmentSet);
-                    }
-
-                    var mappedVpnAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
-                    var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedVpnAttachmentSet);
-
-                    if (!validationResult.IsSuccess)
-                    {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
                     else
                     {
-                        await VpnAttachmentSetService.UpdateAsync(mappedVpnAttachmentSet);
-                        return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                        var mappedVpnAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
+                        var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedVpnAttachmentSet);
+
+                        if (!validationResult.IsSuccess)
+                        {
+                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        }
+                        else
+                        {
+                            await VpnAttachmentSetService.UpdateAsync(mappedVpnAttachmentSet);
+                            return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
+                        }
                     }
                 }
             }
@@ -221,14 +224,15 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
+            var vpn = await GetVpn(vpnAttachmentSet.VpnID);
             await PopulateAttachmentSetsDropDownList(new VpnAttachmentSetSelectionViewModel
             {
-                TenantID = currentAttachmentSetVpn.AttachmentSet.TenantID,
-                VpnID = currentAttachmentSetVpn.VpnID
+                TenantID = vpn.TenantID,
+                VpnID = vpnAttachmentSet.VpnID
             });
 
-            ViewBag.Vpn = await GetVpn(currentAttachmentSetVpn.VpnID);
-            return View(Mapper.Map<VpnAttachmentSetViewModel>(currentAttachmentSetVpn));
+            ViewBag.Vpn = vpn;
+            return View(Mapper.Map<VpnAttachmentSetViewModel>(vpnAttachmentSet));
         }
 
         [HttpGet]
@@ -239,8 +243,10 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value, includeProperties:"AttachmentSet");
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value, 
+                includeProperties:"AttachmentSet");
             var vpnAttachmentSet = dbResult.SingleOrDefault();
+
             if (vpnAttachmentSet == null)
             {
                 if (concurrencyError.GetValueOrDefault())

@@ -4,10 +4,16 @@
     ViewData["Title"] = "Details";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/ContractBandwidthPool/GetAllByTenantID/@ViewBag.Tenant.TenantID">Contract Bandwidth Pools</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
 <h2>Details for Contract Bandwidth Pool '@Model.Name'</h2>
 
 <div>
-    <h4>Device</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>

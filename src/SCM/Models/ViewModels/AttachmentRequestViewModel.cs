@@ -137,7 +137,7 @@ namespace SCM.Models.ViewModels
                 if (!string.IsNullOrEmpty(IpAddress))
                 {
                     yield return new ValidationResult(
-                        "An IP address can only be specified for layer 3 interfaces.");
+                        "An IP address can only be specified for layer 3 attachments.");
                 }
 
                 if (!string.IsNullOrEmpty(SubnetMask))

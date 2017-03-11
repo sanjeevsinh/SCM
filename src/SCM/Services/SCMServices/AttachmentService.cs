@@ -22,24 +22,15 @@ namespace SCM.Services.SCMServices
             VrfService = vrfService;
         }
 
-        public async Task<Attachment> GetFullAsync(Attachment attachment)
+        public async Task<Attachment> GetByIDAsync(int id)
         {
-            if (attachment.IsBundle)
-            {
-                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == attachment.ID, includeProperties:
-                    "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,BundleInterfacePorts.Port",
-                    AsTrackable: false);
 
-                return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
-            }
-            else
-            {
-                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == attachment.ID, includeProperties:
-                    "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,Port",
-                    AsTrackable: false);
+            var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
+                "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,Port,BundleInterfacePorts.Port",
+                AsTrackable: false);
 
-                return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
-            }
+            return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
+
         }
 
         public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)

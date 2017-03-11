@@ -4,6 +4,14 @@
     ViewData["Title"] = "CreateStep1";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSetVrf/GetAllByAttachmentSetID/@ViewBag.AttachmentSet.AttachmentSetID">Attachment Set VRFs</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
 <h2>Create</h2>
 
 <form asp-action="Create">

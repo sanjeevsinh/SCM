@@ -73,7 +73,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.TenantID = id;
+            ViewBag.Tenant = GetTenant(id.Value);
             await PopulateRegionsDropDownList();
 
             return View();
@@ -88,7 +88,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.TenantID = id;
+            ViewBag.Tenant = GetTenant(id.Value);
             await PopulateSubRegionsDropDownList(region.RegionID);
             await PopulateAttachmentRedundancyDropDownList();
             ViewBag.Region = region;
@@ -117,7 +117,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateDropDownLists(Mapper.Map<AttachmentSet>(attachmentSet));
+            await PopulateDropDownLists(attachmentSet.RegionID);
             return View(attachmentSet);
         }
 
@@ -138,7 +138,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateDropDownLists(attachmentSet);
+            await PopulateDropDownLists(attachmentSet.RegionID);
 
             return View(Mapper.Map<AttachmentSetViewModel>(attachmentSet));
         }
@@ -239,8 +239,8 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateDropDownLists(currentAttachmentSet);
-            return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
+            await PopulateDropDownLists(attachmentSet.RegionID);
+            return View(Mapper.Map<AttachmentSetViewModel>(attachmentSet));
         }
 
         [HttpGet]
@@ -303,12 +303,10 @@ namespace SCM.Controllers
         /// </summary>
         /// <param name="attachmentSet"></param>
         /// <returns></returns>
-        private async Task PopulateDropDownLists(AttachmentSet attachmentSet)
+        private async Task PopulateDropDownLists(int regionID)
         {
-            await PopulateTenantsDropDownList();
-            await PopulateSubRegionsDropDownList(attachmentSet.RegionID);
+            await PopulateSubRegionsDropDownList(regionID);
             await PopulateAttachmentRedundancyDropDownList();
-
         }
 
         private async Task PopulateAttachmentRedundancyDropDownList(object selectedAttachmentRedundancy = null)
@@ -329,10 +327,9 @@ namespace SCM.Controllers
             ViewBag.SubRegionID = new SelectList(subRegions, "SubRegionID", "Name", selectedSubRegion);
         }
 
-        private async Task PopulateTenantsDropDownList(object selectedTenant = null)
+        private async Task GetTenant(int tenantID)
         {
-            var tenants = await AttachmentSetService.UnitOfWork.TenantRepository.GetAsync();
-            ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
+            ViewBag.Tenant = await AttachmentSetService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
         }
     }
 }

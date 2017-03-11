@@ -4,11 +4,19 @@
     ViewData["Title"] = "Create";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@ViewBag.VpnAttachmentSet.Vpn.VpnID">VPN Attachment Sets</a></li>
+    <li class="breadcrumb-item"><a href="/VpnTenantCommunity/GetAllByVpnAttachmentSetID/@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">VPN Tenant Communities</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+
 <h2>Add a Tenant Community to VPN '@ViewBag.VpnAttachmentSet.Vpn.Name'</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Tenant Community</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnAttachmentSetID" value="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID" />
@@ -23,14 +31,14 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Add" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" />
+                <input type="submit" value="Add" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to List</a>
+    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@ViewBag.VpnAttachmentSet.VpnAttachmentSetID">Back to List</a>
 </div>
 
 @section Scripts {

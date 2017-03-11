@@ -130,15 +130,14 @@ namespace SCM.Controllers
                 {
                     if (currentBgpPeer == null)
                     {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The bgpPeer was deleted by another user.");
-
-                        await PopulateVrfItem(bgpPeer.VrfID);
-                        return View(bgpPeer);
+                        ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
                     }
+                    else
+                    {
+                        await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
-                    await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
-
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                    }
                 }
             }
 
@@ -170,8 +169,8 @@ namespace SCM.Controllers
 
             }
 
-            await PopulateVrfItem(currentBgpPeer.VrfID);
-            return View(Mapper.Map<BgpPeerViewModel>(currentBgpPeer));
+            await PopulateVrfItem(bgpPeer.VrfID);
+            return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
 
         [HttpGet]

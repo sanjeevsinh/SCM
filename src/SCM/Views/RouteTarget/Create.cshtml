@@ -4,11 +4,17 @@
     ViewData["Title"] = "Create";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/RouteTarget/GetAllByVpnID/@ViewBag.Vpn.VpnID">Route Targets</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
 <h2>Create Route Target for VPN @ViewBag.Vpn.Name</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Route Target</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.Vpn.VpnID" />

@@ -4,7 +4,15 @@
     ViewData["Title"] = "Create";
 }
 
-<h2>Create</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/BgpPeer/GetAllByVrfID/@ViewBag.Vrf.VrfID">BGP Peers</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+<h2>Create BGP Peer for VRF '@ViewBag.Vrf.Name'</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">

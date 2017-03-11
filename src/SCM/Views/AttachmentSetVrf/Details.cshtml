@@ -4,7 +4,15 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSetVrf/GetAllByAttachmentSetID/@ViewBag.AttachmentSet.AttachmentSetID">Attachment Set VRFs</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details for VRF '@Model.Attachment.Vrf.Name'</h2>
 
 <div>
     <hr />
@@ -78,6 +86,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.AttachmentSetVrfID }) |
+    @Html.ActionLink("Edit", "Edit", new { id = Model.AttachmentSetVrfID, tenantID = Context.Request.Query["tenantID"] }) |
     <a asp-action="GetAllByAttachmentSetID" asp-route-id="@ViewBag.AttachmentSet.AttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to VRFs</a>
 </div>

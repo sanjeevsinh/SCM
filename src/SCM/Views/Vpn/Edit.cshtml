@@ -4,6 +4,12 @@
     ViewData["Title"] = "Edit";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+</ol>
+
 <h2>Edit VPN @Model.Name</h2>
 
 <form asp-action="Edit">
@@ -64,7 +70,7 @@
 }
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" />
+                <input type="submit" value="Save" class="btn btn-default" />
             </div>
         </div>
     </div>

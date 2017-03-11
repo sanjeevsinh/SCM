@@ -4,7 +4,14 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Device/GetAll">Devices</a></li>
+    <li class="breadcrumb-item"><a href="/Port/GetAllByDeviceID/@Model.DeviceID">Ports</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details for Device '@Model.Name'</h2>
 
 <div>
     <hr />

@@ -4,6 +4,13 @@
     ViewData["Title"] = "GetAllByAttachmentSetID";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Attachment Set VRFs</li>
+</ol>
+
 <h2>VRFs for Attachment Set '@ViewBag.AttachmentSet.Name'</h2>
 
 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -76,4 +83,4 @@
     }
     </tbody>
 </table>
-<a asp-controller="AttachmentSet" asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>
+<a asp-controller="AttachmentSet" asp-action="GetAllByTenantID" asp-route-id="@ViewBag.AttachmentSet.TenantID">Back to Attachment Sets</a>

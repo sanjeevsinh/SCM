@@ -256,7 +256,8 @@ namespace SCM.Controllers
         {
             try
             {
-                var dbResult = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.RouteTargetID == routeTarget.RouteTargetID, AsTrackable: false);
+                var dbResult = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.RouteTargetID == routeTarget.RouteTargetID, 
+                    AsTrackable: false);
                 var currentRouteTarget = dbResult.SingleOrDefault();
 
                 if (currentRouteTarget != null)
@@ -266,7 +267,7 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = validationResult.GetMessage();
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
                         await PopulateVpnItem(routeTarget.VpnID);
 
                         return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));
@@ -274,6 +275,7 @@ namespace SCM.Controllers
 
                     await RouteTargetService.DeleteAsync(mappedRouteTarget);
                 }
+
                 return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
             }
 

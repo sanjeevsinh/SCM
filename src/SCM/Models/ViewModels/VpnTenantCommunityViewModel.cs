@@ -12,6 +12,7 @@ namespace SCM.Models.ViewModels
         public int TenantCommunityID { get; set; }
         public int VpnAttachmentSetID { get; set; }
         public byte[] RowVersion { get; set; }
+        [Display(Name = "Tenant Community")]
         public TenantCommunityViewModel TenantCommunity { get; set; }
         public VpnAttachmentSetViewModel VpnAttachmentSet { get; set; }
     }

@@ -48,7 +48,7 @@ namespace SCM.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+            var item = await AttachmentService.GetByIDAsync(attachment.ID);
             if (item == null)
             {
                 return NotFound();
@@ -67,7 +67,7 @@ namespace SCM.Controllers
 
             var bundleInterfacePorts = await AttachmentService.UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == id.Value,
                 includeProperties:"Port.Device", AsTrackable:false);
-            ViewBag.Attachment = await AttachmentService.GetFullAsync(new Attachment { ID = id.Value, IsBundle = true });
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
            
             return View(Mapper.Map<List<BundleInterfacePortViewModel>>(bundleInterfacePorts));
         }
@@ -155,10 +155,10 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(AttachmentViewModel attachment, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
         {
 
-            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+            var item = await AttachmentService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -185,11 +185,11 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(AttachmentViewModel attachment)
+        public async Task<IActionResult> Delete(Attachment attachment)
         {
             try
             {
-                var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+                var item = await AttachmentService.GetByIDAsync(attachment.ID);
 
                 if (item != null)
                 {
@@ -203,20 +203,20 @@ namespace SCM.Controllers
                     }
                 }
 
-                return RedirectToAction("GetAllByTenantID", new { id = attachment.TenantID });
+                return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, attachment = attachment });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = attachment.ID });
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> CheckSync(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+            var item = await AttachmentService.GetByIDAsync(attachment.ID);
 
             if (item == null)
             {
@@ -247,8 +247,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(AttachmentViewModel attachment)
         {
 
-
-            var item = await AttachmentService.GetFullAsync(Mapper.Map<Attachment>(attachment));
+            var item = await AttachmentService.GetByIDAsync(attachment.ID);
             if (item == null)
             {
                 return NotFound();
@@ -271,7 +270,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFromNetwork(Attachment attachment)
         {
-            var item = await AttachmentService.GetFullAsync(attachment);
+            var item = await AttachmentService.GetByIDAsync(attachment.ID);
 
             if (item == null)
             {

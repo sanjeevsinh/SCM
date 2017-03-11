@@ -4,8 +4,14 @@
     ViewData["Title"] = "Delete";
 }
 
-<h2>Delete</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/ContractBandwidthPool/GetAllByTenantID/@ViewBag.Tenant.TenantID">Contract Bandwidth Pools</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
 
+<h2>Delete</h2>
 
 @if (@ViewData["DeleteErrorMessage"] != null)
 {

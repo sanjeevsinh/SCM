@@ -122,99 +122,7 @@ namespace SCM.Controllers
             await PopulateTenantCommunitysDropDownList(vpnTenantCommunity.VpnAttachmentSetID);
             return View(vpnTenantCommunity);
         }
-
-        [HttpGet]
-        public async Task<ActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == id.Value, 
-                includeProperties:"VpnAttachmentSet.Vpn,TenantCommunity");
-            var vpnTenantCommunity = dbResult.SingleOrDefault();
-
-            if (vpnTenantCommunity == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.VpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantCommunity.VpnAttachmentSetID);
-            await PopulateTenantCommunitysDropDownList(vpnTenantCommunity.VpnAttachmentSetID);
-            return View(Mapper.Map<VpnTenantCommunityViewModel>(vpnTenantCommunity));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("VpnTenantCommunityID,VpnAttachmentSetID,TenantCommunityID,RowVersion")] VpnTenantCommunityViewModel vpnTenantCommunity)
-        {
-            if (id != vpnTenantCommunity.VpnTenantCommunityID)
-            {
-                return NotFound();
-            }
-
-            var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == id, 
-                includeProperties:"VpnAttachmentSet,TenantCommunity", AsTrackable: false);
-            var currentVpnTenantCommunity = dbResult.SingleOrDefault();
-
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    if (currentVpnTenantCommunity == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
-                    }
-                    else
-                    {
-                        var mappedVpnTenantCommunity = Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity);
-                        var validationResult = await VpnTenantCommunityService.ValidateAsync(mappedVpnTenantCommunity);
-                        if (!validationResult.IsSuccess)
-                        {
-                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        }
-                        else
-                        {
-                            await VpnTenantCommunityService.UpdateAsync(mappedVpnTenantCommunity);
-                            return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
-                        }
-                    }
-                }
-            }
-
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var exceptionEntry = ex.Entries.Single();
-
-                var proposedTenantCommunityID = (int)exceptionEntry.Property("TenantCommunityID").CurrentValue;
-                if (currentVpnTenantCommunity.TenantCommunityID != proposedTenantCommunityID)
-                {
-                    ModelState.AddModelError("TenantCommunityID", $"Current value: {currentVpnTenantCommunity.TenantCommunity.AutonomousSystemNumber + ":" + currentVpnTenantCommunity.TenantCommunity.Number}");
-                }
-
-                ModelState.AddModelError(string.Empty, "The record you attempted to edit "
-                    + "was modified by another user after you got the original value. The "
-                    + "edit operation was cancelled and the current values in the database "
-                    + "have been displayed. If you still want to edit this record, click "
-                    + "the Save button again. Otherwise click the Back to List hyperlink.");
-
-                ModelState.Remove("RowVersion");
-            }
-
-            catch (DbUpdateException /* ex */)
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
-            }
-
-            ViewBag.VpnAttachmentSet = await GetVpnAttachmentSetItem(currentVpnTenantCommunity.VpnAttachmentSetID);
-            await PopulateTenantCommunitysDropDownList(currentVpnTenantCommunity.VpnAttachmentSetID);
-            return View(Mapper.Map<VpnTenantCommunityViewModel>(currentVpnTenantCommunity));
-        }
-
+  
         [HttpGet]
         public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
         {
@@ -224,7 +132,7 @@ namespace SCM.Controllers
             }
 
             var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == id.Value,
-                includeProperties:"TenantCommunity");
+                includeProperties:"VpnAttachmentSet.Vpn,TenantCommunity");
             var vpnTenantCommunity = dbResult.SingleOrDefault();
 
             if (vpnTenantCommunity == null)
@@ -256,7 +164,8 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == vpnTenantCommunity.VpnTenantCommunityID, AsTrackable:false);
+                var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == vpnTenantCommunity.VpnTenantCommunityID,
+                    AsTrackable:false);
                 var currentVpnTenantCommunity = dbResult.SingleOrDefault();
 
                 if (currentVpnTenantCommunity != null)

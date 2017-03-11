@@ -4,7 +4,13 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details for VPN '@Model.Name'</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
 {
@@ -75,8 +81,8 @@
 </div>
 <form asp-action="Sync">
     <input type="hidden" asp-for="VpnID" name="id" />
-    <input type="submit" asp-action="CheckSync" value="Check Sync" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-    <input type="submit" value="Sync" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnID, tenantID =Context.Request.Query["tenantID"] }) |
+    <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+    <input type="submit" value="Sync" class="btn btn-default" /> |
+    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnID }) |
     <a asp-action="GetAll">Back to List</a>
 </form>

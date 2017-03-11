@@ -4,6 +4,12 @@
     ViewData["Title"] = "Delete";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Delete</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -39,8 +45,8 @@
         <input type="hidden" asp-for="VpnID" name="id" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
-            <input type="submit" asp-action="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete" class="btn btn-default" /> |
+            <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
+            <input type="submit" asp-action="Delete" value="Delete" class="btn btn-default" /> |
             <a asp-action="GetAll">Back to List</a>
         </div>
     </form>

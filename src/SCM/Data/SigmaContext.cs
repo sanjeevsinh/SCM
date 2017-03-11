@@ -135,6 +135,11 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<InterfaceVlan>()
+                    .HasOne(c => c.Tenant)
+                    .WithMany()
+                    .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Vrf>()
                    .HasOne(c => c.Tenant)
                    .WithMany()

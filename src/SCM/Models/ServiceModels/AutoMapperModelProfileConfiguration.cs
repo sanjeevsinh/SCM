@@ -4,7 +4,7 @@ namespace SCM.Models.ServiceModels
 {
     public class AutoMapperServiceModelProfileConfiguration : Profile
     {
-       public AutoMapperServiceModelProfileConfiguration()
+        public AutoMapperServiceModelProfileConfiguration()
         {
             CreateMap<Interface, Attachment>()
                 .ForMember(dest => dest.Bandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth))
@@ -30,6 +30,19 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.VrfAdministratorSubField))
                 .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.VrfAssignedNumberSubField))
                 .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.VrfName));
+
+            CreateMap<VifRequest, InterfaceVlan>();
+
+            CreateMap<InterfaceVlan, Vif>()
+                .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.InterfaceVlanID))
+                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new VifNameResolver()))
+                .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
+                .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID));
+
+            CreateMap<VifRequest, Vrf>()
+                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.VrfAdministratorSubField))
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.VrfAssignedNumberSubField))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.VrfName));
         }
 
         public class AttachmentNameResolver : IValueResolver<Interface, Attachment, string>
@@ -43,6 +56,20 @@ namespace SCM.Models.ServiceModels
                 else
                 {
                     return $"{source.Port.Type} {source.Port.Name}";
+                }
+            }
+        }
+        public class VifNameResolver : IValueResolver<InterfaceVlan, Vif, string>
+        {
+            public string Resolve(InterfaceVlan source, Vif destination, string destMember, ResolutionContext context)
+            {
+                if (source.Interface.IsBundle)
+                {
+                    return $"Bundle {source.Interface.BundleID.ToString()}.{source.VlanTag}";
+                }
+                else
+                {
+                    return $"{source.Interface.Port.Type} {source.Interface.Port.Name}.{source.VlanTag}";
                 }
             }
         }

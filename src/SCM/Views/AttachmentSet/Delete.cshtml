@@ -4,6 +4,13 @@
     ViewData["Title"] = "Delete";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@Model.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Delete</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -33,7 +40,7 @@
         <input type="hidden" asp-for="AttachmentSetID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <input type="submit" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
             <a asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to List</a>
         </div>
     </form>

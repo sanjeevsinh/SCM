@@ -4,6 +4,13 @@
     ViewData["Title"] = "Details";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Device/GetAll">Devices</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+
 <h2>Details for Device @Model.Name</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -17,7 +24,6 @@
 }
 
 <div>
-    <h4>Device</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -49,9 +55,9 @@
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id"/>
     <div class="form-actions no-color">
-        <input type="submit" asp-action="CheckSync" asp-route-tenantID = "@Context.Request.Query["tenantID"]" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" asp-action="Sync" value="Sync" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-        @Html.ActionLink("Edit", "Edit", new { id = Model.ID, tenantID = Context.Request.Query["tenantID"] }) |
+        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
+        @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
         <a asp-action="GetAll">Back to List</a>
     </div>
 </form>

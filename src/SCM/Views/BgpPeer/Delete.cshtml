@@ -4,6 +4,14 @@
     ViewData["Title"] = "Delete";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/BgpPeer/GetAllByVrfID/@ViewBag.Vrf.VrfID">BGP Peers</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Delete</h2>
 
 @if (@ViewData["ErrorMessage"] != null)

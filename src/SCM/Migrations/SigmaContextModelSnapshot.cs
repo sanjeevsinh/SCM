@@ -336,6 +336,8 @@ namespace SCM.Migrations
                     b.Property<string>("SubnetMask")
                         .HasMaxLength(15);
 
+                    b.Property<int>("TenantID");
+
                     b.Property<int>("VlanTag");
 
                     b.Property<int?>("VrfID");
@@ -343,6 +345,8 @@ namespace SCM.Migrations
                     b.HasKey("InterfaceVlanID");
 
                     b.HasIndex("ContractBandwidthPoolID");
+
+                    b.HasIndex("TenantID");
 
                     b.HasIndex("VrfID");
 
@@ -986,6 +990,10 @@ namespace SCM.Migrations
                         .WithMany("InterfaceVlans")
                         .HasForeignKey("InterfaceID")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SCM.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("InterfaceVlans")

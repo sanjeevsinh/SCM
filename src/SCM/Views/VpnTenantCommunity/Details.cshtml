@@ -4,6 +4,15 @@
     ViewData["Title"] = "Details";
 }
 
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@Model.VpnAttachmentSet.Vpn.VpnID">VPN Attachment Sets</a></li>
+    <li class="breadcrumb-item"><a href="/VpnTenantCommunity/GetAllByVpnAttachmentSetID/@Model.VpnAttachmentSet.VpnAttachmentSetID">VPN Tenant Communities</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
 <h2>Details</h2>
 
 <div>
@@ -37,6 +46,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnTenantCommunityID, tenantID = Context.Request.Query["tenantID"] }) |
-    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@Model.VpnAttachmentSetID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to List</a>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnTenantCommunityID }) |
+    <a asp-action="GetAllByVpnAttachmentSetID" asp-route-id="@Model.VpnAttachmentSetID">Back to List</a>
 </div>

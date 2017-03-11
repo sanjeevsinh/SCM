@@ -4,6 +4,12 @@
     ViewData["Title"] = "GetAll";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item active">Attachment Sets</li>
+</ol>
+
 <h2>Attachment Sets for Tenant '@ViewBag.Tenant.Name'</h2>
 
 <p>
@@ -52,7 +58,7 @@
                 @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetID, tenantID = item.TenantID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetID, tenantID = item.TenantID } ) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentSetID, tenantID = item.TenantID }) |
-                @Html.ActionLink("VRFs", "GetAllByAttachmentSetID", "AttachmentSetVrf", new { id = item.AttachmentSetID, tenantID = item.TenantID })
+                @Html.ActionLink("Member VRFs", "GetAllByAttachmentSetID", "AttachmentSetVrf", new { id = item.AttachmentSetID, tenantID = item.TenantID })
             </td>
         </tr>
 }

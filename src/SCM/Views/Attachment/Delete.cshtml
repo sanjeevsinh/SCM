@@ -4,6 +4,13 @@
     ViewData["Title"] = "Delete";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Delete</h2>
 
 
@@ -61,7 +68,6 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
-        <input type="hidden" asp-for="IsBundle" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |

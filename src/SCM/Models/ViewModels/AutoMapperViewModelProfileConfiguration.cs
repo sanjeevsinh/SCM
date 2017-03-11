@@ -40,7 +40,9 @@ namespace SCM.Models.ViewModels
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
             CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
             CreateMap<Attachment, AttachmentViewModel>().ReverseMap();
+            CreateMap<Vif, VifViewModel>().ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
+            CreateMap<VifRequestViewModel, VifRequest>();
         }
 
         public class AttachmentSetVrfTypeResolver : IValueResolver<AttachmentSetVrf, AttachmentSetVrfViewModel, AttachmentViewModel>

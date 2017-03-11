@@ -1,0 +1,60 @@
+@model IEnumerable<SCM.Models.ViewModels.VifViewModel>
+
+@{
+    ViewData["Title"] = "VIFs";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">VIFs</li>
+</ol>
+
+<h2>VIFs for Attachment @ViewBag.Attachment.Name</h2>
+
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Attachment.ID" asp-route-tenantID="@ViewBag.Attachment.Tenant.TenantID">Create New</a>
+</p>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContractBandwidthPool)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Vrf.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
+                </td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+</div>

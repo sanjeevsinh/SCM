@@ -4,7 +4,14 @@
     ViewData["Title"] = "Create";
 }
 
-<h2>Create</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/ContractBandwidthPool/GetAllByTenantID/@ViewBag.Tenant.TenantID">Contract Bandwidth Pools</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+<h2>Create Contract Bandwidth Pool for Tenant '@ViewBag.Tenant.Name'</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">

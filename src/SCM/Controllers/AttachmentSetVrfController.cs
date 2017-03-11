@@ -196,7 +196,8 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
-                    return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
+                    return RedirectToAction("GetAllByAttachmentSetID", 
+                        new { id = currentAttachmentSetVrf.AttachmentSetID, tenantID = currentAttachmentSetVrf.Vrf.TenantID  });
                 }
             }
 
@@ -227,12 +228,12 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(currentAttachmentSetVrf.AttachmentSetID);
-            return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+            return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete([FromQuery]int tenantID, int? id, bool? concurrencyError = false)
         {
             if (id == null)
             {
@@ -247,7 +248,7 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
+                    return RedirectToAction("GetAllByTenantID", new { id = tenantID });
                 }
 
                 return NotFound();
@@ -269,7 +270,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(AttachmentSetVrfViewModel attachmentSetVrf)
+        public async Task<IActionResult> Delete(AttachmentSetVrfViewModel attachmentSetVrf, [FromQuery]int tenantID)
         {  
             try
             {
@@ -290,13 +291,13 @@ namespace SCM.Controllers
                     await AttachmentSetVrfService.DeleteAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
                 }
 
-                return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
+                return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID, tenantID = tenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = attachmentSetVrf.AttachmentSetVrfID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = attachmentSetVrf.AttachmentSetVrfID, tenantID = tenantID });
             }
         }
 

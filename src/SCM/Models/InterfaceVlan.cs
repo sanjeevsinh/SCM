@@ -19,10 +19,12 @@ namespace SCM.Models
         [Range(2,4094)]
         public int VlanTag { get; set; }
         public int? VrfID { get; set; }
+        public int TenantID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Interface Interface { get; set; }
+        public virtual Tenant Tenant { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual ContractBandwidthPool ContractBandwidthPool { get; set; }
     }

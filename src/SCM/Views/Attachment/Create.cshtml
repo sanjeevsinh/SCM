@@ -4,6 +4,13 @@
     ViewData["Title"] = "Create";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Tenant.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
 
 <h2>Create Attachment for Tenant '@ViewBag.Tenant.Name'</h2>
 

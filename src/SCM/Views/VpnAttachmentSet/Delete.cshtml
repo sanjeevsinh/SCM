@@ -4,6 +4,13 @@
     ViewData["Title"] = "Remove";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@ViewBag.Vpn.VpnID">VPN Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Remove</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -11,10 +18,8 @@
     <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
 }
 
-
-<h3>Are you sure you want to remove this Attachment Set from the VPN?</h3>
+<h3>Are you sure you want to remove this Attachment Set from VPN '@Model.Vpn.Name' ?</h3>
 <div>
-    <h4>VRF</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -36,8 +41,8 @@
         <input type="hidden" asp-for="VpnID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Remove" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-            <a asp-action="GetAllByVpnID" asp-route-id="@Model.Vpn.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>
+            <input type="submit" value="Remove" class="btn btn-default" /> |
+            <a asp-action="GetAllByVpnID" asp-route-id="@Model.Vpn.VpnID">Back to Attachment Sets</a>
         </div>
     </form>
 </div>

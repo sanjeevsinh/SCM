@@ -4,6 +4,13 @@
     ViewData["Title"] = "GetAllByVrfID";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">BGP Peers</li>
+</ol>
+
 <h2>BGP Peers for VRF '@ViewBag.Vrf.Name'</h2>
 <p>
     <a asp-action="Create" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Create New</a>

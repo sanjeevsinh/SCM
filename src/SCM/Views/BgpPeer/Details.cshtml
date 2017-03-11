@@ -4,7 +4,15 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/BgpPeer/GetAllByVrfID/@ViewBag.Vrf.VrfID">BGP Peers</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details for BGP Peer '@Model.IpAddress'</h2>
 
 <div>
     <hr />
@@ -48,6 +56,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.BgpPeerID }) |
+    @Html.ActionLink("Edit", "Edit", new { id = Model.BgpPeerID, tenantID = Context.Request.Query["tenantID"] }) |
     <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Back to BGP Peers List</a>
 </div>

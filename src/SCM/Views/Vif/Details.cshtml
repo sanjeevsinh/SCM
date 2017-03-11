@@ -1,0 +1,58 @@
+@model SCM.Models.ViewModels.VifViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@Model.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details</h2>
+
+<div>
+    <h4>VIF for Attachment @ViewBag.Attachment.Name</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IsLayer3)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsLayer3)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.VlanTag)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.VlanTag)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IpAddress)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpAddress)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.SubnetMask)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.SubnetMask)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ID}) |
+    <div>
+        <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Attachment.AttachmentID">Back to VIFs List</a>
+    </div>
+</div>

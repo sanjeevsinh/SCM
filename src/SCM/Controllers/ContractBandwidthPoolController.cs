@@ -34,7 +34,7 @@ namespace SCM.Controllers
 
             var contractBandwidthPools = await ContractBandwidthPoolService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == id,
                 includeProperties:"ContractBandwidth");
-            await PopulateTenantItem(id.Value);
+            await GetTenant(id.Value);
 
             return View(Mapper.Map<List<ContractBandwidthPoolViewModel>>(contractBandwidthPools));
         }
@@ -56,7 +56,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantItem(item.TenantID);
+            await GetTenant(item.TenantID);
             return View(Mapper.Map<ContractBandwidthPoolViewModel>(item));
         }
 
@@ -69,7 +69,7 @@ namespace SCM.Controllers
             }
 
             await PopulateContractBandwidthsDropDownList();
-            await PopulateTenantItem(id.Value);
+            await GetTenant(id.Value);
             return View();
         }
 
@@ -95,7 +95,7 @@ namespace SCM.Controllers
             }
 
             await PopulateContractBandwidthsDropDownList();
-            await PopulateTenantItem(contractBandwidthPool.TenantID); 
+            await GetTenant(contractBandwidthPool.TenantID); 
             return View(Mapper.Map<ContractBandwidthPoolViewModel>(contractBandwidthPool));
         }
 
@@ -115,7 +115,7 @@ namespace SCM.Controllers
             }
 
             await PopulateContractBandwidthsDropDownList();
-            await PopulateTenantItem(contractBandwidthPool.TenantID);
+            await GetTenant(contractBandwidthPool.TenantID);
             return View(Mapper.Map<ContractBandwidthPoolViewModel>(contractBandwidthPool));
         }
 
@@ -141,7 +141,7 @@ namespace SCM.Controllers
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The contract bandwidth pool was deleted by another user.");
 
                         await PopulateContractBandwidthsDropDownList();
-                        await PopulateTenantItem(contractBandwidthPool.TenantID);
+                        await GetTenant(contractBandwidthPool.TenantID);
                         return View(contractBandwidthPool);
                     }
 
@@ -192,7 +192,7 @@ namespace SCM.Controllers
             }
 
             await PopulateContractBandwidthsDropDownList();
-            await PopulateTenantItem(currentContractBandwidthPool.TenantID);
+            await GetTenant(currentContractBandwidthPool.TenantID);
             return View(Mapper.Map<ContractBandwidthPoolViewModel>(currentContractBandwidthPool));
         }
 
@@ -226,7 +226,7 @@ namespace SCM.Controllers
             }
 
             await PopulateContractBandwidthsDropDownList();
-            await PopulateTenantItem(contractBandwidthPool.TenantID);
+            await GetTenant(contractBandwidthPool.TenantID);
             return View(Mapper.Map<ContractBandwidthPoolViewModel>(contractBandwidthPool));
         }
 
@@ -254,14 +254,9 @@ namespace SCM.Controllers
             }
         }
 
-        private async Task PopulateTenantItem(int tenantID)
+        private async Task GetTenant(int tenantID)
         {
-            var dbResult = await ContractBandwidthPoolService.UnitOfWork.TenantRepository.GetAsync(q => q.TenantID == tenantID);
-            var tenant = dbResult.SingleOrDefault();
-            if (tenant != null)
-            {
-                ViewBag.Tenant = tenant;
-            }
+            ViewBag.Tenant = await ContractBandwidthPoolService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
         }
 
         private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)

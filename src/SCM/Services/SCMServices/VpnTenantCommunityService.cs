@@ -57,7 +57,7 @@ namespace SCM.Services.SCMServices
 
             if (vpnAttachmentSet == null)
             {
-                validationResult.Add("The Attachment Set was not found.");
+                validationResult.Add("The attachment set was not found.");
                 validationResult.IsSuccess = false;
             }
 
@@ -68,7 +68,7 @@ namespace SCM.Services.SCMServices
                 var tenantCommunity = await UnitOfWork.TenantCommunityRepository.GetByIDAsync(vpnTenantCommunity.TenantCommunityID);
                 if (!tenantCommunity.AllowExtranet)
                 {
-                    validationResult.Add("Tenant Community " + tenantCommunity.AutonomousSystemNumber + ":" + tenantCommunity.Number + " is not enabled for Extranet.");
+                    validationResult.Add($"Tenant Community {tenantCommunity.AutonomousSystemNumber} : {tenantCommunity.Number} is not enabled for Extranet.");
                     validationResult.IsSuccess = false;
                 }
             }
@@ -81,10 +81,8 @@ namespace SCM.Services.SCMServices
 
                 if (existingVpnTenantCommunity != null)
                 {
-
-                    validationResult.Add("Tenant Community " + existingVpnTenantCommunity.TenantCommunity.AutonomousSystemNumber
-                        + ":" + existingVpnTenantCommunity.TenantCommunity.Number
-                        + " is already bound to VPN " + existingVpnTenantCommunity.VpnAttachmentSet.Vpn.Name + ".");
+                    validationResult.Add($"Tenant Community {existingVpnTenantCommunity.TenantCommunity.AutonomousSystemNumber} : "
+                        + $"{existingVpnTenantCommunity.TenantCommunity.Number} is already bound to VPN {existingVpnTenantCommunity.VpnAttachmentSet.Vpn.Name}.");
                     validationResult.IsSuccess = false;
                 }
             }

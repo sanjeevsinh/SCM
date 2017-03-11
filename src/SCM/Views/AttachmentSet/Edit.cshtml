@@ -4,6 +4,13 @@
     ViewData["Title"] = "Edit";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@Model.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+</ol>
+
 <h2>Edit</h2>
 
 <form asp-action="Edit">

@@ -4,14 +4,20 @@
     ViewData["Title"] = "CreateStep1";
 }
 
-<h2>Create</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.Tenant.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+<h2>Create Attachment Set for Tenant '@ViewBag.Tenant.Name'</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Attachment Set</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-        <input type="hidden" name="id" value="@ViewBag.TenantID" />
+        <input type="hidden" name="id" value="@ViewBag.Tenant.TenantID" />
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">

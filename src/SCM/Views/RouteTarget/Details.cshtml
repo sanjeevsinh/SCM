@@ -4,7 +4,14 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/RouteTarget/GetAllByVpnID/@Model.VpnID">Route Targets</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+<h2>Details for Route Target '@Model.AdministratorSubField : @Model.AssignedNumberSubField' </h2>
 
 <div>
     <h4>Route Target</h4>

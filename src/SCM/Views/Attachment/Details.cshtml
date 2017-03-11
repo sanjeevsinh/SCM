@@ -4,6 +4,13 @@
     ViewData["Title"] = "Details";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
 <h2>Details for Attachment '@Model.Name'</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -117,6 +124,6 @@
     <div class="form-actions no-color">
         <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
         <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
-        <a asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to Attachments List</a>
+        <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Attachments List</a>
     </div>
 </form>

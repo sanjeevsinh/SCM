@@ -4,9 +4,17 @@
     ViewData["Title"] = "CreateStep2";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@ViewBag.Vpn.VpnID">VPN Attachment Sets</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+
+<h2>Add Attachment Set to VPN '@ViewBag.Vpn.Name'</h2>
+
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Add Attachment Set to VPN '@ViewBag.Vpn.Name'</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="VpnID" value="@ViewBag.VpnAttachmentSetSelection.VpnID" />
@@ -22,14 +30,14 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" />
+                <input type="submit" value="Create" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
 
 <div>
-    <a asp-action="GetAllByVpnID" asp-route-id="@ViewBag.Vpn.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to Attachment Sets</a>
+    <a asp-action="GetAllByVpnID" asp-route-id="@ViewBag.Vpn.VpnID">Back to Attachment Sets</a>
 </div>
 
 @section Scripts {

@@ -11,7 +11,7 @@ namespace SCM.Services.SCMServices
     public interface IAttachmentService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<Attachment> GetFullAsync(Attachment attachment);
+        Task<Attachment> GetByIDAsync(int id);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);

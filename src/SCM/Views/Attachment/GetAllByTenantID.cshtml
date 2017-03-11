@@ -13,7 +13,7 @@
 <h2>Attachments for Tenant @ViewBag.Tenant.Name</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-route-tenantID="@ViewBag.Tenant.TenantID" asp-controller="Attachment">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.Tenant.TenantID" asp-route-tenantID="@ViewBag.Tenant.TenantID">Create New</a>
 </p>
 
 
@@ -25,6 +25,9 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsBundle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsTagged)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Location)
@@ -56,6 +59,9 @@
                     @Html.DisplayFor(modelItem => item.IsBundle)
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.IsTagged)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.Location.SiteName)
                 </td>
                 <td>
@@ -75,7 +81,15 @@
                     @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
                     @if (item.IsBundle)
                     {
-                        <span>|</span> @Html.ActionLink("Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
+                        <span>|</span> @Html.ActionLink("Bundle Member Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
+                    }
+                    @if (item.IsLayer3)
+                    {
+                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { ID = item.Vrf.VrfID, tenantID = item.TenantID })
+                    }
+                    @if (item.IsTagged)
+                    {
+                        <span>|</span> @Html.ActionLink("VIFs", "GetAllByAttachmentID", "Vif", new { ID = item.ID, tenantID = item.TenantID })
                     }
                 </td>
             </tr>

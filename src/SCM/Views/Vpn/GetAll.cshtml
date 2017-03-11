@@ -4,10 +4,15 @@
     ViewData["Title"] = "GetAll";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item active">VPNs</li>
+</ol>
+
 <h2>VPNs</h2>
 
 <p>
-    <a asp-action="CreateStep1" asp-route-tenantID="@Context.Request.Query["tenantID"]">Create New</a>
+    <a asp-action="CreateStep1">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -61,11 +66,11 @@
                 @Html.DisplayFor(modelItem => item.Tenant.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VpnID, tenantID = Context.Request.Query["tenantID"] }) |
-                @Html.ActionLink("Details", "Details", new { id = item.VpnID, tenantID = Context.Request.Query["tenantID"] } ) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.VpnID, tenantID = Context.Request.Query["tenantID"] }) |
-                <a asp-controller="RouteTarget" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID", asp-route-tenantID="@Context.Request.Query["tenantID"]">Route Targets</a> |
-                <a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Attachment Sets</a>
+                @Html.ActionLink("Edit", "Edit", new { id = item.VpnID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.VpnID } ) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.VpnID }) |
+                <a asp-controller="RouteTarget" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Route Targets</a> |
+                <a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Attachment Sets</a>
             </td>
         </tr>
 }

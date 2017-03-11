@@ -4,7 +4,7 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<h2>Details of Tenant Community '@Model.AutonomousSystemNumber : @Model.Number'</h2>
 
 <div>
     <h4>Tenant Community</h4>
@@ -37,6 +37,6 @@
     </dl>
 </div>
 <div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantCommunityID }) |
+    @Html.ActionLink("Edit", "Edit", new { id = Model.TenantCommunityID, tenantID = Context.Request.Query["tenantID"] }) |
     <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to List</a>
 </div>
