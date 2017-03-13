@@ -7,17 +7,33 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@Model.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID">VIFs</a></li>
     <li class="breadcrumb-item active">Details</li>
 </ol>
 
-<h2>Details</h2>
+@if (@ViewData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (@ViewData["SuccessMessage"] != null)
+{
+    <p class="alert alert-success">@ViewData["SuccessMessage"]</p>
+}
+
+
+<h2>Details for VIF '@ViewBag.Attachment.Name.@Model.VlanTag'</h2>
 
 <div>
-    <h4>VIF for Attachment @ViewBag.Attachment.Name</h4>
     <hr />
     <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Tenant)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Tenant.Name)
+        </dd>
         <dt>
             @Html.DisplayNameFor(model => model.IsLayer3)
         </dt>
@@ -31,10 +47,34 @@
             @Html.DisplayFor(model => model.VlanTag)
         </dd>
         <dt>
+            @Html.DisplayNameFor(model => model.ContractBandwidthPool)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ContractBandwidthPool.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ContractBandwidthPool.ContractBandwidth)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ContractBandwidthPool.ContractBandwidth.BandwidthMbps)
+        </dd>
+        <dt>
             @Html.DisplayNameFor(model => model.Vrf)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.Vrf.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.AdministratorSubField)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.AdministratorSubField)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf.AssignedNumberSubField)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.AssignedNumberSubField)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.IpAddress)
@@ -50,9 +90,11 @@
         </dd>
     </dl>
 </div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.ID}) |
-    <div>
-        <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Attachment.AttachmentID">Back to VIFs List</a>
+<form asp-action="">
+    <input type="hidden" asp-for="ID" name="id" />
+    <div class="form-actions no-color">
+        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
+        <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
     </div>
-</div>
+</form>

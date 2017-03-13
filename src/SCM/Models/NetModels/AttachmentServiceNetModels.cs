@@ -104,7 +104,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
-        public Layer3NetModel Layer3Vrf { get; set; }
+        public Layer3NetModel Layer3 { get; set; }
     }
 
     [XmlRoot(ElementName = "pe", Namespace = "urn:thomsonreuters:attachment")]
@@ -151,6 +151,11 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
     [XmlRoot(ElementName = "tagged-attachment-bundle-interface", Namespace = "urn:thomsonreuters:attachment")]
     public class TaggedAttachmentBundleInterfaceServiceNetModel : TaggedAttachmentBundleInterfaceNetModel
+    {
+    }
+
+    [XmlRoot(ElementName = "vif", Namespace = "urn:thomsonreuters:attachment")]
+    public class VifServiceNetModel : VifNetModel
     {
     }
 }

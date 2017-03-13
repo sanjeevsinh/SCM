@@ -1,0 +1,8 @@
+@model IEnumerable<SCM.Models.ViewModels.ContractBandwidthPoolViewModel>
+
+<option value="">-- Select Contract Bandwidth Pool --</option>
+
+@foreach (var item in Model)
+{
+    <option value="@item.ContractBandwidthPoolID">@item.Name</option>
+}

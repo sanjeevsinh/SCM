@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
 
 namespace SCM.Controllers
 {
@@ -67,7 +68,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             return View(Mapper.Map<VifViewModel>(item));
         }
 
@@ -82,13 +83,15 @@ namespace SCM.Controllers
             var attachment =  await AttachmentService.GetByIDAsync(id.Value);
             ViewBag.Attachment = attachment;
             await PopulateTenantsDropDownList(attachment.TenantID);
-            
+            await PopulateContractBandwidthPoolsDropDownList(attachment.TenantID);
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress,IsLayer3,SubnetMask,VlanTag,VrfID,TenantID")] VifRequestViewModel request)
+        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress,IsLayer3,SubnetMask,VlanTag,VrfName,VrfAdministratorSubField,"
+            + "VrfAssignedNumberSubField,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
         {
             try
             {
@@ -127,6 +130,7 @@ namespace SCM.Controllers
             var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
             ViewBag.Attachment = attachment;
             await PopulateTenantsDropDownList(attachment.TenantID);
+            await PopulateContractBandwidthPoolsDropDownList(attachment.TenantID);
 
             return View(request);
         }
@@ -170,13 +174,20 @@ namespace SCM.Controllers
         {
             try
             {
-                var currentVif = await VifService.GetByIDAsync(vif.ID);
+                var item = await VifService.GetByIDAsync(vif.ID);
 
-                if (currentVif != null)
+                if (item != null)
                 {
-                    await VifService.DeleteAsync(currentVif);
+                    var result = await VifService.DeleteAsync(item);
+                    if (!result.IsSuccess)
+                    {
+                        ViewData["ErrorMessage"] = result.GetMessage();
+
+                        return View(Mapper.Map<VifViewModel>(item));
+                    }
                 }
-                return RedirectToAction("GetAllByAttachmentID", new { id = Request.Query["AttachmentID"] });
+
+                return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
@@ -185,11 +196,115 @@ namespace SCM.Controllers
                 return RedirectToAction("Delete", new { concurrencyError = true, id = vif.ID });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckSync(VifViewModel vif)
+        {
+            var item = await VifService.GetByIDAsync(vif.ID);
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            var checkSyncResult = await VifService.CheckNetworkSyncAsync(item);
+            if (checkSyncResult.InSync)
+            {
+                ViewData["SuccessMessage"] = "The vif is synchronised with the network.";
+            }
+            else
+            {
+                if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                {
+                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                }
+                else
+                {
+                    ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
+                }
+            }
+
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            return View("Details", Mapper.Map<VifViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Sync(VifViewModel vif)
+        {
+
+            var item = await VifService.GetByIDAsync(vif.ID);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            var syncResult = await VifService.SyncToNetworkAsync(item);
+
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SuccessMessage"] = "The network is synchronised.";
+            }
+            else
+            {
+                ViewData["ErrorMessage"] = syncResult.GetMessage();
+            }
+
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            return View("Details", Mapper.Map<VifViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFromNetwork(Vif vif)
+        {
+            var item = await VifService.GetByIDAsync(vif.ID);
+
+            if (item == null)
+            {
+
+                ViewData["VifDeletedMessage"] = "The vif has been deleted by another user. Return to the list.";
+
+                return View("VifDeleted", new { AttachmentID = Request.Query["AttachmentID"] });
+            }
+
+            var syncResult = await VifService.DeleteFromNetworkAsync(item);
+            if (syncResult.IsSuccess)
+            {
+                ViewData["SuccessMessage"] = "The vif has been deleted from the network.";
+            }
+            else
+            {
+                var message = "There was a problem deleting the vif from the network. ";
+
+                if (syncResult.NetworkHttpResponse != null)
+                {
+                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        message += "The vif resource is not present in the network. ";
+                    }
+                }
+
+                message += syncResult.GetAllMessages();
+                ViewData["ErrorMessage"] = message;
+            }
+
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            return View("Delete", Mapper.Map<VifViewModel>(item));
+        }
+
+
+        [HttpGet]
+        public async Task<PartialViewResult> ContractBandwidthPools(int id)
+        {
+            var contractBandwidthPools = await VifService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == id);
+            return PartialView(Mapper.Map<List<ContractBandwidthPoolViewModel>>(contractBandwidthPools));
+        }
+
         private async Task PopulateTenantsDropDownList(object selectedTenant = null)
         {
             var tenants = await VifService.UnitOfWork.TenantRepository.GetAsync();
             ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
         }
+
         private async Task PopulateContractBandwidthPoolsDropDownList(int tenantID, object selectedContractBandwidthPool = null)
         {
             var contractBandwidthPools = await VifService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == tenantID);

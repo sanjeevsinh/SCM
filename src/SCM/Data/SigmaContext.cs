@@ -38,6 +38,8 @@ namespace SCM.Data
         public DbSet<TenantNetwork> TenantNetworks { get; set; }
         public DbSet<VpnTenantNetwork> VpnTenantNetworks { get; set; }
         public DbSet<Plane> Planes { get; set; }
+        public DbSet<RouteTargetRange> RouteTargetRanges { get; set; }
+        public DbSet<RouteDistinguisherRange> RouteDistinguisherRanges { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -72,6 +74,9 @@ namespace SCM.Data
             builder.Entity<VpnTopologyType>().ToTable("VpnTopologyType");
             builder.Entity<Plane>().ToTable("Plane");
             builder.Entity<Vrf>().ToTable("Vrf");
+            builder.Entity<RouteTargetRange>().ToTable("RouteTargetRange");
+            builder.Entity<RouteDistinguisherRange>().ToTable("RouteDistinguisherRange");
+
 
             // Prevent cascade deletes
 
@@ -122,6 +127,16 @@ namespace SCM.Data
 
             builder.Entity<Port>()
                    .HasOne(c => c.PortBandwidth)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<RouteTarget>()
+                   .HasOne(c => c.RouteTargetRange)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vrf>()
+                   .HasOne(c => c.RouteDistinguisherRange)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 

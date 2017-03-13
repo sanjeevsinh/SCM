@@ -217,7 +217,7 @@ namespace SCM.Controllers
 
             if (concurrencyError.GetValueOrDefault())
             {
-                ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+                ViewData["ErrorMessage"] = "The record you attempted to delete "
                     + "was modified by another user after you got the original values. "
                     + "The delete operation was cancelled and the current values in the "
                     + "database have been displayed. If you still want to delete this "
@@ -236,12 +236,25 @@ namespace SCM.Controllers
         {
             try
             {
-                var dbResult = await ContractBandwidthPoolService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(filter: d => d.ContractBandwidthPoolID == contractBandwidthPool.ContractBandwidthPoolID, AsTrackable: false);
+                var dbResult = await ContractBandwidthPoolService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.ContractBandwidthPoolID == contractBandwidthPool.ContractBandwidthPoolID,
+                    includeProperties: "Interfaces.Port,Interfaces.Vrf.Device,InterfaceVlans.Interface.Port,InterfaceVlans.Vrf.Device",
+                    AsTrackable: false);
                 var currentContractBandwidthPool = dbResult.SingleOrDefault();
 
                 if (currentContractBandwidthPool != null)
                 {
-                    await ContractBandwidthPoolService.DeleteAsync(Mapper.Map<ContractBandwidthPool>(contractBandwidthPool));
+                    var validationResult = ContractBandwidthPoolService.ValidateDelete(currentContractBandwidthPool);
+                    if (!validationResult.IsSuccess)
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+                        await GetTenant(currentContractBandwidthPool.TenantID);
+
+                        return View(Mapper.Map<ContractBandwidthPoolViewModel>(currentContractBandwidthPool));
+                    }
+                    else
+                    {
+                        await ContractBandwidthPoolService.DeleteAsync(Mapper.Map<ContractBandwidthPool>(contractBandwidthPool));
+                    }
                 }
 
                 return RedirectToAction("GetAllByTenantID", new { id = contractBandwidthPool.TenantID });

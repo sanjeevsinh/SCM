@@ -40,7 +40,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.Layer3Vrf, conf => conf.MapFrom(src => src));
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src));
 
             CreateMap<Interface, Layer3NetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
@@ -85,10 +85,35 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts));
 
+            CreateMap<Attachment, VrfNetModel>()
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+
             CreateMap<Attachment, VrfServiceNetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
                 .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+
+            CreateMap<Vif, VifNetModel>()
+               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
+               .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
+
+            CreateMap<Vif, VifServiceNetModel>()
+               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
+               .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
+
+            CreateMap<Vif, VrfNetModel>()
+              .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+              .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
+              .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+
+            CreateMap<Vif, VrfServiceNetModel>()
+              .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+              .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
+              .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
         }
 
         public class AttachmentLayer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
@@ -106,6 +131,30 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             {
                 var layer3NetModelResolver = new Layer3NetModelResolver();
                 return layer3NetModelResolver.Create(source, context);
+            }
+        }
+
+        public class VifLayer3NetModelTypeResolver : IValueResolver<Vif, VifNetModel, Layer3NetModel>
+        {
+            public Layer3NetModel Resolve(Vif source, VifNetModel destination, Layer3NetModel destMember, ResolutionContext context)
+            {
+                var result = new Layer3NetModel();
+                var mapper = context.Mapper;
+
+                if (source.IsLayer3)
+                {
+                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
+                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
+                    result.IpAddress = source.IpAddress;
+                    result.SubnetMask = source.SubnetMask;
+                    result.VrfName = source.Vrf.Name;
+
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 

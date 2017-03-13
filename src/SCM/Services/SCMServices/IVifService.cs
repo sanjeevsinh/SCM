@@ -14,7 +14,10 @@ namespace SCM.Services.SCMServices
         Task<Vif> GetByIDAsync(int id);
         Task<List<Vif>> GetAllByAttachmentIDAsync(int id);
         Task<ServiceResult> AddAsync(VifRequest request);
-        Task<int> DeleteAsync(Vif vif);
+        Task<ServiceResult> DeleteAsync(Vif vif);
+        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif);
+        Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif);
+        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateAsync(VifRequest request);
     }
 }

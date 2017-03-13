@@ -11,6 +11,8 @@ namespace SCM.Models.ServiceModels
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public string InterfaceType { get; set; }
+        public string InterfaceName { get; set; }
         public int? BundleID { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
@@ -38,5 +40,6 @@ namespace SCM.Models.ServiceModels
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
         public ICollection<MultiPortPort> MultiPortPorts { get; set; }
         public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
+        public ICollection<Vif> Vifs { get; set; }
     }
 }

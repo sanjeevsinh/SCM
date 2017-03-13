@@ -37,6 +37,8 @@ namespace SCM.Data
         private GenericRepository<VpnTopologyType> vpnTopologyTypeRepository;
         private GenericRepository<Plane> planeRepository;
         private GenericRepository<Vrf> vrfRepository;
+        private GenericRepository<RouteTargetRange> routeTargetRangeRepository;
+        private GenericRepository<RouteDistinguisherRange> routeDistinguisherRangeRepository;
 
         public UnitOfWork(SigmaContext sigmaContext)
         {
@@ -385,6 +387,30 @@ namespace SCM.Data
                     this.vrfRepository = new GenericRepository<Vrf>(context);
                 }
                 return vrfRepository;
+            }
+        }
+
+        public GenericRepository<RouteTargetRange> RouteTargetRangeRepository
+        {
+            get
+            {
+                if (this.routeTargetRangeRepository == null)
+                {
+                    this.routeTargetRangeRepository = new GenericRepository<RouteTargetRange>(context);
+                }
+                return routeTargetRangeRepository;
+            }
+        }
+
+        public GenericRepository<RouteDistinguisherRange> RouteDistinguisherRangeRepository
+        {
+            get
+            {
+                if (this.routeDistinguisherRangeRepository == null)
+                {
+                    this.routeDistinguisherRangeRepository = new GenericRepository<RouteDistinguisherRange>(context);
+                }
+                return routeDistinguisherRangeRepository;
             }
         }
 

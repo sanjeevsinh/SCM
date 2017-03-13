@@ -24,7 +24,6 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         public int? VrfID { get; set; }
         public int ContractBandwidthPoolID { get; set; }
-        public AttachmentViewModel Attachment { get; set; }
         public TenantViewModel Tenant { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }

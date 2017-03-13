@@ -13,15 +13,11 @@
 
 <h2>Delete</h2>
 
-@if (@ViewData["DeleteErrorMessage"] != null)
+@if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["DeleteErrorMessage"]</div>
+    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 }
 
-@if (@ViewData["ConcurrencyErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@ViewData["ConcurrencyErrorMessage"]</div>
-}
 
 <h3>Are you sure you want to delete this?</h3>
 <div>

@@ -34,6 +34,8 @@ namespace SCM.Data
         GenericRepository<VpnTopologyType> VpnTopologyTypeRepository { get; }
         GenericRepository<Plane> PlaneRepository { get; }
         GenericRepository<Vrf> VrfRepository { get; }
+        GenericRepository<RouteTargetRange> RouteTargetRangeRepository { get; }
+        GenericRepository<RouteDistinguisherRange> RouteDistinguisherRangeRepository { get; }
         Task<int> SaveAsync();
     }
 }

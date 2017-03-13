@@ -18,6 +18,7 @@ namespace SCM.Models
         public int AssignedNumberSubField { get; set; }
         public int DeviceID { get; set; }
         public int TenantID { get; set; }
+        public int RouteDistinguisherRangeID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Device Device { get; set; }
@@ -25,6 +26,7 @@ namespace SCM.Models
         public virtual ICollection<Interface> Interfaces { get; set; }
         public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
         public virtual ICollection<BgpPeer> BgpPeers { get; set; }
+        public virtual RouteDistinguisherRange RouteDistinguisherRange { get; set; }
 
     }
 }

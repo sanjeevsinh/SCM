@@ -20,5 +20,6 @@ namespace SCM.Models
         public virtual ContractBandwidth ContractBandwidth { get; set; }
         public virtual Tenant Tenant { get; set; }
         public virtual ICollection<Interface> Interfaces { get; set; }
+        public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

@@ -14,6 +14,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(Vrf vrf);
         Task<int> UpdateAsync(Vrf vrf);
         Task<int> DeleteAsync(Vrf vrf);
-        Task<ServiceResult> ValidateDelete(int vrfID);
+        Task<ServiceResult> ValidateDeleteAsync(int vrfID);
     }
 }

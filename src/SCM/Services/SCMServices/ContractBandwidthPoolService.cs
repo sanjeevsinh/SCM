@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SCM.Models;
+using SCM.Models.ServiceModels;
 using SCM.Data;
+using AutoMapper;
 
 namespace SCM.Services.SCMServices
 {
     public class ContractBandwidthPoolService : BaseService, IContractBandwidthPoolService
     {
-        public ContractBandwidthPoolService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public ContractBandwidthPoolService(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
         }
 
@@ -39,6 +41,27 @@ namespace SCM.Services.SCMServices
         {
             this.UnitOfWork.ContractBandwidthPoolRepository.Delete(contractBandwidthPool);
             return await this.UnitOfWork.SaveAsync();
+        }
+        public ServiceResult ValidateDelete(ContractBandwidthPool contractBandwidthPool)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+            if (contractBandwidthPool.Interfaces.Count() > 0)
+            {
+                result.Add("The contract bandwidth pool cannot be deleted because the following attachments which reference the pool are defined:");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.Interfaces.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            else if (contractBandwidthPool.InterfaceVlans.Count() > 0)
+            {
+                result.Add("The contract bandwidth pool cannot be deleted because the following vifs which reference the pool are defined:");
+                var vifs = Mapper.Map<List<Vif>>(contractBandwidthPool.InterfaceVlans.ToList());
+                result.AddRange(vifs.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            return result;
         }
     }
 }

@@ -97,7 +97,9 @@ namespace SCM.Services.SCMServices
                 includeProperties: "Vrfs,Interfaces.Port,Interfaces.InterfaceBandwidth,"
                                + "Interfaces.Vrf.BgpPeers,"
                                + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
-                               + "Interfaces.BundleInterfacePorts.Port");
+                               + "Interfaces.BundleInterfacePorts.Port,"
+                               + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
+                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)

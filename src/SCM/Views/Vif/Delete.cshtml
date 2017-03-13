@@ -7,16 +7,22 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@Model.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID">VIFs</a></li>
     <li class="breadcrumb-item active">Delete</li>
 </ol>
 
 <h2>Delete</h2>
 
+
 @if (@ViewData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (@ViewData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@ViewData["SuccessMessage"]</div>
 }
 
 <h3>Are you sure you want to delete this?</h3>
@@ -35,8 +41,9 @@
         <input type="hidden" asp-for="ID" />
         <input type="hidden" asp-for="AttachmentID" />
         <div class="form-actions no-color">
+            <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" class="btn btn-default" /> |
-            <a asp-action="GetAllByInterfaceID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
+            <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
         </div>
     </form>
 </div>

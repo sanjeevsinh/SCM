@@ -26,18 +26,20 @@ namespace SCM.Services.SCMServices
         {
 
             var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
-                "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant,Port,BundleInterfacePorts.Port",
+                "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
             return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
-
         }
 
         public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
         {
             var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.TenantID == tenant.TenantID,
                 includeProperties: "Port,Device.Location.SubRegion.Region,Device.Plane,"
-                + "Vrf,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts", AsTrackable: false);
+                + "Vrf,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
+                + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                AsTrackable: false);
 
             return Mapper.Map<List<Attachment>>(ifaces);
         }
@@ -222,9 +224,12 @@ namespace SCM.Services.SCMServices
 
             var result = new ServiceResult { IsSuccess = true };
 
-            await ValidateVrfDeleteAsync(attachment, result);
-            if (!result.IsSuccess)
+            var validateVrfDelete = await VrfService.ValidateDeleteAsync(attachment.Vrf.VrfID);
+            if (!validateVrfDelete.IsSuccess)
             {
+                result.AddRange(validateVrfDelete.GetMessageList());
+                result.IsSuccess = false;
+
                 return result;
             }
 
@@ -267,10 +272,10 @@ namespace SCM.Services.SCMServices
 
             if (attachment.VrfID != null)
             {
-                var vrfValidationResult = await VrfService.ValidateDelete(attachment.VrfID.Value);
+                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
                 if (!vrfValidationResult.IsSuccess)
                 {
-                    syncResult.Add(vrfValidationResult.GetMessage());
+                    syncResult.AddRange(vrfValidationResult.GetMessageList());
 
                     return syncResult;
                 }
@@ -358,6 +363,8 @@ namespace SCM.Services.SCMServices
                     result.Add($"The requested bandwidth ({request.Bandwidth.BandwidthGbps} Gbps) is not supported by a bundle attachment. "
                         + "Uncheck the bundle option to request this bandwidth.");
                     result.IsSuccess = false;
+
+                    return result;
                 }
             }
             else
@@ -368,6 +375,8 @@ namespace SCM.Services.SCMServices
                        + "Check the bundle or multi-port option to request this bandwidth.");
 
                     result.IsSuccess = false;
+
+                    return result;
                 }
             }
 
@@ -382,6 +391,7 @@ namespace SCM.Services.SCMServices
                 {
                     result.Add("The requested contract bandwidth pool was not found.");
                     result.IsSuccess = false;
+
                     return result;
                 }
 
@@ -400,6 +410,28 @@ namespace SCM.Services.SCMServices
                     }
 
                     result.IsSuccess = false;
+
+                    return result;
+                }
+
+                if (contractBandwidthPool.InterfaceVlans.Count > 0)
+                {
+                    var ifaceVlan = contractBandwidthPool.InterfaceVlans.Single();
+                    if (ifaceVlan.Interface.IsBundle)
+                    {
+                        result.Add($"The selected contract bandwidth pool is in-use for vif {ifaceVlan.Interface.BundleID}.{ifaceVlan.VlanTag}. "
+                            + "Select another contract bandwidth pool.");
+                    }
+                    else
+                    {
+                        result.Add($"The selected contract bandwidth pool is in-use for attachment "
+                            + $"{ifaceVlan.Interface.Port.Type}{ifaceVlan.Interface.Port.Name}.{ifaceVlan.VlanTag}. "
+                            + "Select another contract bandwidth pool.");
+                    }
+
+                    result.IsSuccess = false;
+
+                    return result;
                 }
             }
 
@@ -551,11 +583,11 @@ namespace SCM.Services.SCMServices
             var bundleIface = Mapper.Map<Interface>(request);
             var port = ports.First();
             bundleIface.DeviceID = port.Device.ID;
-            var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID.Value);
+            var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID).Where(q => q != null );
 
             // Find the first un-used bundle ID in the range 1, 65535 (this is the Cisco IOS-XR allowable range for bundle IDs).
 
-            bundleIface.BundleID = Enumerable.Range(1, 65535).Except(usedBundleIDs).First();
+            bundleIface.BundleID = Enumerable.Range(1, 65535).Except(usedBundleIDs.Select(q => q.Value)).First();
 
             // Need to implement Transaction Scope here when available in dotnet core
 
@@ -590,28 +622,6 @@ namespace SCM.Services.SCMServices
                    + "Please try again, and contact your system admin if the problem persists.");
 
                 result.IsSuccess = false;
-            }
-        }
-
-        /// <summary>
-        /// Check for VPN attachment sets - if a VRF for the attachment exists, which 
-        /// is to be deleted, and one or more VPNs are bound to the  VRF, 
-        /// the VRF cannot be deleted.
-        /// </summary>
-        /// <param name="attachment"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        private async Task ValidateVrfDeleteAsync(Attachment attachment, ServiceResult result)
-        {
-   
-            if (attachment.VrfID != null)
-            {
-                var vrfValidationResult = await VrfService.ValidateDelete(attachment.VrfID.Value);
-                if (!vrfValidationResult.IsSuccess)
-                {
-                    result.Add(vrfValidationResult.GetMessage());
-                    result.IsSuccess = false;
-                }
             }
         }
 

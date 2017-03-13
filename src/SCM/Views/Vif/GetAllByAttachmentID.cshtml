@@ -50,11 +50,16 @@
                 <td>
                     @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |
                     @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
+                    @if (item.IsLayer3)
+                    {
+                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { ID = item.Vrf.VrfID,
+                                      tenantID = item.TenantID, attachmentID = item.AttachmentID, vifID = item.ID })
+                    }
                 </td>
             </tr>
         }
     </tbody>
 </table>
 <div>
-    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+    <a asp-controller="Attachment" asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Attachment.TenantID">Back to Attachments</a>
 </div>

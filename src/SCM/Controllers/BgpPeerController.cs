@@ -69,7 +69,8 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
+        public async Task<IActionResult> Create([FromQuery]int? attachmentID, [FromQuery]int? vifID, 
+            [Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
         {
             try
             {
@@ -77,7 +78,14 @@ namespace SCM.Controllers
                 {
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                    if (vifID != null)
+                    {
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
+                    }
+                    else
+                    {
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -113,7 +121,8 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("BgpPeerID,VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled,RowVersion")] BgpPeerViewModel bgpPeer)
+        public async Task<ActionResult> Edit([FromQuery]int? attachmentID, [FromQuery]int? vifID, int id, 
+            [Bind("BgpPeerID,VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled,RowVersion")] BgpPeerViewModel bgpPeer)
         {
             if (id != bgpPeer.BgpPeerID)
             {
@@ -136,7 +145,14 @@ namespace SCM.Controllers
                     {
                         await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                        if (vifID != null) 
+                        {
+                            return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
+                        }
+                        else
+                        {
+                            return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                        }
                     }
                 }
             }
@@ -174,7 +190,7 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, int? vifID, int? attachmentID, bool? concurrencyError = false)
         {
             if (id == null)
             {
@@ -186,7 +202,14 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                    if (vifID != null)
+                    {
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
+                    }
+                    else
+                    {
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                    }
                 }
 
                 return NotFound();
@@ -208,7 +231,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(BgpPeerViewModel bgpPeer)
+        public async Task<IActionResult> Delete([FromQuery]int? attachmentID, [FromQuery]int? vifID, BgpPeerViewModel bgpPeer)
         {
             try
             {
@@ -220,13 +243,20 @@ namespace SCM.Controllers
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
 
-                return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                if (vifID != null)
+                {
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
+                }
+                else
+                {
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
+                }
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = bgpPeer.BgpPeerID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = bgpPeer.BgpPeerID, attachmentID = attachmentID, vifID = vifID });
             }
         }
 

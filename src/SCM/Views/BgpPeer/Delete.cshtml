@@ -8,6 +8,10 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
+    @if (!string.IsNullOrEmpty(Context.Request.Query["vifID"]))
+    {
+        <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@Context.Request.Query["attachmentID"]">VIFs</a></li>
+    }
     <li class="breadcrumb-item"><a href="/BgpPeer/GetAllByVrfID/@ViewBag.Vrf.VrfID">BGP Peers</a></li>
     <li class="breadcrumb-item active">Delete</li>
 </ol>
@@ -60,8 +64,21 @@
         <input type="hidden" asp-for="BgpPeerID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">          
-            <input type="submit" value="Delete" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> <span>|</span>
-            <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Back to BGP Peers List</a>
+            <input type="submit" value="Delete" asp-route-tenantID = "@Context.Request.Query["tenantID"]" 
+                   asp-route-attachmentID = "@Context.Request.Query["attachmentID"]" 
+                   asp-route-vifID = "@Context.Request.Query["vifID"]" class="btn btn-default" /> <span>|</span>
+
+            @if (!string.IsNullOrEmpty(Context.Request.Query["vifID"]))
+            {
+                <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@Model.VrfID"
+                   asp-route-tenantID="@Context.Request.Query["tenantID"]"
+                   asp-route-attachmentID="@Context.Request.Query["attachmentID"]"
+                   asp-route-vifID="@Context.Request.Query["vifID"]">Back to BGP Peers List</a>
+            }
+            else
+            {
+                <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@Model.VrfID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to BGP Peers List</a>
+            }
         </div>
     </form>
 </div>

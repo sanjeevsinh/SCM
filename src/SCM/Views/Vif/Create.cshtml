@@ -12,11 +12,10 @@
     <li class="breadcrumb-item active">Create</li>
 </ol>
 
-<h2>Create</h2>
+<h2>Create VIF for Attachment '@ViewBag.Attachment.Name'</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>Vlan</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.ID" />
@@ -30,19 +29,19 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="VlanTag" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="VlanTag" class="form-control" />
-                <span asp-validation-for="VlanTag" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
                     <option value="">Select Contract Bandwidth Pool</option>
                 </select>
                 <span asp-validation-for="ContractBandwidthPoolID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="VlanTag" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="VlanTag" class="form-control" />
+                <span asp-validation-for="VlanTag" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
@@ -101,4 +100,72 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+   
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $isLayer3 = $('#IsLayer3'),
+            isLayer3 = $isLayer3[0],
+            $ipAddress = $('#IpAddress'),
+            ipAddress = $ipAddress[0],
+            $subnetMask = $('#SubnetMask'),
+            subnetMask = $subnetMask[0],
+            $vrfName = $('#VrfName'),
+            vrfName = $vrfName[0],
+            $vrfAdminSubField = $('#VrfAdministratorSubField'),
+            vrfAdminSubField = $vrfAdminSubField[0],
+            $vrfAssignedNumberSubField = $('#VrfAssignedNumberSubField'),
+            vrfAssignedNumberSubField = $vrfAssignedNumberSubField[0],
+            $contractBandwidthPool = $('#ContractBandwidthPoolID'),
+            contractBandwidthPool = $contractBandwidthPool[0],
+            $tenant = $('#TenantID'),
+            tenant = $tenant[0];
+
+            if (!isLayer3.checked) {
+
+                ipAddress.disabled = true;
+                subnetMask.disabled = true;
+                vrfName.disabled = true;
+                vrfAdminSubField.disabled = true;
+                vrfAssignedNumberSubField.disabled = true;
+            }
+
+            $isLayer3.on('click', function (e) {
+
+                var isLayer3Checked = this.checked;
+                ipAddress.disabled = !isLayer3Checked;
+                subnetMask.disabled = !isLayer3Checked;
+                vrfName.disabled = !isLayer3Checked;
+                vrfAdminSubField.disabled = !isLayer3Checked;
+                vrfAssignedNumberSubField.disabled = !isLayer3Checked;
+
+                if (isLayer3Checked) {
+
+                    contractBandwidthPool.disabled = false;
+                    isTagged.checked = false;
+                }
+                else
+                {
+                    ipAddress.value = null;
+                    subnetMask.value = null;
+                    vrfName.value = null;
+                    vrfAdminSubField.value = null;
+                    vrfAssignedNumberSubField.value = null;
+                }
+            });
+
+            $tenant.on('change', function (e) {
+
+                var tenantID = this.value;
+
+                $.get("/Vif/ContractBandwidthPools", { id: tenantID })
+                .done(function (data) {
+                    $contractBandwidthPool.html(data);
+                });
+            });
+
+        }(jQuery));
+
+    </script>
 }

@@ -47,6 +47,10 @@ namespace SCM.Services.SCMServices
         {
             Messages.Add(message);
         }
+        public void AddRange(IEnumerable<string> messages)
+        {
+            Messages.AddRange(messages);
+        }
 
         public NetworkHttpResponse NetworkHttpResponse { get; set; }
     }
