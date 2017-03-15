@@ -11,6 +11,7 @@ namespace SCM.Models
         public int VpnAttachmentSetID { get; set; }
         public int AttachmentSetID { get; set; }
         public int VpnID { get; set; }
+        public bool? IsHub { get; set; }
         public virtual AttachmentSet AttachmentSet { get; set; }
         public virtual Vpn Vpn { get; set; }
         [Timestamp]

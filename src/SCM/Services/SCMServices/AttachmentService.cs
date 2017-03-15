@@ -382,9 +382,8 @@ namespace SCM.Services.SCMServices
 
             if (!request.IsTagged)
             {
-
                 var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                    q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "Interfaces.Port");
+                    q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "Interfaces.Port,InterfaceVlans.Interface.Port");
 
                 var contractBandwidthPool = dbResult.SingleOrDefault();
                 if (contractBandwidthPool == null)
@@ -547,15 +546,23 @@ namespace SCM.Services.SCMServices
                 UnitOfWork.PortRepository.Update(port);
                 if (vrf != null)
                 {
-                    UnitOfWork.VrfRepository.Insert(vrf);
-                    await this.UnitOfWork.SaveAsync();
+                    var vrfResult = await VrfService.AddAsync(vrf);
+                    if (!vrfResult.IsSuccess)
+                    {
+                        result.AddRange(vrfResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return;
+                    }
+        
                     iface.VrfID = vrf.VrfID;
                 }
+
                 UnitOfWork.InterfaceRepository.Insert(iface);
                 await this.UnitOfWork.SaveAsync();
             }
 
-            catch (Exception /** ex **/)
+            catch (DbUpdateException /** ex **/)
             {
                 // Add logging for the exception here
                 result.Add("Something went wrong during the database update. The issue has been logged."
@@ -595,8 +602,15 @@ namespace SCM.Services.SCMServices
             {
                 if (vrf != null)
                 {
-                    UnitOfWork.VrfRepository.Insert(vrf);
-                    await this.UnitOfWork.SaveAsync();
+                    var vrfResult = await VrfService.AddAsync(vrf);
+                    if (!vrfResult.IsSuccess)
+                    {
+                        result.AddRange(vrfResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return;
+                    }
+
                     bundleIface.VrfID = vrf.VrfID;
                 }
 
@@ -615,7 +629,7 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.SaveAsync();
             }
 
-            catch (Exception /** ex **/)
+            catch (DbUpdateException /** ex **/)
             {
                 // Add logging for the exception here
                 result.Add("Something went wrong during the database update. The issue has been logged."
@@ -642,7 +656,8 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.InterfaceRepository.DeleteAsync(attachment.ID);
                 if (attachment.VrfID != null)
                 {
-                    await UnitOfWork.VrfRepository.DeleteAsync(attachment.VrfID);
+                    var vrf = await VrfService.GetByIDAsync(attachment.VrfID.Value);
+                    await VrfService.DeleteAsync(vrf);
                 }
 
                 await UnitOfWork.SaveAsync();
@@ -685,7 +700,8 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.InterfaceRepository.DeleteAsync(attachment.ID);
                 if (attachment.VrfID != null)
                 {
-                    await UnitOfWork.VrfRepository.DeleteAsync(attachment.VrfID);
+                    var vrf = await VrfService.GetByIDAsync(attachment.VrfID.Value);
+                    await VrfService.DeleteAsync(vrf);
                 }
 
                 await UnitOfWork.SaveAsync();

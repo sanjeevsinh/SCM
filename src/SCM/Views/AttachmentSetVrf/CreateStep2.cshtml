@@ -16,15 +16,14 @@
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>VRF</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="AttachmentSetID" value="@ViewBag.AttachmentSet.AttachmentSetID" />
-        <input type="hidden" name="TenantID" value="@ViewBag.AttachmentSelection.TenantID" />
-        <input type="hidden" name="PlaneID" value="@ViewBag.AttachmentSelection.PlaneID" />
-        <input type="hidden" name="LocationID" value="@ViewBag.AttachmentSelection.LocationID" />
+        <input type="hidden" name="TenantID" value="@ViewBag.AttachmentSetVrfRequest.TenantID" />
+        <input type="hidden" name="PlaneID" value="@ViewBag.AttachmentSetVrfRequest.PlaneID" />
+        <input type="hidden" name="LocationID" value="@ViewBag.AttachmentSetVrfRequest.LocationID" />
         <div class="form-group">
-            <label asp-for="Attachment.Vrf" class="col-md-2 control-label"></label>
+            <label asp-for="Vrf" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="VrfID" class="form-control" asp-items="ViewBag.VrfID">
                     <option value="">-- Select a VRF --</option>
@@ -41,7 +40,7 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" />
+                <input type="submit" value="Create" asp-action="Create" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" />
             </div>
         </div>
     </div>

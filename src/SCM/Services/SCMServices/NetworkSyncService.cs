@@ -165,6 +165,12 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Recursively sorts the children of an XML element
+        /// using the child element name and value as sort parameters.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
         private static XElement Sort(XElement element)
         {
             XElement newElement = new XElement(element.Name,

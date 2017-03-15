@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170315214504_Update6")]
+    partial class Update6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -342,6 +343,8 @@ namespace SCM.Migrations
 
                     b.Property<int?>("VlanTagRangeID");
 
+                    b.Property<int?>("VlanTagRangeID1");
+
                     b.Property<int?>("VrfID");
 
                     b.HasKey("InterfaceVlanID");
@@ -351,6 +354,8 @@ namespace SCM.Migrations
                     b.HasIndex("TenantID");
 
                     b.HasIndex("VlanTagRangeID");
+
+                    b.HasIndex("VlanTagRangeID1");
 
                     b.HasIndex("VrfID");
 
@@ -1085,8 +1090,12 @@ namespace SCM.Migrations
                         .HasForeignKey("TenantID");
 
                     b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
-                        .WithMany("InterfaceVlans")
+                        .WithMany()
                         .HasForeignKey("VlanTagRangeID");
+
+                    b.HasOne("SCM.Models.VlanTagRange")
+                        .WithMany("InterfaceVlans")
+                        .HasForeignKey("VlanTagRangeID1");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("InterfaceVlans")

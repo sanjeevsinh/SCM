@@ -29,13 +29,11 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.InterfaceBandwidthID, conf => conf.MapFrom(src => src.BandwidthID))
                 .ForMember(dest => dest.IsBundle, conf => conf.MapFrom(src => src.BundleRequired));
 
-            CreateMap<AttachmentRequest, Vrf>()
-                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.VrfAdministratorSubField))
-                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.VrfAssignedNumberSubField))
-                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.VrfName));
+            CreateMap<AttachmentRequest, Vrf>();
 
             CreateMap<VifRequest, InterfaceVlan>()
-                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.AttachmentID));
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.AttachmentID))
+                .ForMember(dest => dest.VlanTag, conf => conf.MapFrom(src => src.AllocatedVlanTag));
 
             CreateMap<InterfaceVlan, Vif>()
                 .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.InterfaceVlanID))
@@ -44,10 +42,7 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.InterfaceID));
 
-            CreateMap<VifRequest, Vrf>()
-                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.VrfAdministratorSubField))
-                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.VrfAssignedNumberSubField))
-                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.VrfName));
+            CreateMap<VifRequest, Vrf>();
         }
 
         public class AttachmentNameResolver : IValueResolver<Interface, Attachment, string>

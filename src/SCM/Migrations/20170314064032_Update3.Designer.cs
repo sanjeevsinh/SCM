@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170314064032_Update3")]
+    partial class Update3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -340,8 +341,6 @@ namespace SCM.Migrations
 
                     b.Property<int>("VlanTag");
 
-                    b.Property<int?>("VlanTagRangeID");
-
                     b.Property<int?>("VrfID");
 
                     b.HasKey("InterfaceVlanID");
@@ -349,8 +348,6 @@ namespace SCM.Migrations
                     b.HasIndex("ContractBandwidthPoolID");
 
                     b.HasIndex("TenantID");
-
-                    b.HasIndex("VlanTagRangeID");
 
                     b.HasIndex("VrfID");
 
@@ -705,27 +702,6 @@ namespace SCM.Migrations
                     b.ToTable("TenantNetwork");
                 });
 
-            modelBuilder.Entity("SCM.Models.VlanTagRange", b =>
-                {
-                    b.Property<int>("VlanTagRangeID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name")
-                        .IsRequired();
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<int>("VlanTagRangeCount");
-
-                    b.Property<int>("VlanTagRangeStart");
-
-                    b.HasKey("VlanTagRangeID");
-
-                    b.ToTable("VlanTagRange");
-                });
-
             modelBuilder.Entity("SCM.Models.Vpn", b =>
                 {
                     b.Property<int>("VpnID")
@@ -786,8 +762,6 @@ namespace SCM.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<int>("AttachmentSetID");
-
-                    b.Property<bool?>("IsHub");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -1083,10 +1057,6 @@ namespace SCM.Migrations
                     b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantID");
-
-                    b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
-                        .WithMany("InterfaceVlans")
-                        .HasForeignKey("VlanTagRangeID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("InterfaceVlans")

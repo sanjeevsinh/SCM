@@ -35,6 +35,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string PeerIpv4Address { get; set; }
         [XmlElement(ElementName = "peer-autonomous-system")]
         public int PeerAutonomousSystem { get; set; }
+        [XmlElement(ElementName = "is-bfd-enabled")]
+        public bool IsBfdEnabled { get; set; }
     }
 
     public class UntaggedAttachmentInterfaceNetModel

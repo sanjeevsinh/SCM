@@ -92,27 +92,6 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="VrfName" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="VrfName" class="form-control" />
-                <span asp-validation-for="VrfName" class="text-danger" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="VrfAdministratorSubField" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="VrfAdministratorSubField" class="form-control" />
-                <span asp-validation-for="VrfAdministratorSubField" class="text-danger" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="VrfAssignedNumberSubField" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="VrfAssignedNumberSubField" class="form-control" />
-                <span asp-validation-for="VrfAssignedNumberSubField" class="text-danger" />
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="IpAddress" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="IpAddress" class="form-control" />
@@ -159,12 +138,6 @@
             subnetMask = $subnetMask[0],
             $isTagged = $('#IsTagged'),
             isTagged = $isTagged[0],
-            $vrfName = $('#VrfName'),
-            vrfName = $vrfName[0],
-            $vrfAdminSubField = $('#VrfAdministratorSubField'),
-            vrfAdminSubField = $vrfAdminSubField[0],
-            $vrfAssignedNumberSubField = $('#VrfAssignedNumberSubField'),
-            vrfAssignedNumberSubField = $vrfAssignedNumberSubField[0],
             $contractBandwidthPool = $('#ContractBandwidthPoolID'),
             contractBandwidthPool = $contractBandwidthPool[0];
 
@@ -178,9 +151,6 @@
 
                 ipAddress.disabled = true;
                 subnetMask.disabled = true;
-                vrfName.disabled = true;
-                vrfAdminSubField.disabled = true;
-                vrfAssignedNumberSubField.disabled = true;
             }
 
             if (isTagged.checked) {
@@ -228,9 +198,6 @@
                 var isLayer3Checked = this.checked;
                 ipAddress.disabled = !isLayer3Checked;
                 subnetMask.disabled = !isLayer3Checked;
-                vrfName.disabled = !isLayer3Checked;
-                vrfAdminSubField.disabled = !isLayer3Checked;
-                vrfAssignedNumberSubField.disabled = !isLayer3Checked;
 
                 if (isLayer3Checked) {
 
@@ -241,9 +208,6 @@
                 {
                     ipAddress.value = null;
                     subnetMask.value = null;
-                    vrfName.value = null;
-                    vrfAdminSubField.value = null;
-                    vrfAssignedNumberSubField.value = null;
                 }
             });
 
@@ -254,14 +218,8 @@
                     isLayer3.checked = false;
                     ipAddress.value = null;
                     subnetMask.value = null;
-                    vrfName.value = null;
-                    vrfAdminSubField.value = null;
-                    vrfAssignedNumberSubField.value = null;
                     ipAddress.disabled = true;
                     subnetMask.disabled = true;
-                    vrfName.disabled = true;
-                    vrfAdminSubField.disabled = true;
-                    vrfAssignedNumberSubField.disabled = true;
                     contractBandwidthPool.selectedIndex = 0;
                     contractBandwidthPool.disabled = true;
                 }

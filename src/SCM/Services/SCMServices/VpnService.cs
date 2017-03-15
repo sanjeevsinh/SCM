@@ -26,10 +26,80 @@ namespace SCM.Services.SCMServices
             return await UnitOfWork.VpnRepository.GetByIDAsync(key);
         }
 
-        public async Task<int> AddAsync(Vpn vpn)
+        public async Task<ServiceResult> AddAsync(Vpn vpn)
         {
-            this.UnitOfWork.VpnRepository.Insert(vpn);
-            return await this.UnitOfWork.SaveAsync();
+
+            var result = new ServiceResult { IsSuccess = true };
+            var vpnTopologyType = await UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
+            var dbResult = await UnitOfWork.RouteTargetRangeRepository.GetAsync(q => q.Name == "Default");
+            var rtRange = dbResult.SingleOrDefault();
+
+            if (rtRange == null)
+            {
+                result.Add("The default route target range was not found.");
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            var rtAssignedNumbers = await FindRouteTargetAssignedNumbersAsync(vpn, vpnTopologyType.TopologyType, rtRange, result);
+
+            if (result.IsSuccess == false)
+            {
+                return result;
+            }
+
+            try
+            {
+                // Implement transactionScope here when available in dotnet core
+
+                this.UnitOfWork.VpnRepository.Insert(vpn);
+
+                // Save in order to generat a new vpn ID
+
+                await this.UnitOfWork.SaveAsync();
+
+                if (vpnTopologyType.TopologyType == "Any-to-Any")
+                {
+                    var rt = new RouteTarget
+                    {
+                        AdministratorSubField = rtRange.AdministratorSubField,
+                        AssignedNumberSubField = rtAssignedNumbers.First(),
+                        RouteTargetRangeID = rtRange.RouteTargetRangeID,
+                        VpnID = vpn.VpnID
+                    };
+
+                    this.UnitOfWork.RouteTargetRepository.Insert(rt);
+                }
+
+                else if (vpnTopologyType.TopologyType == "Hub-and-Spoke")
+                {
+                    for (int i = 0; i <= 1; i++) {
+                        var rt = new RouteTarget
+                        {
+                            AdministratorSubField = rtRange.AdministratorSubField,
+                            AssignedNumberSubField = rtAssignedNumbers.ToList()[i],
+                            RouteTargetRangeID = rtRange.RouteTargetRangeID,
+                            VpnID = vpn.VpnID,
+                            IsHubExport = (i == 1)
+                        };
+
+                        this.UnitOfWork.RouteTargetRepository.Insert(rt);
+                    }
+                }
+
+                await this.UnitOfWork.SaveAsync();
+            }
+            
+            catch
+            {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the database update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+                result.IsSuccess = false;
+            }
+
+            return result;
         }
 
         public async Task<int> UpdateAsync(Vpn vpn)
@@ -273,6 +343,50 @@ namespace SCM.Services.SCMServices
             }
 
             return validationResult;
+        }
+
+        /// <summary>
+        /// Allocate route targets for a new VPN
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private async Task<IEnumerable<int>> FindRouteTargetAssignedNumbersAsync(Vpn vpn, string topologyType, RouteTargetRange rtRange, ServiceResult result)
+        {
+
+            var usedRTs = await UnitOfWork.RouteTargetRepository.GetAsync(q => q.RouteTargetRangeID == rtRange.RouteTargetRangeID);
+
+            // Allocate new unused RTs from the RT range
+
+            IEnumerable<int> rtAssignedNumbers = null;
+
+            if (topologyType == "Any-to-Any")
+            {
+                rtAssignedNumbers = Enumerable.Range(rtRange.AssignedNumberSubFieldStart, rtRange.AssignedNumberSubFieldCount)
+                    .Except(usedRTs.Select(q => q.AssignedNumberSubField)).Take(1);
+
+                if (rtAssignedNumbers.Count() != 1)
+                {
+                    result.Add("Failed to allocate a free route target. Please contact your administrator, or try another range.");
+                    result.IsSuccess = false;
+
+                    return Enumerable.Empty<int>();
+                }
+            }
+            else if (topologyType == "Hub-and-Spoke")
+            {
+                rtAssignedNumbers = Enumerable.Range(rtRange.AssignedNumberSubFieldStart, rtRange.AssignedNumberSubFieldCount)
+                    .Except(usedRTs.Select(q => q.AssignedNumberSubField)).Take(2);
+
+                if (rtAssignedNumbers.Count() != 2)
+                {
+                    result.Add("Failed to allocate two free route targets. Please contact your administrator, or try another range.");
+                    result.IsSuccess = false;
+
+                    return Enumerable.Empty<int>();
+                }
+            }
+
+            return rtAssignedNumbers;
         }
     }
 }

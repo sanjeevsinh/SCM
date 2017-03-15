@@ -28,6 +28,16 @@
                 <span asp-validation-for="AttachmentSetID" class="text-danger"></span>
             </div>
         </div>
+        @if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
+        {
+        <div class="form-group">
+            <label asp-for="IsHub" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsHub" class="form-control" />
+                <span asp-validation-for="IsHub" class="text-danger"></span>
+            </div>
+        </div>
+        }
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />

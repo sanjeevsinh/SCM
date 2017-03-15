@@ -36,6 +36,7 @@ namespace SCM.Data
         GenericRepository<Vrf> VrfRepository { get; }
         GenericRepository<RouteTargetRange> RouteTargetRangeRepository { get; }
         GenericRepository<RouteDistinguisherRange> RouteDistinguisherRangeRepository { get; }
+        GenericRepository<VlanTagRange> VlanTagRangeRepository { get; }
         Task<int> SaveAsync();
     }
 }

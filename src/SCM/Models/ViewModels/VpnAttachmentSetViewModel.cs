@@ -14,6 +14,8 @@ namespace SCM.Models.ViewModels
         public int AttachmentSetID { get; set; }
         [Required(ErrorMessage = "A VPN must be selected.")]
         public int VpnID { get; set; }
+        [Display(Name = "Hub VRF")]
+        public bool IsHub { get; set; }
         [Display(Name = "Attachment Set")]
         public AttachmentSetViewModel AttachmentSet { get; set; }
         [Display(Name = "VPN")]

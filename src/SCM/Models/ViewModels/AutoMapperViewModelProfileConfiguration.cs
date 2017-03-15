@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using SCM.Models.ServiceModels;
 using System.Linq;
+using System;
 
 namespace SCM.Models.ViewModels
 {
@@ -30,9 +31,8 @@ namespace SCM.Models.ViewModels
             CreateMap<ContractBandwidth, ContractBandwidthViewModel>().ReverseMap();
             CreateMap<ContractBandwidthPool, ContractBandwidthPoolViewModel>().ReverseMap();
             CreateMap<AttachmentRedundancy, AttachmentRedundancyViewModel>().ReverseMap();
-            CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>()
-                .ForMember(dest => dest.Attachment, conf => conf.ResolveUsing(new AttachmentSetVrfTypeResolver()))
-                .ReverseMap();
+            CreateMap<AttachmentSetVrf, AttachmentSetVrfViewModel>().ConvertUsing(new AttachmentSetVrfTypeConverter());
+            CreateMap<AttachmentSetVrfViewModel, AttachmentSetVrf>();
             CreateMap<VpnAttachmentSet, VpnAttachmentSetViewModel>().ReverseMap();
             CreateMap<BgpPeer, BgpPeerViewModel>().ReverseMap();
             CreateMap<TenantNetwork, TenantNetworkViewModel>().ReverseMap();
@@ -45,21 +45,46 @@ namespace SCM.Models.ViewModels
             CreateMap<VifRequestViewModel, VifRequest>();
         }
 
-        public class AttachmentSetVrfTypeResolver : IValueResolver<AttachmentSetVrf, AttachmentSetVrfViewModel, AttachmentViewModel>
+        public class AttachmentSetVrfTypeConverter : ITypeConverter<AttachmentSetVrf, AttachmentSetVrfViewModel>
         {
-            public AttachmentViewModel Resolve(AttachmentSetVrf source, AttachmentSetVrfViewModel destination, AttachmentViewModel destMember, ResolutionContext context)
+            public AttachmentSetVrfViewModel Convert(AttachmentSetVrf source, AttachmentSetVrfViewModel destination, ResolutionContext context)
             {
                 var mapper = context.Mapper;
+                var result = new AttachmentSetVrfViewModel();
                 var vrf = source.Vrf;
 
                 if (vrf.Interfaces.Count == 1)
                 {
                     var attachment = mapper.Map<Attachment>(vrf.Interfaces.Single());
-                    return mapper.Map<AttachmentViewModel>(attachment);
+                    result.AttachmentOrVifName = attachment.Name;
+                    result.ContractBandwidthPoolName = attachment.ContractBandwidthPool.Name;
+                    result.DeviceName = attachment.Device.Name;
+                    result.RegionName = attachment.Location.SubRegion.Region.Name;
+                    result.SubRegionName = attachment.Location.SubRegion.Name;
+                    result.PlaneName = attachment.Device.Plane.Name;
+                    result.LocationSiteName = attachment.Location.SiteName;
+                }
+                else if (vrf.InterfaceVlans.Count == 1)
+                {
+                    var vif = mapper.Map<Vif>(vrf.InterfaceVlans.Single());
+                    result.AttachmentOrVifName = vif.Name;
+                    result.ContractBandwidthPoolName = vif.ContractBandwidthPool.Name;
+                    result.DeviceName = vrf.Device.Name;
+                    result.RegionName = vrf.Device.Location.SubRegion.Region.Name;
+                    result.SubRegionName = vrf.Device.Location.SubRegion.Name;
+                    result.PlaneName = vrf.Device.Plane.Name;
+                    result.LocationSiteName = vrf.Device.Location.SiteName;
                 }
 
-                return null;
-            }
+                result.AttachmentSet = mapper.Map<AttachmentSetViewModel>(source.AttachmentSet);
+                result.AttachmentSetID = source.AttachmentSetID;
+                result.AttachmentSetVrfID = source.AttachmentSetVrfID;
+                result.Preference = source.Preference;
+                result.Vrf = mapper.Map<VrfViewModel>(source.Vrf);
+                result.VrfID = source.VrfID;
+
+                return result;
+            }    
         }
     }
 }

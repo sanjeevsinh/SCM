@@ -13,7 +13,7 @@ namespace SCM.Services.SCMServices
 
         Task<IEnumerable<Vpn>> GetAllAsync();
         Task<Vpn> GetByIDAsync(int id);
-        Task<int> AddAsync(Vpn vpn);
+        Task<ServiceResult> AddAsync(Vpn vpn);
         Task<int> UpdateAsync(Vpn vpn);
         Task<ServiceResult> DeleteAsync(Vpn vpn);
         Task<ServiceResult> ValidateCreateVpnAsync(Vpn vpn);

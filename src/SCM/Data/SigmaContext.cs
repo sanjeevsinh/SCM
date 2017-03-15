@@ -40,6 +40,7 @@ namespace SCM.Data
         public DbSet<Plane> Planes { get; set; }
         public DbSet<RouteTargetRange> RouteTargetRanges { get; set; }
         public DbSet<RouteDistinguisherRange> RouteDistinguisherRanges { get; set; }
+        public DbSet<VlanTagRange> VlanTagRanges { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -76,7 +77,7 @@ namespace SCM.Data
             builder.Entity<Vrf>().ToTable("Vrf");
             builder.Entity<RouteTargetRange>().ToTable("RouteTargetRange");
             builder.Entity<RouteDistinguisherRange>().ToTable("RouteDistinguisherRange");
-
+            builder.Entity<VlanTagRange>().ToTable("VlanTagRange");
 
             // Prevent cascade deletes
 

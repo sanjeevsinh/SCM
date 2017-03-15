@@ -9,10 +9,10 @@ namespace SCM.Models.ServiceModels
 {
     public class VifRequest
     {
-        public int VlanTag { get; set; }
-        public string VrfName { get; set; }
-        public int? VrfAdministratorSubField { get; set; }
-        public int? VrfAssignedNumberSubField { get; set; }
+        public bool AutoAllocateVlanTag { get; set; }
+        public int? RequestedVlanTag { get; set; }
+        public int? AllocatedVlanTag { get; set; }
+        public int VlanTagRangeID { get; set; }
         public bool IsLayer3 { get; set; }
         public string IpAddress { get; set; }
         public string SubnetMask { get; set; }

@@ -91,43 +91,34 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VrfName,VrfAdministratorSubField,VrfAssignedNumberSubField,TenantID," +
-            "IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,IsLayer3,IsTagged,BundleRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
+        public async Task<IActionResult> Create([Bind("TenantID,IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID," 
+            + "PlaneID,IsLayer3,IsTagged,BundleRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
         {
-            try
+
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                var mappedRequest = Mapper.Map<AttachmentRequest>(request);
+                var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
+                mappedRequest.Bandwidth = bandwidth;
+
+                var validationResult = await AttachmentService.ValidateAsync(mappedRequest);
+
+                if (!validationResult.IsSuccess)
                 {
-                    var mappedRequest = Mapper.Map<AttachmentRequest>(request);
-                    var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
-                    mappedRequest.Bandwidth = bandwidth;
-
-                    var validationResult = await AttachmentService.ValidateAsync(mappedRequest);
-
-                    if (!validationResult.IsSuccess)
+                    validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                }
+                else
+                {
+                    var result = await AttachmentService.AddAsync(mappedRequest);
+                    if (!result.IsSuccess)
                     {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
                     else
                     {
-                        var result = await AttachmentService.AddAsync(mappedRequest);
-                        if (!result.IsSuccess)
-                        {
-                            result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        }
-                        else
-                        {
-                            return RedirectToAction("GetAllByTenantID", new { id = request.TenantID });
-                        }
+                        return RedirectToAction("GetAllByTenantID", new { id = request.TenantID });
                     }
                 }
-            }
-            catch (DbUpdateException /** ex **/ )
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
             }
 
             await PopulateTenantItem(request.TenantID);

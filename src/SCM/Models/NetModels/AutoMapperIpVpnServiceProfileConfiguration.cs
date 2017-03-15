@@ -76,6 +76,7 @@ namespace SCM.Models.NetModels.IpVpnNetModels
                 }
 
                 result.PEs = PEs;
+                result.IsHub = source.IsHub;
                 result.TenantPrefixes = Mapper.Map<List<TenantPrefixNetModel>>(source.VpnTenantNetworks);
                 result.TenantCommunities = Mapper.Map<List<TenantCommunityNetModel>>(source.VpnTenantCommunities);
                 result.Name = source.AttachmentSet.Name;

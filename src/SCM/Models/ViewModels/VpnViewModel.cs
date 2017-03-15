@@ -11,6 +11,7 @@ namespace SCM.Models.ViewModels
         public int VpnID { get; set; }
         [Required]
         [StringLength(50)]
+        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The name must contain letters, numbers, and dashes (-) only and no whitespace.")]
         public string Name { get; set; }
         [StringLength(250)]
         public string Description { get; set; }

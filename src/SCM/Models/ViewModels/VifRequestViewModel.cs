@@ -10,19 +10,11 @@ namespace SCM.Models.ViewModels
     public class VifRequestViewModel : IValidatableObject
     {
         public int AttachmentID { get; set; }
-        [Display(Name = "Vlan Tag")]
+        [Display(Name = "Auto-Allocate Vlan Tag")]
+        public bool AutoAllocateVlanTag { get; set; }
+        [Display(Name = "Request Vlan Tag")]
         [Range(2, 4094, ErrorMessage = "The vlan tag must be a number between 2 and 4094.")]
-        public int VlanTag { get; set; }
-        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The VRF name must contain letters, numbers, and dashes (-) only and no whitespace.")]
-        [StringLength(50)]
-        [Display(Name = "VRF Name")]
-        public string VrfName { get; set; }
-        [Display(Name = "VRF Administrator Sub-Field")]
-        [Range(1, 4294967295)]
-        public int? VrfAdministratorSubField { get; set; }
-        [Display(Name = "VRF Assigned Number Sub-Field")]
-        [Range(1, 4294967295)]
-        public int? VrfAssignedNumberSubField { get; set; }
+        public int? RequestedVlanTag { get; set; }      
         [Display(Name = "Layer 3 Enabled", Description = "Check this option to request a layer 3 attachment.")]
         public bool IsLayer3 { get; set; }
         [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -36,6 +28,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A tenant must be selected")]
         public int TenantID { get; set; }
         public TenantViewModel Tenant { get; set; }
+        [Required(ErrorMessage = "A contract bandwidth pool must be selected")]
         public int? ContractBandwidthPoolID { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
@@ -55,21 +48,6 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A subnet mask must be specified for layer 3 vifs.");
                 }
-                if (string.IsNullOrEmpty(VrfName))
-                {
-                    yield return new ValidationResult(
-                        "A VRF name must be specified for layer 3 vifs.");
-                }
-                if (VrfAdministratorSubField == null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Administrator Sub-Field must be specified for layer 3 vifs");
-                }
-                if (VrfAssignedNumberSubField == null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Assigned Number Sub-Field must be specified for layer 3 vifs.");
-                }
             }
             else
             {
@@ -84,22 +62,13 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A subnet mask can only be specified for layer 3 vifs.");
                 }
-
-                if (!string.IsNullOrEmpty(VrfName))
+            }
+            if (!AutoAllocateVlanTag)
+            {
+                if (RequestedVlanTag == null)
                 {
                     yield return new ValidationResult(
-                        "A VRF name can only be specified for layer 3 vifs.");
-                }
-
-                if (VrfAdministratorSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Administrator Sub-Field can only be specified for layer 3 vifs.");
-                }
-                if (VrfAssignedNumberSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Assigned Number Sub-Field can only be specified for layer 3 vifs.");
+                        "A requested vlan tag must be specified, or select the auto-allocate vlan tag option.");
                 }
             }
         }

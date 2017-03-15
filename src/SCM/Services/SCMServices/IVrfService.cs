@@ -11,7 +11,7 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<Vrf> GetByIDAsync(int id);
-        Task<int> AddAsync(Vrf vrf);
+        Task<ServiceResult> AddAsync(Vrf vrf);
         Task<int> UpdateAsync(Vrf vrf);
         Task<int> DeleteAsync(Vrf vrf);
         Task<ServiceResult> ValidateDeleteAsync(int vrfID);

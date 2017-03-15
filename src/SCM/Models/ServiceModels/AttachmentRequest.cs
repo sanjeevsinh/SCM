@@ -9,9 +9,6 @@ namespace SCM.Models.ServiceModels
 {
     public class AttachmentRequest
     {
-        public string VrfName { get; set; }
-        public int? VrfAdministratorSubField { get; set; }
-        public int? VrfAssignedNumberSubField { get; set; }
         public bool BundleRequired { get; set; }
         public bool MultiPortRequired { get; set; }
         public bool IsLayer3 { get; set; }

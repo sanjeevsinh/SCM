@@ -10,7 +10,7 @@
     <li class="breadcrumb-item active">VPN Attachment Sets</li>
 </ol>
 
-<h2>Attachment Sets for VPN @ViewBag.Vpn.Name</h2>
+<h2>Attachment Sets for VPN '@ViewBag.Vpn.Name'</h2>
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 <p class="text-success">@ViewData["ValidationSuccessMessage"]</p>
 
@@ -40,7 +40,6 @@
                 @Html.DisplayFor(modelItem => item.AttachmentSet.Tenant.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Remove", "Delete", new { id = item.VpnAttachmentSetID }) |
                 @Html.ActionLink("Tenant Networks", "GetAllByVpnAttachmentSetID", "VpnTenantNetwork", new { id = item.VpnAttachmentSetID }) |

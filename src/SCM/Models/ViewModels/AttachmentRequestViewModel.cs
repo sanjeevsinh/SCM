@@ -9,16 +9,6 @@ namespace SCM.Models.ViewModels
 {
     public class AttachmentRequestViewModel : IValidatableObject
     {
-        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "The VRF name must contain letters, numbers, and dashes (-) only and no whitespace.")]
-        [StringLength(50)]
-        [Display(Name = "VRF Name")]
-        public string VrfName { get; set; }
-        [Display(Name = "VRF Administrator Sub-Field")]
-        [Range(1, 4294967295)]
-        public int? VrfAdministratorSubField { get; set; }
-        [Display(Name = "VRF Assigned Number Sub-Field")]
-        [Range(1, 4294967295)]
-        public int? VrfAssignedNumberSubField { get; set; }
         [Display(Name = "Layer 3 Enabled", Description = "Check this option to request a layer 3 attachment.")]
         public bool IsLayer3 { get; set; }
         [Display(Name = "Bundle Required", Description = "Check this option to request a bundle attachment.")]
@@ -74,21 +64,6 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A subnet mask cannot be specified for tagged attachments.");
                 }
-                if (!string.IsNullOrEmpty(VrfName))
-                {
-                    yield return new ValidationResult(
-                        "A VRF name cannot be specified for tagged attachments.");
-                }
-                if (VrfAdministratorSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Administrator Sub-Field cannot be specified for tagged attachments.");
-                }
-                if (VrfAssignedNumberSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Assigned Number Sub-Field cannot be specified for tagged attachments.");
-                }
                 if (ContractBandwidthPoolID != null)
                 {
                     yield return new ValidationResult(
@@ -116,21 +91,6 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A subnet mask must be specified for layer 3 attachments.");
                 }
-                if (string.IsNullOrEmpty(VrfName))
-                {
-                    yield return new ValidationResult(
-                        "A VRF name must be specified for layer 3 attachments.");
-                }
-                if (VrfAdministratorSubField == null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Administrator Sub-Field must be specified for layer 3 attachments.");
-                }
-                if (VrfAssignedNumberSubField == null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Assigned Number Sub-Field must be specified for layer 3 attachments.");
-                }
             }
             else
             {
@@ -144,23 +104,6 @@ namespace SCM.Models.ViewModels
                 {
                     yield return new ValidationResult(
                         "A subnet mask can only be specified for layer 3 attachments.");
-                }
-
-                if (!string.IsNullOrEmpty(VrfName))
-                {
-                    yield return new ValidationResult(
-                        "A VRF name can only be specified for layer 3 attachments.");
-                }
-
-                if (VrfAdministratorSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Administrator Sub-Field can only be specified for layer 3 attachments.");
-                }
-                if (VrfAssignedNumberSubField != null)
-                {
-                    yield return new ValidationResult(
-                        "A VRF Assigned Number Sub-Field can only be specified for layer 3 attachments.");
                 }
             }
         }

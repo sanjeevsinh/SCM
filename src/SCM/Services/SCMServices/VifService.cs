@@ -48,6 +48,12 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
+            await AllocateVlanTag(request, result);
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+
             var ifaceVlan = Mapper.Map<InterfaceVlan>(request);
 
             Vrf vrf = null;
@@ -62,17 +68,23 @@ namespace SCM.Services.SCMServices
             {
                 if (vrf != null)
                 {
-                    UnitOfWork.VrfRepository.Insert(vrf);
-                    await this.UnitOfWork.SaveAsync();
+                    var vrfResult = await VrfService.AddAsync(vrf);
+                    if (!vrfResult.IsSuccess)
+                    {
+                        result.AddRange(vrfResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return result;
+                    }
+
                     ifaceVlan.VrfID = vrf.VrfID;
                 }
 
                 this.UnitOfWork.InterfaceVlanRepository.Insert(ifaceVlan);
                 await this.UnitOfWork.SaveAsync();
-
             }
 
-            catch (Exception /** ex **/)
+            catch (DbUpdateException /** ex **/)
             {
                 // Add logging for the exception here
                 result.Add("Something went wrong during the database update. The issue has been logged."
@@ -323,7 +335,7 @@ namespace SCM.Services.SCMServices
                 }
                 else
                 {
-                    result.Add($"The selected contract bandwidth pool is in-use for attachment " 
+                    result.Add($"The selected contract bandwidth pool is in-use for vif " 
                         + $"{ifaceVlan.Interface.Port.Type}{ifaceVlan.Interface.Port.Name}.{ifaceVlan.VlanTag}. "
                         + "Select another contract bandwidth pool.");
                 }
@@ -333,6 +345,71 @@ namespace SCM.Services.SCMServices
             }
 
             return result;
+        }
+
+        private async Task AllocateVlanTag(VifRequest request, ServiceResult result)
+        {
+            if (request.AutoAllocateVlanTag)
+            {
+                var dbResult = await UnitOfWork.VlanTagRangeRepository.GetAsync(q => q.Name == "Default");
+                var vlanTagRange = dbResult.SingleOrDefault();
+
+                if (vlanTagRange == null)
+                {
+                    result.Add("The default vlan tag range was not found.");
+                    result.IsSuccess = false;
+
+                    return;
+                }
+
+                var currentVifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID &&
+                q.VlanTagRangeID == vlanTagRange.VlanTagRangeID);
+
+                // Allocate a new unused vlan tag from the vlan tag range
+
+                int? newVlanTag = Enumerable.Range(vlanTagRange.VlanTagRangeStart, vlanTagRange.VlanTagRangeCount)
+                    .Except(currentVifs.Select(v => v.VlanTag)).FirstOrDefault();
+
+                if (newVlanTag == null)
+                {
+                    result.Add("Failed to allocate a free vlan tag. Please contact your administrator, or try another range.");
+                    result.IsSuccess = false;
+
+                    return;
+                }
+
+                request.VlanTagRangeID = vlanTagRange.VlanTagRangeID;
+                request.AllocatedVlanTag = newVlanTag.Value;
+            }
+            else
+            {
+                if (request.RequestedVlanTag == null)
+                {
+                    result.Add("A requested vlan tag must be specified, or select the auto-allocate vlan tag option.");
+                    result.IsSuccess = false;
+
+                    return;
+                }
+
+                var interfaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID);
+                var vlanTags = interfaceVlans.Select(q => q.VlanTag);
+
+                if (vlanTags.Contains(request.RequestedVlanTag.Value))
+                {
+                    var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
+                    result.Add($"The request vlan tag is already in use for attachment '{attachment.Name}.");
+                    result.Add("Try again with a different vlan tag.");
+                    result.IsSuccess = false;
+
+                    return;
+                }
+                else
+                {
+                    request.AllocatedVlanTag = request.RequestedVlanTag.Value;
+
+                    return;
+                }
+            }
         }
     }
 }

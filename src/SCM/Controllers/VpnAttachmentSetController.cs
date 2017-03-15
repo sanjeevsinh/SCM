@@ -78,18 +78,18 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("TenantID,VpnID")] VpnAttachmentSetSelectionViewModel vpnAttachmentSetSelection)
+        public async Task<IActionResult> CreateStep2([Bind("TenantID,VpnID")] VpnAttachmentSetRequestViewModel vpnAttachmentSetRequest)
         {
-            await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
-            ViewBag.Vpn = await GetVpn(vpnAttachmentSetSelection.VpnID);
-            ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
+            await PopulateAttachmentSetsDropDownList(vpnAttachmentSetRequest);
+            ViewBag.Vpn = await GetVpn(vpnAttachmentSetRequest.VpnID);
+            ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetRequest;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentSetID,VpnID")] VpnAttachmentSetViewModel vpnAttachmentSet,
-            [Bind("VpnID,TenantID")] VpnAttachmentSetSelectionViewModel vpnAttachmentSetSelection)
+        public async Task<IActionResult> Create([Bind("AttachmentSetID,VpnID,IsHub")] VpnAttachmentSetViewModel vpnAttachmentSet,
+            [Bind("VpnID,TenantID")] VpnAttachmentSetRequestViewModel vpnAttachmentSetRequest)
         {
             try
             {
@@ -118,121 +118,10 @@ namespace SCM.Controllers
             }
 
             ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
-            ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetSelection;
-            await PopulateAttachmentSetsDropDownList(vpnAttachmentSetSelection);
+            ViewBag.VpnAttachmentSetSelection = vpnAttachmentSetRequest;
+            await PopulateAttachmentSetsDropDownList(vpnAttachmentSetRequest);
 
             return View("CreateStep2", vpnAttachmentSet);
-        }
-
-        [HttpGet]
-        public async Task<ActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value,
-                includeProperties:"AttachmentSet,Vpn");
-            var vpnAttachmentSet = dbResult.SingleOrDefault();
-
-            if (vpnAttachmentSet == null)
-            {
-                return NotFound();
-            }
-
-            await PopulateAttachmentSetsDropDownList(new VpnAttachmentSetSelectionViewModel
-            {
-                VpnID = vpnAttachmentSet.VpnID,
-                TenantID = vpnAttachmentSet.Vpn.TenantID
-            });
-
-            ViewBag.Vpn = await GetVpn(vpnAttachmentSet.VpnID);
-            return View(Mapper.Map<VpnAttachmentSetViewModel>(vpnAttachmentSet));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id,
-            [Bind("VpnAttachmentSetID,AttachmentSetID,VpnID,RowVersion")] VpnAttachmentSetViewModel vpnAttachmentSet)
-        {
-            if (id != vpnAttachmentSet.VpnAttachmentSetID)
-            {
-                return NotFound();
-            }
-
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id, 
-                includeProperties:"AttachmentSet,Vpn", AsTrackable: false);
-            var currentAttachmentSetVpn = dbResult.SingleOrDefault();
-
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    if (currentAttachmentSetVpn == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
-                    }
-                    else
-                    {
-                        var mappedVpnAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
-                        var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedVpnAttachmentSet);
-
-                        if (!validationResult.IsSuccess)
-                        {
-                            validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        }
-                        else
-                        {
-                            await VpnAttachmentSetService.UpdateAsync(mappedVpnAttachmentSet);
-                            return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
-                        }
-                    }
-                }
-            }
-
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var exceptionEntry = ex.Entries.Single();
-
-                var proposedAttachmentSetID = (int)exceptionEntry.Property("AttachmentSetID").CurrentValue;
-                if (currentAttachmentSetVpn.AttachmentSetID!= proposedAttachmentSetID)
-                {
-                    ModelState.AddModelError("AttachmentSetID", $"Current value: {currentAttachmentSetVpn.AttachmentSet.Name}");
-                }
-
-                var proposedVpnID = (int)exceptionEntry.Property("VpnID").CurrentValue;
-                if (currentAttachmentSetVpn.VpnID != proposedVpnID)
-                {
-                    ModelState.AddModelError("VpnID", $"Current value: {currentAttachmentSetVpn.Vpn.Name}");
-                }
-
-                ModelState.AddModelError(string.Empty, "The record you attempted to edit "
-                    + "was modified by another user after you got the original value. The "
-                    + "edit operation was cancelled and the current values in the database "
-                    + "have been displayed. If you still want to edit this record, click "
-                    + "the Save button again. Otherwise click the Back to List hyperlink.");
-
-                ModelState.Remove("RowVersion");
-            }
-
-            catch (DbUpdateException /* ex */)
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
-            }
-
-            var vpn = await GetVpn(vpnAttachmentSet.VpnID);
-            await PopulateAttachmentSetsDropDownList(new VpnAttachmentSetSelectionViewModel
-            {
-                TenantID = vpn.TenantID,
-                VpnID = vpnAttachmentSet.VpnID
-            });
-
-            ViewBag.Vpn = vpn;
-            return View(Mapper.Map<VpnAttachmentSetViewModel>(vpnAttachmentSet));
         }
 
         [HttpGet]
@@ -297,12 +186,12 @@ namespace SCM.Controllers
             }
         }
 
-        private async Task PopulateAttachmentSetsDropDownList(VpnAttachmentSetSelectionViewModel vpnAttachmentSetSelection, object selectedAttachmentSet = null)
+        private async Task PopulateAttachmentSetsDropDownList(VpnAttachmentSetRequestViewModel vpnAttachmentSetRequest, object selectedAttachmentSet = null)
         {
 
-            var vpn = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetByIDAsync(vpnAttachmentSetSelection.VpnID);
+            var vpn = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetByIDAsync(vpnAttachmentSetRequest.VpnID);
             var attachmentSets = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
-                        q.TenantID == vpnAttachmentSetSelection.TenantID);
+                        q.TenantID == vpnAttachmentSetRequest.TenantID);
 
             if (vpn.RegionID != null)
             {
@@ -321,6 +210,7 @@ namespace SCM.Controllers
             IEnumerable<Tenant> tenants;
 
             // Get all Tenants if the VPN is multi-tenant, other get only the tenant owner
+
             if (vpn.VpnTenancyType.TenancyType == "Multi")
             {
                 tenants = await VpnAttachmentSetService.UnitOfWork.TenantRepository.GetAsync();
@@ -335,7 +225,8 @@ namespace SCM.Controllers
 
         private async Task<Vpn> GetVpn(int vpnID)
         {
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID);
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, 
+                includeProperties:"VpnTopologyType");
 
             return dbResult.SingleOrDefault();
            

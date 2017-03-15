@@ -17,7 +17,21 @@ namespace SCM.Models.ViewModels
         public int? Preference { get; set; }
         [Display(Name = "Attachment Set")]
         public AttachmentSetViewModel AttachmentSet { get; set; }
-        public AttachmentViewModel Attachment { get; set; }
+        public VrfViewModel Vrf { get; set; }
+        [Display(Name = "Attachment/VIF Name")]
+        public string AttachmentOrVifName { get; set; }
+        [Display(Name = "Contract Bandwidth Pool")]
+        public string ContractBandwidthPoolName { get; set; }
+        [Display(Name = "Region")]
+        public string RegionName { get; set; }
+        [Display(Name = "Sub-Region")]
+        public string SubRegionName { get; set; }
+        [Display(Name = "Location")]
+        public string LocationSiteName { get; set; }
+        [Display(Name = "Device")]
+        public string DeviceName { get; set; }
+        [Display(Name = "Plane")]
+        public string PlaneName { get; set; }
         public byte[] RowVersion { get; set; }
     }
 }

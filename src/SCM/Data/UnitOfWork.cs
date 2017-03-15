@@ -39,6 +39,7 @@ namespace SCM.Data
         private GenericRepository<Vrf> vrfRepository;
         private GenericRepository<RouteTargetRange> routeTargetRangeRepository;
         private GenericRepository<RouteDistinguisherRange> routeDistinguisherRangeRepository;
+        private GenericRepository<VlanTagRange> vlanTagRangeRepository;
 
         public UnitOfWork(SigmaContext sigmaContext)
         {
@@ -411,6 +412,18 @@ namespace SCM.Data
                     this.routeDistinguisherRangeRepository = new GenericRepository<RouteDistinguisherRange>(context);
                 }
                 return routeDistinguisherRangeRepository;
+            }
+        }
+
+        public GenericRepository<VlanTagRange> VlanTagRangeRepository
+        {
+            get
+            {
+                if (this.vlanTagRangeRepository == null)
+                {
+                    this.vlanTagRangeRepository = new GenericRepository<VlanTagRange>(context);
+                }
+                return vlanTagRangeRepository;
             }
         }
 

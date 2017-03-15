@@ -4,6 +4,7 @@ using System.Linq;
 using SCM.Data;
 using SCM.Models;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SCM.Services.SCMServices
 {
@@ -21,6 +22,15 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> AddAsync(Vrf vrf)
         {
             var result = new ServiceResult { IsSuccess = true };
+
+            var tenant = await UnitOfWork.TenantRepository.GetByIDAsync(vrf.TenantID);
+            if (tenant == null)
+            {
+                result.Add("Unable to create a VRF. The tenant was not found.");
+                result.IsSuccess = false;
+
+                return result;
+            }
 
             var dbResult = await UnitOfWork.RouteDistinguisherRangeRepository.GetAsync(q => q.Name == "Default");
             var rdRange = dbResult.SingleOrDefault();
@@ -42,7 +52,7 @@ namespace SCM.Services.SCMServices
 
             if (newRdAssignedNumberSubField == null)
             {
-                result.Add("Failed to allocate a free route distinguisher. Check the range requested or try another range.");
+                result.Add("Failed to allocate a free route distinguisher. Please contact your administrator, or try another range.");
                 result.IsSuccess = false;
 
                 return result;
@@ -50,12 +60,36 @@ namespace SCM.Services.SCMServices
 
             vrf.AdministratorSubField = rdRange.AdministratorSubField;
             vrf.AssignedNumberSubField = newRdAssignedNumberSubField.Value;
-            var tenant = await UnitOfWork.TenantRepository.GetByIDAsync(vrf.TenantID);
-            vrf.Name = $"{tenant.Name}_{vrf.RouteDistinguisherRange}_{vrf.AssignedNumberSubField}";
+            vrf.RouteDistinguisherRangeID = rdRange.RouteDistinguisherRangeID;
 
-            this.UnitOfWork.VrfRepository.Insert(vrf);
+            // Temp name for VRF needed to insert into the DB.
 
-            await this.UnitOfWork.SaveAsync();
+            vrf.Name = "temp";
+
+            try
+            {
+                this.UnitOfWork.VrfRepository.Insert(vrf);
+
+                // Save to generate unique Vrf ID
+
+                await this.UnitOfWork.SaveAsync();
+
+                // Generate unique VRF name - concatenate tenant name with VRF ID
+
+                vrf.Name = $"{tenant.Name}-{vrf.VrfID}";
+                this.UnitOfWork.VrfRepository.Update(vrf);
+
+                await this.UnitOfWork.SaveAsync();
+            }
+
+            catch (DbUpdateException /** ex **/)
+            {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the database update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+
+                result.IsSuccess = false;
+            }
 
             return result;
         }

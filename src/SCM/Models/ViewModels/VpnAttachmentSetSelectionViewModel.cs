@@ -6,9 +6,9 @@ using System.Net;
 
 namespace SCM.Models.ViewModels
 {
-    public class VpnAttachmentSetSelectionViewModel
+    public class VpnAttachmentSetRequestViewModel
     {
-        [Required(ErrorMessage = "An VPN must be selected.")]
+        [Required(ErrorMessage = "A VPN must be selected.")]
         public int VpnID { get; set; }
         [Required(ErrorMessage = "A Tenant must be selected.")]
         public int TenantID { get; set; }

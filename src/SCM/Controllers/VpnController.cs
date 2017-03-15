@@ -144,32 +144,31 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,PlaneID,RegionID,VpnTenancyTypeID,VpnTopologyTypeID,TenantID,IsExtranet")] VpnViewModel vpn)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var mappedVpn = Mapper.Map<Vpn>(vpn);
-                    var validationResult = await VpnService.ValidateCreateVpnAsync(mappedVpn);
 
-                    if (!validationResult.IsSuccess)
+            if (ModelState.IsValid)
+            {
+                var mappedVpn = Mapper.Map<Vpn>(vpn);
+                var validationResult = await VpnService.ValidateCreateVpnAsync(mappedVpn);
+
+                if (!validationResult.IsSuccess)
+                {
+                    validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                }
+                else
+                {
+                    var result = await VpnService.AddAsync(mappedVpn);
+
+                    if (!result.IsSuccess)
                     {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
                     else
                     {
-                        await VpnService.AddAsync(mappedVpn);
                         return RedirectToAction("GetAll");
                     }
                 }
             }
-            catch (DbUpdateException /** ex **/ )
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
-            }
-
+            
             ViewBag.VpnProtocolType = await GetProtocolTypeByTopologyType(vpn.VpnTopologyTypeID.Value);
 
             await PopulatePlanesDropDownList(vpn.PlaneID);

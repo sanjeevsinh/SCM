@@ -90,41 +90,32 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress,IsLayer3,SubnetMask,VlanTag,VrfName,VrfAdministratorSubField,"
-            + "VrfAssignedNumberSubField,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
+        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress,IsLayer3,SubnetMask,AutoAllocateVlanTag,"
+            + "RequestedVlanTag,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var mappedRequest = Mapper.Map<VifRequest>(request);
-                    
-                    var validationResult = await VifService.ValidateAsync(mappedRequest);
 
-                    if (!validationResult.IsSuccess)
+            if (ModelState.IsValid)
+            {
+                var mappedRequest = Mapper.Map<VifRequest>(request);
+
+                var validationResult = await VifService.ValidateAsync(mappedRequest);
+
+                if (!validationResult.IsSuccess)
+                {
+                    validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                }
+                else
+                {
+                    var result = await VifService.AddAsync(mappedRequest);
+                    if (!result.IsSuccess)
                     {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
                     else
                     {
-                        var result = await VifService.AddAsync(mappedRequest);
-                        if (!result.IsSuccess)
-                        {
-                            result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        }
-                        else
-                        {
-                            return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID });
-                        }
+                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID });
                     }
                 }
-            }
-            catch (DbUpdateException)
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
             }
 
             var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
@@ -182,6 +173,7 @@ namespace SCM.Controllers
                     if (!result.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = result.GetMessage();
+                        ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
 
                         return View(Mapper.Map<VifViewModel>(item));
                     }

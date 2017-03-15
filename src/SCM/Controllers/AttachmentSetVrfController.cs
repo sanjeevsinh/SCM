@@ -36,7 +36,8 @@ namespace SCM.Controllers
             ViewBag.AttachmentSet = attachmentSet;
 
             var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
-                includeProperties:"Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.InterfaceVlans,Vrf.Interfaces.ContractBandwidthPool");
+                includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
 
             var validationResult = await AttachmentSetVrfService.ValidateAsync(attachmentSet);
             if (!validationResult.IsSuccess)
@@ -60,7 +61,8 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
             var item = dbResult.SingleOrDefault();
 
             if (item == null)
@@ -89,18 +91,18 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSetVrfSelectionViewModel attachmentSelection)
+        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSetVrfRequestViewModel attachmentSetVrfRequest)
         {
-            await PopulateVrfsDropDownList(attachmentSelection);
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSelection.AttachmentSetID);
-            ViewBag.AttachmentSelection = attachmentSelection;
+            await PopulateVrfsDropDownList(attachmentSetVrfRequest);
+            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrfRequest.AttachmentSetID);
+            ViewBag.AttachmentSetVrfRequest = attachmentSetVrfRequest;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID,Preference")] AttachmentSetVrfViewModel attachmentSetVrf,
-            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfSelectionViewModel attachmentSelection)
+            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfRequestViewModel attachmentSetVrfRequest)
         {
             try
             {
@@ -111,17 +113,13 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-
-                        ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
-                        ViewBag.AttachmentSelection = attachmentSelection;
-                        await PopulateVrfsDropDownList(attachmentSelection);
-       
-                        return View("CreateStep2", attachmentSetVrf);
+                        validationResult.GetMessageList().ForEach(m => ModelState.AddModelError(string.Empty, m));
                     }
-
-                    await AttachmentSetVrfService.AddAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
-                    return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
+                    else
+                    {
+                        await AttachmentSetVrfService.AddAsync(mappedAttachmentSetVrf);
+                        return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -133,8 +131,8 @@ namespace SCM.Controllers
             }
 
             ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
-            await PopulateVrfsDropDownList(attachmentSelection);
-            ViewBag.AttachmentSelection = attachmentSelection;
+            await PopulateVrfsDropDownList(attachmentSetVrfRequest);
+            ViewBag.AttachmentSetVrfRequest = attachmentSetVrfRequest;
             return View("CreateStep2", attachmentSetVrf);
         }
 
@@ -147,7 +145,8 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties:"AttachmentSet,Vrf.Device.Location,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -155,7 +154,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfsDropDownList(new AttachmentSetVrfSelectionViewModel
+            await PopulateVrfsDropDownList(new AttachmentSetVrfRequestViewModel
             {
                 LocationID = attachmentSetVrf.Vrf.Device.LocationID,
                 TenantID = attachmentSetVrf.AttachmentSet.TenantID,
@@ -176,7 +175,8 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet,Vrf.Device,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool", AsTrackable: false);
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool", AsTrackable: false);
             var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
             if (currentAttachmentSetVrf == null)
@@ -187,15 +187,14 @@ namespace SCM.Controllers
             {
                 // Only Preference property can be changed
 
-                attachmentSetVrf.VrfID = currentAttachmentSetVrf.VrfID;
-                attachmentSetVrf.AttachmentSetID = currentAttachmentSetVrf.AttachmentSetID;
+                currentAttachmentSetVrf.Preference = attachmentSetVrf.Preference;
             }
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
+                    await AttachmentSetVrfService.UpdateAsync(Mapper.Map<AttachmentSetVrf>(currentAttachmentSetVrf));
                     return RedirectToAction("GetAllByAttachmentSetID", 
                         new { id = currentAttachmentSetVrf.AttachmentSetID, tenantID = currentAttachmentSetVrf.Vrf.TenantID  });
                 }
@@ -205,8 +204,8 @@ namespace SCM.Controllers
             {
                 var exceptionEntry = ex.Entries.Single();
 
-                var proposedPreference = (int)exceptionEntry.Property("Preference").CurrentValue;
-                if (currentAttachmentSetVrf.Preference!= proposedPreference)
+                var proposedPreference = (int?)exceptionEntry.Property("Preference").CurrentValue;
+                if (currentAttachmentSetVrf.Preference != proposedPreference)
                 {
                     ModelState.AddModelError("Preference", $"Current value: {currentAttachmentSetVrf.Preference}");
                 }
@@ -241,7 +240,8 @@ namespace SCM.Controllers
             }
 
             var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties: "Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool");
+                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
             var attachmentSetVrf = dbResult.SingleOrDefault();
 
             if (attachmentSetVrf == null)
@@ -275,7 +275,8 @@ namespace SCM.Controllers
             try
             {
                 var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
-                    includeProperties: "AttachmentSet,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool", AsTrackable:false);
+                    includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
+                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool", AsTrackable:false);
                 var currentAttachmentSetVrf = dbResult.SingleOrDefault();
 
                 if (currentAttachmentSetVrf != null)
@@ -288,7 +289,7 @@ namespace SCM.Controllers
                         return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
                     }
 
-                    await AttachmentSetVrfService.DeleteAsync(Mapper.Map<AttachmentSetVrf>(attachmentSetVrf));
+                    await AttachmentSetVrfService.DeleteAsync(currentAttachmentSetVrf);
                 }
 
                 return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID, tenantID = tenantID });
@@ -319,15 +320,15 @@ namespace SCM.Controllers
             ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName");
         }
 
-        private async Task PopulateVrfsDropDownList(AttachmentSetVrfSelectionViewModel attachmentSelection, object selectedVrf = null)
+        private async Task PopulateVrfsDropDownList(AttachmentSetVrfRequestViewModel attachmentSetVrfRequest, object selectedVrf = null)
         {
 
-            var vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSelection.LocationID 
-                && q.TenantID == attachmentSelection.TenantID, includeProperties:"Device");
+            var vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSetVrfRequest.LocationID 
+                && q.TenantID == attachmentSetVrfRequest.TenantID, includeProperties:"Device");
 
-            if (attachmentSelection.PlaneID != null)
+            if (attachmentSetVrfRequest.PlaneID != null)
             {
-                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSelection.PlaneID).ToList();
+                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSetVrfRequest.PlaneID).ToList();
             }
      
             ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);

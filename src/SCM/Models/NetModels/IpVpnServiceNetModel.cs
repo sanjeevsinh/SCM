@@ -45,7 +45,7 @@ namespace SCM.Models.NetModels.IpVpnNetModels
         public string VrfName { get; set; }
         [XmlElement(ElementName = "preference")]
         public int Preference { get; set; }
-    }
+    }   
 
     public class VpnAttachmentSetNetModel
     {
@@ -53,6 +53,8 @@ namespace SCM.Models.NetModels.IpVpnNetModels
         public string Name { get; set; }
         [XmlElement(ElementName = "pe")]
         public List<PENetModel> PEs { get; set; }
+        [XmlElement(ElementName = "is-hub")]
+        public bool? IsHub { get; set; }
         [XmlElement(ElementName = "tenant-ipv4-prefix")]
         public List<TenantPrefixNetModel> TenantPrefixes { get; set; }
         [XmlElement(ElementName = "tenant-community")]
