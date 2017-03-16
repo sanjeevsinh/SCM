@@ -161,7 +161,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Vif vif)
+        public async Task<IActionResult> Delete(VifViewModel vif)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace SCM.Controllers
                     var result = await VifService.DeleteAsync(item);
                     if (!result.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = result.GetMessage();
+                        ViewData["ErrorMessage"] = result.GetHtmlListMessage();
                         ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
 
                         return View(Mapper.Map<VifViewModel>(item));
@@ -246,13 +246,12 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteFromNetwork(Vif vif)
+        public async Task<IActionResult> DeleteFromNetwork(VifViewModel vif)
         {
             var item = await VifService.GetByIDAsync(vif.ID);
 
             if (item == null)
             {
-
                 ViewData["VifDeletedMessage"] = "The vif has been deleted by another user. Return to the list.";
 
                 return View("VifDeleted", new { AttachmentID = Request.Query["AttachmentID"] });
@@ -275,14 +274,13 @@ namespace SCM.Controllers
                     }
                 }
 
-                message += syncResult.GetAllMessages();
+                message += syncResult.GetHtmlListMessage();
                 ViewData["ErrorMessage"] = message;
             }
 
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             return View("Delete", Mapper.Map<VifViewModel>(item));
         }
-
 
         [HttpGet]
         public async Task<PartialViewResult> ContractBandwidthPools(int id)

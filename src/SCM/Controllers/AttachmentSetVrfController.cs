@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SCM.Models.ServiceModels;
 
 namespace SCM.Controllers
 {
@@ -39,10 +40,10 @@ namespace SCM.Controllers
                 includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
                 + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
 
-            var validationResult = await AttachmentSetVrfService.ValidateAsync(attachmentSet);
-            if (!validationResult.IsSuccess)
+            var checkVrfsResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
+            if (!checkVrfsResult.IsSuccess)
             {
-                validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                checkVrfsResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
             }
             else
             {
@@ -109,7 +110,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
-                    var validationResult = await AttachmentSetVrfService.ValidateChangesAsync(mappedAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateAsync(mappedAttachmentSetVrf);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -156,6 +157,7 @@ namespace SCM.Controllers
 
             await PopulateVrfsDropDownList(new AttachmentSetVrfRequestViewModel
             {
+                AttachmentSetID = attachmentSetVrf.AttachmentSetID,
                 LocationID = attachmentSetVrf.Vrf.Device.LocationID,
                 TenantID = attachmentSetVrf.AttachmentSet.TenantID,
                 PlaneID = attachmentSetVrf.Vrf.Device.PlaneID
@@ -281,7 +283,7 @@ namespace SCM.Controllers
 
                 if (currentAttachmentSetVrf != null)
                 {
-                    var validationResult = await AttachmentSetVrfService.ValidateChangesAsync(currentAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateDeleteAsync(currentAttachmentSetVrf);
                     if (!validationResult.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
@@ -320,17 +322,10 @@ namespace SCM.Controllers
             ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName");
         }
 
-        private async Task PopulateVrfsDropDownList(AttachmentSetVrfRequestViewModel attachmentSetVrfRequest, object selectedVrf = null)
+        private async Task PopulateVrfsDropDownList(AttachmentSetVrfRequestViewModel request, object selectedVrf = null)
         {
 
-            var vrfs = await AttachmentSetVrfService.UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == attachmentSetVrfRequest.LocationID 
-                && q.TenantID == attachmentSetVrfRequest.TenantID, includeProperties:"Device");
-
-            if (attachmentSetVrfRequest.PlaneID != null)
-            {
-                vrfs = vrfs.Where(q => q.Device.PlaneID == attachmentSetVrfRequest.PlaneID).ToList();
-            }
-     
+            var vrfs = await AttachmentSetVrfService.GetCandidateVrfs(Mapper.Map<AttachmentSetVrfRequest>(request));
             ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
         }
 

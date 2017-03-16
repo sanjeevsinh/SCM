@@ -22,6 +22,9 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.IsLayer3)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.SubRegion.Region)
             </th>
             <th>
@@ -41,6 +44,9 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsLayer3)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.SubRegion.Region.Name)

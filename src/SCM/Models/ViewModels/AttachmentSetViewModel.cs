@@ -16,6 +16,8 @@ namespace SCM.Models.ViewModels
         [Required]
         [StringLength(250)]
         public string Description { get; set; }
+        [Display(Name = "Layer 3 Attachment Set")]
+        public bool IsLayer3 { get; set; }
         [Required(ErrorMessage = "A Tenant must be selected.")]
         public int TenantID { get; set; }
         [Required(ErrorMessage = "An Attachment Redundancy option must be selected.")]

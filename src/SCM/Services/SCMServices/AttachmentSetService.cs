@@ -77,6 +77,11 @@ namespace SCM.Services.SCMServices
                     validationResult.Add("The tenant cannot be changed because VRFs are defined.");
                     validationResult.IsSuccess = false;
                 }
+                if (attachmentSet.IsLayer3 != currentAttachmentSet.IsLayer3)
+                {
+                    validationResult.Add("Layer 3 cannot be changed because VRFs are defined.");
+                    validationResult.IsSuccess = false;
+                }
             }
 
             return validationResult;

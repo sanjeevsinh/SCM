@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Linq.Expressions;
 
 namespace SCM.Services.SCMServices
 {
@@ -27,7 +28,8 @@ namespace SCM.Services.SCMServices
 
             var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
                 "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers," 
+                + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
             return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
@@ -37,7 +39,18 @@ namespace SCM.Services.SCMServices
         {
             var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.TenantID == tenant.TenantID,
                 includeProperties: "Port,Device.Location.SubRegion.Region,Device.Plane,"
-                + "Vrf,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
+                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
+                + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                AsTrackable: false);
+
+            return Mapper.Map<List<Attachment>>(ifaces);
+        }
+
+        public async Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null)
+        {
+            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(filter,
+                includeProperties: "Port,Device.Location.SubRegion.Region,Device.Plane,"
+                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
                 + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
@@ -224,13 +237,16 @@ namespace SCM.Services.SCMServices
 
             var result = new ServiceResult { IsSuccess = true };
 
-            var validateVrfDelete = await VrfService.ValidateDeleteAsync(attachment.Vrf.VrfID);
-            if (!validateVrfDelete.IsSuccess)
+            if (attachment.VrfID != null)
             {
-                result.AddRange(validateVrfDelete.GetMessageList());
-                result.IsSuccess = false;
+                var validateVrfDelete = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
+                if (!validateVrfDelete.IsSuccess)
+                {
+                    result.AddRange(validateVrfDelete.GetMessageList());
+                    result.IsSuccess = false;
 
-                return result;
+                    return result;
+                }
             }
 
             var syncResult = await DeleteFromNetworkAsync(attachment);
@@ -383,7 +399,7 @@ namespace SCM.Services.SCMServices
             if (!request.IsTagged)
             {
                 var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                    q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "Interfaces.Port,InterfaceVlans.Interface.Port");
+                    q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "ContractBandwidth,Interfaces.Port,InterfaceVlans.Interface.Port");
 
                 var contractBandwidthPool = dbResult.SingleOrDefault();
                 if (contractBandwidthPool == null)
@@ -431,6 +447,14 @@ namespace SCM.Services.SCMServices
                     result.IsSuccess = false;
 
                     return result;
+                }
+
+                if (contractBandwidthPool.ContractBandwidth.BandwidthMbps > request.Bandwidth.BandwidthGbps * 1000)
+                {
+                    result.Add($"The requested contract bandwidth of {contractBandwidthPool.ContractBandwidth.BandwidthMbps} Mbps exceeds the "
+                        + $"attachment bandwidth of {request.Bandwidth.BandwidthGbps} Gbps.");
+                    result.Add("Select a lower contract bandwidth or request a higher bandwidth attachment.");
+                    result.IsSuccess = false;
                 }
             }
 

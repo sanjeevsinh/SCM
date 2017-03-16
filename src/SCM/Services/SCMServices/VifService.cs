@@ -9,6 +9,7 @@ using AutoMapper;
 using SCM.Models.NetModels.AttachmentNetModels;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace SCM.Services.SCMServices
 {
@@ -28,7 +29,7 @@ namespace SCM.Services.SCMServices
         {
             var dbResult = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceVlanID == id, includeProperties:
                 "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,Interface.InterfaceBandwidth,Interface.Device.Plane," +
-                "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
+                "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
                 AsTrackable: false);
 
             return Mapper.Map<Vif>(dbResult.SingleOrDefault());
@@ -36,12 +37,24 @@ namespace SCM.Services.SCMServices
 
         public async Task<List<Vif>> GetAllByAttachmentIDAsync(int id)
         {
-            var vifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
-                "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,Interface.InterfaceBandwidth,Interface.Device.Plane," +
-                "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
+            var vifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == id, 
+                includeProperties: "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,"
+                + "Interface.InterfaceBandwidth,Interface.Device.Plane,Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,Interface.BundleInterfacePorts.Port",
                 AsTrackable: false);
 
             return Mapper.Map<List<Vif>>(vifs);
+        }
+
+        public async Task<List<Vif>> GetAsync(Expression<Func<InterfaceVlan, bool>> filter = null)
+        {
+            var ifaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(filter,
+                includeProperties: "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,"
+                + "Interface.InterfaceBandwidth,Interface.Device.Plane,Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,Interface.BundleInterfacePorts.Port",
+                AsTrackable: false);
+
+            return Mapper.Map<List<Vif>>(ifaceVlans);
         }
 
         public async Task<ServiceResult> AddAsync(VifRequest request)
@@ -342,6 +355,18 @@ namespace SCM.Services.SCMServices
                 result.IsSuccess = false;
 
                 return result;
+            }
+
+            var vifs = await GetAllByAttachmentIDAsync(iface.InterfaceID);
+            var aggregateContractBandwidthMbps = vifs.Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
+
+            if ((aggregateContractBandwidthMbps + contractBandwidthPool.ContractBandwidth.BandwidthMbps) > iface.InterfaceBandwidth.BandwidthGbps * 1000)
+            {
+                result.Add("The selected contract bandwidth exceeds the remaining bandwidth of the attachment.");
+                result.Add($"Remaining bandwidth : {(iface.InterfaceBandwidth.BandwidthGbps * 1000) - aggregateContractBandwidthMbps}.");
+                result.Add($"Requested bandwidth : {contractBandwidthPool.ContractBandwidth.BandwidthMbps}.");
+
+                result.IsSuccess = false;
             }
 
             return result;

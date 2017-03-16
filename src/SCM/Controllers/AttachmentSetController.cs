@@ -98,7 +98,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID")] AttachmentSetViewModel attachmentSet)
+        public async Task<IActionResult> Create([Bind("Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID,IsLayer3")] AttachmentSetViewModel attachmentSet)
         {
             try
             {
@@ -145,7 +145,7 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID,RowVersion")] AttachmentSetViewModel attachmentSet)
+        public async Task<ActionResult> Edit(int id, [Bind("AttachmentSetID,Name,Description,RegionID,SubRegionID,TenantID,AttachmentRedundancyID,IsLayer3,RowVersion")] AttachmentSetViewModel attachmentSet)
         {
             if (id != attachmentSet.AttachmentSetID)
             {

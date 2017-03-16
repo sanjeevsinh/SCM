@@ -12,6 +12,7 @@ namespace SCM.Models
         [MaxLength(50)]
         [Required]
         public string Name { get; set; }
+        public bool IsLayer3 { get; set; }
         [MaxLength(250)]
         public string Description { get; set; }
         public int TenantID { get; set; }

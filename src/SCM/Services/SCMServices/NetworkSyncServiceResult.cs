@@ -43,6 +43,12 @@ namespace SCM.Services.SCMServices
             return m;
         }
 
+        public string GetHtmlListMessage()
+        {
+            var message = string.Concat(Messages.Select(q => $"<li>{q}</li>"));
+            return $"<ul>{message}</ul>";
+        }
+
         public void Add(string message)
         {
             Messages.Add(message);

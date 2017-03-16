@@ -40,7 +40,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src));
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
             CreateMap<Interface, Layer3NetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
@@ -120,7 +120,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         {
             public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
-                var layer3NetModelResolver = new Layer3NetModelResolver();
+                var layer3NetModelResolver = new AttachmentLayer3NetModelResolver();
                 return layer3NetModelResolver.Create(source, context);
             }
         }
@@ -129,32 +129,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         {
             public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentBundleInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
-                var layer3NetModelResolver = new Layer3NetModelResolver();
+                var layer3NetModelResolver = new AttachmentLayer3NetModelResolver();
                 return layer3NetModelResolver.Create(source, context);
-            }
-        }
-
-        public class VifLayer3NetModelTypeResolver : IValueResolver<Vif, VifNetModel, Layer3NetModel>
-        {
-            public Layer3NetModel Resolve(Vif source, VifNetModel destination, Layer3NetModel destMember, ResolutionContext context)
-            {
-                var result = new Layer3NetModel();
-                var mapper = context.Mapper;
-
-                if (source.IsLayer3)
-                {
-                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
-                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
-                    result.IpAddress = source.IpAddress;
-                    result.SubnetMask = source.SubnetMask;
-                    result.VrfName = source.Vrf.Name;
-
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
             }
         }
 
@@ -211,9 +187,32 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         }
 
 
-        public class Layer3NetModelResolver
+        public class AttachmentLayer3NetModelResolver
         {
             public Layer3NetModel Create(Attachment source, ResolutionContext context)
+            {
+                var result = new Layer3NetModel();
+                var mapper = context.Mapper;
+
+                if (source.IsLayer3)
+                {
+                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
+                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
+                    result.IpAddress = source.IpAddress;
+                    result.SubnetMask = source.SubnetMask;
+                    result.VrfName = source.Vrf.Name;
+
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        public class VifLayer3NetModelTypeResolver : IValueResolver<Vif, VifNetModel, Layer3NetModel>
+        {
+            public Layer3NetModel Resolve(Vif source, VifNetModel destination, Layer3NetModel destMember, ResolutionContext context)
             {
                 var result = new Layer3NetModel();
                 var mapper = context.Mapper;

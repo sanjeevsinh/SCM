@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using SCM.Data;
 using SCM.Models;
+using SCM.Models.ServiceModels;
 using System.Threading.Tasks;
 
 namespace SCM.Services.SCMServices
 {
     public class AttachmentSetVrfService : BaseService, IAttachmentSetVrfService
     {
-        public AttachmentSetVrfService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public AttachmentSetVrfService(IUnitOfWork unitOfWork, 
+            IAttachmentService attachmentService, IVifService vifService) : base(unitOfWork)
         {
+            AttachmentService = attachmentService;
+            VifService = vifService;
         }
+
+        private IAttachmentService AttachmentService { get; set; }
+        private IVifService VifService { get; set; }
 
         public async Task<IEnumerable<AttachmentSetVrf>> GetAllAsync()
         {
@@ -42,34 +49,107 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
-        /// Validates that a VRF can be changed, added to or removed from an Attachment Set.
+        /// Get a collection of VRFs which can be used to satisfy an Attachment Set VRF request.
         /// </summary>
-        /// <param name="attachmentSetVrf"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateChangesAsync(AttachmentSetVrf attachmentSetVrf)
+        public async Task<IEnumerable<Vrf>> GetCandidateVrfs(AttachmentSetVrfRequest request)
         {
-            var validationResult = new ServiceResult { IsSuccess = true };
+            var attachmentSet = await UnitOfWork.AttachmentSetRepository.GetByIDAsync(request.AttachmentSetID);
 
-            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID, 
-                includeProperties:"Vpn", AsTrackable: false);
-            if (vpnAttachmentSets.Count() > 0)
+            // Get tenant attachments matching the request
+
+            var attachments = await AttachmentService.GetAsync(q => q.Device.LocationID == request.LocationID
+                && q.TenantID == request.TenantID && q.IsLayer3 == attachmentSet.IsLayer3);
+
+            // Get tenant vifs matching the rqeuest
+
+            var vifs = await VifService.GetAsync(q => q.Interface.Device.LocationID == request.LocationID
+                && q.TenantID == request.TenantID && q.IsLayer3 == attachmentSet.IsLayer3);
+
+            // Create set union of VRFs from the vifs and attachments
+
+            var vrfs = attachments.Select(q => q.Vrf).Concat(vifs.Select(q => q.Vrf)).Where(q => q != null);
+
+            // Filter vrfs by plane if plane is specified
+
+            if (request.PlaneID != null)
             {
-                validationResult.Add("VRFs cannot be added, removed or changed because the attachment set is bound to the following VPNs: ");
-                validationResult.AddRange(vpnAttachmentSets.Select(v => v.Vpn.Name + "."));
-                validationResult.Add("Remove the Attachment Set from the VPNs first.");
-                validationResult.IsSuccess = false;
+                vrfs = vrfs.Where(q => q.Device.PlaneID == request.PlaneID).ToList();
             }
 
-            return validationResult;
+            return vrfs;
         }
- 
-        public async Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet)
+
+        public async Task<ServiceResult> ValidateAsync(AttachmentSetVrf attachmentSetVrf)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID,
+                includeProperties: "Vpn", AsTrackable: false);
+            if (vpnAttachmentSets.Count() > 0)
+            {
+                result.Add("The VRF cannot be added because the attachment set is bound to the following VPNs: ");
+                result.AddRange(vpnAttachmentSets.Select(v => v.Vpn.Name + "."));
+                result.Add("Remove the Attachment Set from the VPNs first.");
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            var attachmentSet = await UnitOfWork.AttachmentSetRepository.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
+            var vrfDbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == attachmentSetVrf.VrfID, includeProperties:"Interfaces,InterfaceVlans");
+            var vrf = vrfDbResult.Single();
+
+            if (vrf.Interfaces.Count > 0)
+            {
+                if (vrf.Interfaces.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0) {
+                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
+                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
+                    result.IsSuccess = false;
+
+                    return result;
+                }
+            }
+
+            if (vrf.InterfaceVlans.Count > 0)
+            {
+                if (vrf.InterfaceVlans.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
+                {
+                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
+                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
+                    result.IsSuccess = false;
+
+                    return result;
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<ServiceResult> ValidateDeleteAsync(AttachmentSetVrf attachmentSetVrf)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetVrf.AttachmentSetID,
+                includeProperties: "Vpn", AsTrackable: false);
+            if (vpnAttachmentSets.Count() > 0)
+            {
+                result.Add("The VRF cannot be removed because the attachment set is bound to the following VPNs: ");
+                result.AddRange(vpnAttachmentSets.Select(v => v.Vpn.Name + "."));
+                result.Add("Remove the Attachment Set from the VPNs first.");
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
+
+        public async Task<ServiceResult> CheckVrfsConfiguredCorrectlyAsync(AttachmentSet attachmentSet)
         {
 
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
+            var validationResult = new ServiceResult { IsSuccess = true };
 
-            IList<AttachmentSetVrf> attachmentSetVrfs = await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,
+            var attachmentSetVrfs = await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,
                 includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane");
 
             var attachmentRedundancy = attachmentSet.AttachmentRedundancy.Name;
@@ -84,7 +164,6 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-
                 if (attachmentRedundancy == "Silver")
                 {
                     if (attachmentSetVrfs.Count != 2)

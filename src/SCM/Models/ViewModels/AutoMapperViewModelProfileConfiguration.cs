@@ -43,6 +43,7 @@ namespace SCM.Models.ViewModels
             CreateMap<Vif, VifViewModel>().ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
             CreateMap<VifRequestViewModel, VifRequest>();
+            CreateMap<AttachmentSetVrfRequestViewModel, AttachmentSetVrfRequest>();
         }
 
         public class AttachmentSetVrfTypeConverter : ITypeConverter<AttachmentSetVrf, AttachmentSetVrfViewModel>

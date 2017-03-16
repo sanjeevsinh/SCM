@@ -25,6 +25,9 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.Tenant)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.VlanTag)
             </th>
             <th>
@@ -43,6 +46,9 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Tenant.Name)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.VlanTag)

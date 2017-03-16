@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Models.ServiceModels;
 using SCM.Data;
+using System.Linq.Expressions;
 
 namespace SCM.Services.SCMServices
 {
@@ -13,6 +14,7 @@ namespace SCM.Services.SCMServices
         IUnitOfWork UnitOfWork { get; }
         Task<Vif> GetByIDAsync(int id);
         Task<List<Vif>> GetAllByAttachmentIDAsync(int id);
+        Task<List<Vif>> GetAsync(Expression<Func<InterfaceVlan, bool>> filter = null);
         Task<ServiceResult> AddAsync(VifRequest request);
         Task<ServiceResult> DeleteAsync(Vif vif);
         Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif);

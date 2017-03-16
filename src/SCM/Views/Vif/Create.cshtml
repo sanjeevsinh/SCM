@@ -140,17 +140,6 @@
                 var isLayer3Checked = this.checked;
                 ipAddress.disabled = !isLayer3Checked;
                 subnetMask.disabled = !isLayer3Checked;
-
-                if (isLayer3Checked) {
-
-                    contractBandwidthPool.disabled = false;
-                    isTagged.checked = false;
-                }
-                else
-                {
-                    ipAddress.value = null;
-                    subnetMask.value = null;
-                }
             });
 
             $tenant.on('change', function (e) {

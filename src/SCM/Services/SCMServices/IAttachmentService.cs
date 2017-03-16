@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Models.ServiceModels;
 using SCM.Data;
+using System.Linq.Expressions;
 
 namespace SCM.Services.SCMServices
 {
@@ -13,6 +14,7 @@ namespace SCM.Services.SCMServices
         IUnitOfWork UnitOfWork { get; }
         Task<Attachment> GetByIDAsync(int id);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
+        Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
         Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment);

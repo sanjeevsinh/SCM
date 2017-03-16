@@ -74,9 +74,9 @@ namespace SCM.Services.SCMServices
                 return validationResult;
             }
 
-            // First validate the vrfs in the attachment set
+            // First check that the vrfs in the attachment set are correctly configured
 
-            var attachmentSetVrfValidationResult = await AttachmentSetVrfService.ValidateAsync(attachmentSet);
+            var attachmentSetVrfValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
             if (!attachmentSetVrfValidationResult.IsSuccess)
             {
                 validationResult.Add($"The VRFs in attachment set '{attachmentSet.Name}' are not configured correctly. "
