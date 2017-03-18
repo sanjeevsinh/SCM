@@ -107,8 +107,8 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
-        /// Validate if a VRF can be deleted. A VRF cannot be deleted if one or more
-        /// VPNs are bound to the VRF.
+        /// Validate if a VRF can be deleted. A VRF cannot be deleted if it is bound 
+        /// to one or more attachmen sets.
         /// </summary>
         /// <param name="vrfID"></param>
         /// <returns></returns>
@@ -117,15 +117,14 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult();
             result.IsSuccess = true;
 
-            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSet.AttachmentSetVrfs
-                    .Where(v => v.VrfID == vrfID).Count() > 0,
-                    includeProperties: "Vpn,AttachmentSet");
+            var attachmentSets = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetVrfs
+                    .Where(v => v.VrfID == vrfID).Count() > 0);
 
-            if (vpnAttachmentSets.Count() > 0)
+            if (attachmentSets.Count() > 0)
             {
-                result.Add("The VRF cannot be deleted. VPN services are bound to the VRF.");
+                result.Add("The VRF cannot be deleted. The VRF is bound to attachment sets.");
                 result.Add("Perform the following then try again: ");
-                result.AddRange(vpnAttachmentSets.ToList().Select(q => $"Remove attachment set {q.AttachmentSet.Name} from {q.Vpn.Name}."));
+                result.AddRange(attachmentSets.ToList().Select(q => $"Remove the VRF from attachment set {q.Name}."));
 
                 result.IsSuccess = false;
             }

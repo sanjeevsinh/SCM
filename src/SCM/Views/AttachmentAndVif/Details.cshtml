@@ -1,0 +1,120 @@
+@model SCM.Models.ViewModels.AttachmentAndVifViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentAndVif/GetAllByVpnID/@Context.Request.Query["vpnID"]">Attachments and VIFs</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+
+@if (Model.IsVif)
+{
+    <h2>Details for VIF '@Model.VifName'</h2>
+}
+else
+{
+    <h2>Details for Attachment '@Model.AttachmentName'</h2>
+}
+
+@if (@ViewData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (@ViewData["SuccessMessage"] != null)
+{
+    <p class="alert alert-success">@ViewData["SuccessMessage"]</p>
+}
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+@if (Model.IsVif)
+{
+        <dt>
+            @Html.DisplayNameFor(model => model.VifName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.VifName)
+        </dd>
+}
+        <dt>
+            @Html.DisplayNameFor(model => model.AttachmentName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AttachmentName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsBundle)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsBundle)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Location)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Location)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DeviceName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DeviceName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.PlaneName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PlaneName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.InterfaceBandwidth)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.InterfaceBandwidth)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ContractBandwidthPool)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ContractBandwidthPool)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ContractBandwidth)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ContractBandwidth)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.VrfName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.VrfName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IpAddress)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpAddress)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.SubnetMask)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.SubnetMask)
+        </dd>
+    </dl>
+</div>
+<form asp-action="">
+    <input type="hidden" asp-for="ID" name="id" />
+    <div class="form-actions no-color">
+        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
+        <a asp-action="GetAllByVpnID" asp-route-id="@Context.Request.Query["vpnID"]">Back to Attachment and VIFs List</a>
+    </div>
+</form>

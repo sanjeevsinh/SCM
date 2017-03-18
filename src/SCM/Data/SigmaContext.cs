@@ -131,16 +131,6 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<RouteTarget>()
-                   .HasOne(c => c.RouteTargetRange)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Vrf>()
-                   .HasOne(c => c.RouteDistinguisherRange)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
             builder.Entity<Vpn>()
                    .HasOne(c => c.Tenant)
                    .WithMany()

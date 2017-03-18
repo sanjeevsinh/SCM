@@ -12,7 +12,7 @@ namespace SCM.Models.ServiceModels
         public bool AutoAllocateVlanTag { get; set; }
         public int? RequestedVlanTag { get; set; }
         public int? AllocatedVlanTag { get; set; }
-        public int VlanTagRangeID { get; set; }
+        public int? VlanTagRangeID { get; set; }
         public bool IsLayer3 { get; set; }
         public string IpAddress { get; set; }
         public string SubnetMask { get; set; }

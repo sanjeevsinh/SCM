@@ -222,6 +222,12 @@ namespace SCM.Controllers
                     ModelState.AddModelError("TenantID", $"Current value: {currentAttachmentSet.Tenant.Name}");
                 }
 
+                var proposedIsLayer3 = (bool)exceptionEntry.Property("IsLayer3").CurrentValue;
+                if (currentAttachmentSet.IsLayer3 != proposedIsLayer3)
+                {
+                    ModelState.AddModelError("IsLayer3", $"Current value: {currentAttachmentSet.IsLayer3}");
+                }
+
                 ModelState.AddModelError(string.Empty, "The record you attempted to edit "
                     + "was modified by another user after you got the original value. The "
                     + "edit operation was cancelled and the current values in the database "

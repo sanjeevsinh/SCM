@@ -26,6 +26,7 @@ namespace SCM.Models
         public virtual ICollection<Interface> Interfaces { get; set; }
         public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
         public virtual ICollection<BgpPeer> BgpPeers { get; set; }
+        public virtual ICollection<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
         public virtual RouteDistinguisherRange RouteDistinguisherRange { get; set; }
 
     }

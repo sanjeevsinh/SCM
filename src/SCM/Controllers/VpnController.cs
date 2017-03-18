@@ -33,6 +33,38 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAttachmentsAndVifsByVpnID(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vpn = await VpnService.UnitOfWork.VpnRepository.GetByIDAsync(id);
+            if (vpn == null)
+            {
+                return NotFound();
+            }
+
+            var interfaces = await VpnService.UnitOfWork.InterfaceRepository.GetAsync(q => q.Vrf.AttachmentSetVrfs.Where(a => a.AttachmentSet.VpnAttachmentSets
+                .Where(v => v.VpnID == id.Value).Count() > 0).Count() > 0,
+                includeProperties: "Device.Location.SubRegion.Region,Vrf.AttachmentSetVrfs.AttachmentSet,Device.Plane,Port,"
+                + "InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,Tenant");
+
+            var interfaceVlans = await VpnService.UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.Vrf.AttachmentSetVrfs.Where(a => a.AttachmentSet.VpnAttachmentSets
+               .Where(v => v.VpnID == id.Value).Count() > 0).Count() > 0,
+               includeProperties: "Interface.Device.Location.SubRegion.Region,Interface.InterfaceBandwidth,Vrf.AttachmentSetVrfs.AttachmentSet,"
+               + "Interface.Device.Plane,Interface.Port,Interface.InterfaceBandwidth,Tenant,ContractBandwidthPool.ContractBandwidth");
+
+            var result = Mapper.Map<List<AttachmentAndVifViewModel>>(interfaces).Concat(Mapper.Map<List<AttachmentAndVifViewModel>>(interfaceVlans));
+            result = result.OrderBy(q => q.AttachmentSetName);
+
+            ViewBag.Vpn = vpn;
+
+            return View(result);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

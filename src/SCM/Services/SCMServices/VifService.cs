@@ -288,7 +288,8 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID, includeProperties: "Port");
+            var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID, 
+                includeProperties: "InterfaceBandwidth,Port");
             var iface = dbInterfaceResult.SingleOrDefault();
 
             if (iface == null)
@@ -308,7 +309,8 @@ namespace SCM.Services.SCMServices
             }
 
             var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "Interfaces.Port,InterfaceVlans.Interface.Port");
+                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "ContractBandwidth," 
+                   + "Interfaces.Port,InterfaceVlans.Interface.Port");
 
             var contractBandwidthPool = dbResult.SingleOrDefault();
             if (contractBandwidthPool == null)
@@ -363,8 +365,8 @@ namespace SCM.Services.SCMServices
             if ((aggregateContractBandwidthMbps + contractBandwidthPool.ContractBandwidth.BandwidthMbps) > iface.InterfaceBandwidth.BandwidthGbps * 1000)
             {
                 result.Add("The selected contract bandwidth exceeds the remaining bandwidth of the attachment.");
-                result.Add($"Remaining bandwidth : {(iface.InterfaceBandwidth.BandwidthGbps * 1000) - aggregateContractBandwidthMbps}.");
-                result.Add($"Requested bandwidth : {contractBandwidthPool.ContractBandwidth.BandwidthMbps}.");
+                result.Add($"Remaining bandwidth : {(iface.InterfaceBandwidth.BandwidthGbps * 1000) - aggregateContractBandwidthMbps} Mbps.");
+                result.Add($"Requested bandwidth : {contractBandwidthPool.ContractBandwidth.BandwidthMbps} Mbps.");
 
                 result.IsSuccess = false;
             }

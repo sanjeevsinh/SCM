@@ -12,6 +12,7 @@ using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
+using System.Linq.Expressions;
 
 namespace SCM.Controllers
 {
@@ -40,7 +41,7 @@ namespace SCM.Controllers
             }
 
             var attachments = await AttachmentService.GetAllByTenantAsync(tenant);
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = tenant;
 
             return View(Mapper.Map<List<AttachmentViewModel>>(attachments));
         }
@@ -187,7 +188,7 @@ namespace SCM.Controllers
                     var result = await AttachmentService.DeleteAsync(item);
                     if (!result.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = result.GetMessage();
+                        ViewData["ErrorMessage"] = result.GetHtmlListMessage();
                         await PopulateTenantItem(item.TenantID);
 
                         return View(Mapper.Map<AttachmentViewModel>(item));
@@ -288,7 +289,7 @@ namespace SCM.Controllers
                     }
                 }
 
-                message += syncResult.GetAllMessages();
+                message += syncResult.GetHtmlListMessage();
                 ViewData["ErrorMessage"] = message;
             }
 

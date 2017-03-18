@@ -55,6 +55,10 @@ namespace SCM.Models.NetModels.IpVpnNetModels
         public List<PENetModel> PEs { get; set; }
         [XmlElement(ElementName = "is-hub")]
         public bool? IsHub { get; set; }
+        public bool ShouldSerializeIsHub()
+        {
+            return IsHub.HasValue;
+        }
         [XmlElement(ElementName = "tenant-ipv4-prefix")]
         public List<TenantPrefixNetModel> TenantPrefixes { get; set; }
         [XmlElement(ElementName = "tenant-community")]

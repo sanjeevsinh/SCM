@@ -34,12 +34,15 @@
         <dd>
             @Html.DisplayFor(model => model.AttachmentSet.Name)
         </dd>
+        @if (Model.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
+        {
         <dt>
             @Html.DisplayNameFor(model => model.IsHub)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.IsHub)
         </dd>
+        }
     </dl>
     
     <form asp-action="Delete">

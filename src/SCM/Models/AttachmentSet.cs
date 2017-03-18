@@ -26,5 +26,6 @@ namespace SCM.Models
         public virtual Region Region { get; set; }
         public virtual SubRegion SubRegion { get; set; }
         public virtual ICollection<AttachmentSetVrf> AttachmentSetVrfs { get; set; }
+        public virtual ICollection<VpnAttachmentSet> VpnAttachmentSets { get; set; }
     }
 }

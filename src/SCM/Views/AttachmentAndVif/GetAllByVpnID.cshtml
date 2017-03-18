@@ -1,0 +1,82 @@
+@model IEnumerable<SCM.Models.ViewModels.AttachmentAndVifViewModel>
+
+@{
+    ViewData["Title"] = "Attachments and VIFs";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item active">Attachments and VIFs</li>
+</ol>
+
+<h2>Attachments and VIFs for VPN '@ViewBag.Vpn.Name'</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentSetName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VrfName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TenantName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DeviceName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsBundle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsVif)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VifName)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentSetName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VrfName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TenantName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DeviceName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsBundle)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsVif)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VifName)
+            </td>
+            <td>
+                @Html.ActionLink("Details", "Details", new { id = item.ID, vif = item.IsVif, vpnID = ViewBag.Vpn.VpnID })
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<div>
+    <a asp-controller="Vpn" asp-action="GetAll" >Back to VPNs</a>
+</div>
