@@ -23,6 +23,7 @@ namespace SCM.Models
         public int? PortID { get; set; }
         public int? VrfID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
+        public bool RequiresSync { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Device Device { get; set; }

@@ -21,7 +21,7 @@ namespace SCM.Services.SCMServices
             AttachmentService = attachmentService;
             VrfService = vrfService;
         }
-        
+
         private IAttachmentService AttachmentService { get; set; }
         private IVrfService VrfService { get; set; }
 
@@ -37,7 +37,7 @@ namespace SCM.Services.SCMServices
 
         public async Task<List<Vif>> GetAllByAttachmentIDAsync(int id)
         {
-            var vifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == id, 
+            var vifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == id,
                 includeProperties: "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,"
                 + "Interface.InterfaceBandwidth,Interface.Device.Plane,Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,"
                 + "Tenant,Interface.BundleInterfacePorts.Port",
@@ -68,6 +68,7 @@ namespace SCM.Services.SCMServices
             }
 
             var ifaceVlan = Mapper.Map<InterfaceVlan>(request);
+            ifaceVlan.RequiresSync = true;
 
             Vrf vrf = null;
             if (request.IsLayer3)
@@ -111,6 +112,15 @@ namespace SCM.Services.SCMServices
         public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif)
         {
 
+            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
+            if (ifaceVlan == null)
+            {
+                var result = new NetworkCheckSyncServiceResult();
+                result.NetworkSyncServiceResult.Add("The VIF was not found.");
+
+                return result;
+            }
+
             var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
 
             // Check VRF is in sync, if the vif is layer 3
@@ -123,6 +133,8 @@ namespace SCM.Services.SCMServices
 
                 if (!vrfCheckSyncResult.InSync)
                 {
+                    await UpdateRequiresSyncAsync(ifaceVlan, true);
+
                     return vrfCheckSyncResult;
                 }
             }
@@ -135,6 +147,8 @@ namespace SCM.Services.SCMServices
                 var checkSyncResult = await NetSync.CheckNetworkSyncAsync(bundleVifServiceModelData,
                     $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{attachment.BundleID}/vif/{vif.VlanTag}");
 
+                await UpdateRequiresSyncAsync(ifaceVlan, !checkSyncResult.InSync);
+
                 return checkSyncResult;
             }
             else
@@ -144,12 +158,24 @@ namespace SCM.Services.SCMServices
                     $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{attachment.InterfaceType},"
                     + $"{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
 
+                await UpdateRequiresSyncAsync(ifaceVlan, !checkSyncResult.InSync);
+
                 return checkSyncResult;
             }
         }
 
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif)
         {
+
+            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
+            if (ifaceVlan == null)
+            {
+                var result = new NetworkSyncServiceResult();
+                result.Add("The VIF was not found.");
+
+                return result;
+            }
+
             var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
 
             if (vif.IsLayer3)
@@ -170,6 +196,8 @@ namespace SCM.Services.SCMServices
                 var syncResult = await NetSync.SyncNetworkAsync(bundleVifServiceModelData,
                     $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{attachment.BundleID}/vif/{vif.VlanTag}");
 
+                await UpdateRequiresSyncAsync(ifaceVlan, !syncResult.IsSuccess);
+
                 return syncResult;
             }
             else
@@ -178,6 +206,8 @@ namespace SCM.Services.SCMServices
                 var syncResult = await NetSync.SyncNetworkAsync(attachmentVifServiceModelData,
                     $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{attachment.InterfaceType},"
                     + $"{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
+
+                await UpdateRequiresSyncAsync(ifaceVlan, !syncResult.IsSuccess);
 
                 return syncResult;
             }
@@ -246,6 +276,15 @@ namespace SCM.Services.SCMServices
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif)
         {
             var syncResult = new NetworkSyncServiceResult();
+            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
+
+            if (ifaceVlan == null)
+            {
+                syncResult.Add("The VIF was not found.");
+
+                return syncResult;
+            }
+
             var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
 
             // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
@@ -258,6 +297,7 @@ namespace SCM.Services.SCMServices
                 if (!validateVrfDelete.IsSuccess)
                 {
                     syncResult.AddRange(validateVrfDelete.GetMessageList());
+                    await UpdateRequiresSyncAsync(ifaceVlan, true);
 
                     return syncResult;
                 }
@@ -265,8 +305,10 @@ namespace SCM.Services.SCMServices
 
             if (attachment.IsBundle)
             {
-                syncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/" 
+                syncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/"
                     + $"{attachment.BundleID}/vif/{vif.VlanTag}");
+
+                await UpdateRequiresSyncAsync(ifaceVlan, true);
 
                 return syncResult;
             }
@@ -274,6 +316,8 @@ namespace SCM.Services.SCMServices
             {
                 syncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/"
                     + $"{attachment.InterfaceType},{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
+
+                await UpdateRequiresSyncAsync(ifaceVlan, true);
 
                 return syncResult;
             }
@@ -288,7 +332,7 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID, 
+            var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID,
                 includeProperties: "InterfaceBandwidth,Port");
             var iface = dbInterfaceResult.SingleOrDefault();
 
@@ -309,7 +353,7 @@ namespace SCM.Services.SCMServices
             }
 
             var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "ContractBandwidth," 
+                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, includeProperties: "ContractBandwidth,"
                    + "Interfaces.Port,InterfaceVlans.Interface.Port");
 
             var contractBandwidthPool = dbResult.SingleOrDefault();
@@ -350,7 +394,7 @@ namespace SCM.Services.SCMServices
                 }
                 else
                 {
-                    result.Add($"The selected contract bandwidth pool is in-use for vif " 
+                    result.Add($"The selected contract bandwidth pool is in-use for vif "
                         + $"{ifaceVlan.Interface.Port.Type}{ifaceVlan.Interface.Port.Name}.{ifaceVlan.VlanTag}. "
                         + "Select another contract bandwidth pool.");
                 }
@@ -389,8 +433,7 @@ namespace SCM.Services.SCMServices
                     return;
                 }
 
-                var currentVifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID &&
-                q.VlanTagRangeID == vlanTagRange.VlanTagRangeID);
+                var currentVifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID);
 
                 // Allocate a new unused vlan tag from the vlan tag range
 
@@ -418,13 +461,15 @@ namespace SCM.Services.SCMServices
                     return;
                 }
 
-                var interfaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID);
-                var vlanTags = interfaceVlans.Select(q => q.VlanTag);
+                var ifaceVlanQuery = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID
+                && q.VlanTag == request.RequestedVlanTag);
 
-                if (vlanTags.Contains(request.RequestedVlanTag.Value))
+                var ifaceVlan = ifaceVlanQuery.SingleOrDefault();
+
+                if (ifaceVlan != null)
                 {
                     var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
-                    result.Add($"The request vlan tag is already in use for attachment '{attachment.Name}.");
+                    result.Add($"The requested vlan tag is already in use for attachment '{attachment.Name}.");
                     result.Add("Try again with a different vlan tag.");
                     result.IsSuccess = false;
 
@@ -437,6 +482,39 @@ namespace SCM.Services.SCMServices
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Update the RequiresSync property of an interfaceVlan record.
+        /// </summary>
+        /// <param name="ifaceVlan"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true)
+        {
+            ifaceVlan.RequiresSync = requiresSync;
+            UnitOfWork.InterfaceVlanRepository.Update(ifaceVlan);
+
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
+            }
+
+            return;
+        }
+
+        /// <summary>
+        /// Update the RequiresSync property of an interfaceVlan record.
+        /// </summary>
+        /// <param name="ifaceVlan"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(int interfaceVlanID, bool requiresSync, bool saveChanges = true)
+        {
+            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(interfaceVlanID);
+            await UpdateRequiresSyncAsync(ifaceVlan, requiresSync, saveChanges);
+
+            return;
         }
     }
 }

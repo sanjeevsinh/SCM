@@ -93,6 +93,7 @@ namespace SCM
             services.AddScoped<IVpnTenantCommunityService, VpnTenantCommunityService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<IVifService, VifService>();
+            services.AddScoped<IAttachmentOrVifService,AttachmentOrVifService>();
             services.AddScoped<INetworkSyncService, NetworkSyncService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());

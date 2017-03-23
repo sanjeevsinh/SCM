@@ -22,6 +22,8 @@ namespace SCM.Models.ViewModels
         public string IpAddress { get; set; }
         [Display(Name = "Subnet Mask")]
         public string SubnetMask { get; set; }
+        [Display(Name = "Requires Sync")]
+        public bool RequiresSync { get; set; }
         public PortViewModel Port { get; set; }
         [Display(Name = "Multiport Ports")]
         public ICollection<PortViewModel> MultiPortPorts { get; set; }
@@ -40,5 +42,6 @@ namespace SCM.Models.ViewModels
         public PlaneViewModel Plane { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
+
     }
 }

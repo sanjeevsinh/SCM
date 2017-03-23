@@ -56,7 +56,7 @@ namespace SCM.Controllers
                includeProperties: "Interface.Device.Location.SubRegion.Region,Interface.InterfaceBandwidth,Vrf.AttachmentSetVrfs.AttachmentSet,"
                + "Interface.Device.Plane,Interface.Port,Interface.InterfaceBandwidth,Tenant,ContractBandwidthPool.ContractBandwidth");
 
-            var result = Mapper.Map<List<AttachmentAndVifViewModel>>(interfaces).Concat(Mapper.Map<List<AttachmentAndVifViewModel>>(interfaceVlans));
+            var result = Mapper.Map<List<AttachmentOrVifViewModel>>(interfaces).Concat(Mapper.Map<List<AttachmentOrVifViewModel>>(interfaceVlans));
             result = result.OrderBy(q => q.AttachmentSetName);
 
             ViewBag.Vpn = vpn;
@@ -90,14 +90,6 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
-                includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
-            var item = dbResult.SingleOrDefault();
-
-            if (item == null)
-            {
-                return NotFound();
-            }
 
             var syncResult = await VpnService.SyncToNetworkAsync(id.Value);
      
@@ -109,6 +101,10 @@ namespace SCM.Controllers
             {
                 ViewData["ErrorMessage"] = syncResult.GetMessage();
             }
+
+            var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
+                includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
+            var item = dbResult.Single();
 
             return View("Details", Mapper.Map<VpnViewModel>(item));
         }
@@ -137,17 +133,11 @@ namespace SCM.Controllers
                     var message = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
                     ViewData["ErrorMessage"] = message;
                 }
-  
             }
 
             var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
-            includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
-            var item = dbResult.SingleOrDefault();
-
-            if (item == null)
-            {
-                return NotFound();
-            }
+                includeProperties: "Region,Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant");
+            var item = dbResult.Single();
 
             return View("Details", Mapper.Map<VpnViewModel>(item));
         }
@@ -180,7 +170,7 @@ namespace SCM.Controllers
             if (ModelState.IsValid)
             {
                 var mappedVpn = Mapper.Map<Vpn>(vpn);
-                var validationResult = await VpnService.ValidateCreateVpnAsync(mappedVpn);
+                var validationResult = await VpnService.ValidateAsync(mappedVpn);
 
                 if (!validationResult.IsSuccess)
                 {
@@ -270,6 +260,7 @@ namespace SCM.Controllers
                 vpn.PlaneID = currentVpn.PlaneID;
                 vpn.VpnTopologyTypeID = currentVpn.VpnTopologyTypeID;
                 vpn.TenantID = currentVpn.TenantID;
+                vpn.RequiresSync = currentVpn.RequiresSync;
             }
 
             try
@@ -277,7 +268,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedVpn = Mapper.Map<Vpn>(vpn);
-                    var validationResult = await VpnService.ValidateVpnChangesAsync(mappedVpn, currentVpn);
+                    var validationResult = await VpnService.ValidateChangesAsync(mappedVpn, currentVpn);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -443,6 +434,7 @@ namespace SCM.Controllers
                 ViewData["ErrorMessage"] = message;
             }
 
+            vpn.RequiresSync = true;
             return View("Delete", Mapper.Map<VpnViewModel>(vpn));
         }
 

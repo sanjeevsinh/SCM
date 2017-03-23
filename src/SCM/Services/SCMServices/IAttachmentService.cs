@@ -21,5 +21,7 @@ namespace SCM.Services.SCMServices
         Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateAsync(AttachmentRequest request);
+        Task UpdateRequiresSyncAsync(int interfaceID, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true);
     }
 }

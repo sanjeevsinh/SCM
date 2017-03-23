@@ -24,10 +24,13 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         public int? VrfID { get; set; }
         public int ContractBandwidthPoolID { get; set; }
+        [Display(Name = "Requires Sync")]
+        public bool RequiresSync { get; set; }
         public TenantViewModel Tenant { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
+
     }
 }

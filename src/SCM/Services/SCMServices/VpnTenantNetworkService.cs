@@ -9,9 +9,12 @@ namespace SCM.Services.SCMServices
 {
     public class VpnTenantNetworkService : BaseService, IVpnTenantNetworkService
     {
-        public VpnTenantNetworkService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public VpnTenantNetworkService(IUnitOfWork unitOfWork, IVpnService vpnService) : base(unitOfWork)
         {
+            VpnService = vpnService;
         }
+
+        private IVpnService VpnService { get; set; }
 
         public async Task<IEnumerable<VpnTenantNetwork>> GetAllAsync()
         {
@@ -26,18 +29,27 @@ namespace SCM.Services.SCMServices
         public async Task<int> AddAsync(VpnTenantNetwork vpnTenantNetwork)
         {
             this.UnitOfWork.VpnTenantNetworkRepository.Insert(vpnTenantNetwork);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantNetwork.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> UpdateAsync(VpnTenantNetwork vpnTenantNetwork)
         {
             this.UnitOfWork.VpnTenantNetworkRepository.Update(vpnTenantNetwork);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantNetwork.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> DeleteAsync(VpnTenantNetwork vpnTenantNetwork)
         {
             this.UnitOfWork.VpnTenantNetworkRepository.Delete(vpnTenantNetwork);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantNetwork.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 

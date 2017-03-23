@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SCM.Models.ViewModels
 {
-    public class AttachmentAndVifViewModel
+    public class AttachmentOrVifViewModel
     {
         public int ID { get; set; }
         [Display(Name = "Attachment Name")]
@@ -42,5 +42,7 @@ namespace SCM.Models.ViewModels
         public string ContractBandwidthPool { get; set; }
         [Display(Name = "Contract Bandwidth (Mbps)")]
         public int ContractBandwidth { get; set; }
+        [Display(Name = "Requires Sync")]
+        public bool RequiresSync { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-@model IEnumerable<SCM.Models.ViewModels.AttachmentAndVifViewModel>
+@model IEnumerable<SCM.Models.ViewModels.AttachmentOrVifViewModel>
 
 @{
     ViewData["Title"] = "Attachments and VIFs";
@@ -39,6 +39,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.VifName)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RequiresSync)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -69,6 +72,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.VifName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { id = item.ID, vif = item.IsVif, vpnID = ViewBag.Vpn.VpnID })

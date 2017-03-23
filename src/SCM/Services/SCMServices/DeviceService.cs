@@ -85,6 +85,8 @@ namespace SCM.Services.SCMServices
                 checkSyncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
             }
 
+            await UpdateDeviceRequiresSyncAsync(device, !checkSyncResult.InSync);
+
             return checkSyncResult;
         }
 
@@ -113,6 +115,8 @@ namespace SCM.Services.SCMServices
                 syncResult = await NetSync.SyncNetworkAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
             }
 
+            await UpdateDeviceRequiresSyncAsync(device, !syncResult.IsSuccess);
+
             return syncResult;
         }
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int deviceID)
@@ -133,7 +137,23 @@ namespace SCM.Services.SCMServices
                 syncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" + device.Name);
             }
 
+            await UpdateDeviceRequiresSyncAsync(device, true);
+
             return syncResult;
+        }
+
+        /// <summary>
+        /// Helper to update the RequiresSync property of a vpn record.
+        /// </summary>
+        /// <param name="vpn"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        private async Task<int> UpdateDeviceRequiresSyncAsync(Device device, bool requiresSync)
+        {
+            device.RequiresSync = requiresSync;
+            UnitOfWork.DeviceRepository.Update(device);
+
+            return await UnitOfWork.SaveAsync();
         }
     }
 }

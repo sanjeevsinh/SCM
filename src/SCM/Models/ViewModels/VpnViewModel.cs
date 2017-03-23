@@ -25,6 +25,8 @@ namespace SCM.Models.ViewModels
         public int? TenantID { get; set; }
         public int? PlaneID { get; set; }
         public int? RegionID { get; set; }
+        [Display(Name = "Requires Sync")]
+        public bool RequiresSync { get; set; }
         public byte[] RowVersion { get; set; }
         public TenantViewModel Tenant { get; set; }
         public PlaneViewModel Plane { get; set; }

@@ -17,6 +17,7 @@ namespace SCM.Models
         public string Description { get; set; }
         public int LocationID { get; set; }
         public int PlaneID { get; set; }
+        public bool RequiresSync { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Location Location { get; set;}

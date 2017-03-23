@@ -11,13 +11,16 @@ namespace SCM.Services.SCMServices
     {
         private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
         private IRouteTargetService RouteTargetService { get; set; }
+        private IVpnService VpnService { get; set; }
 
         public VpnAttachmentSetService(IUnitOfWork unitOfWork,
             IAttachmentSetVrfService attachmentSetVrfService, 
-            IRouteTargetService routeTargetService) : base(unitOfWork)
+            IRouteTargetService routeTargetService,
+            IVpnService vpnService) : base(unitOfWork)
         {
             AttachmentSetVrfService = attachmentSetVrfService;
             RouteTargetService = routeTargetService;
+            VpnService = vpnService;
         }
 
         public async Task<IEnumerable<VpnAttachmentSet>> GetAllAsync()
@@ -33,18 +36,21 @@ namespace SCM.Services.SCMServices
         public async Task<int> AddAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Insert(attachmentSetVpn);
+            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> UpdateAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Update(attachmentSetVpn);
+            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> DeleteAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Delete(attachmentSetVpn);
+            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 
@@ -89,7 +95,7 @@ namespace SCM.Services.SCMServices
 
             // Validate the VPN route targets
 
-            var routeTargetsValidationResult = await RouteTargetService.ValidateRouteTargetsAsync(vpn.VpnID);
+            var routeTargetsValidationResult = await RouteTargetService.ValidateAsync(vpn.VpnID);
             if (!routeTargetsValidationResult.IsSuccess)
             {
                 validationResult.Add($"The route targets for VPN '{vpn.Name}' are not configured correctly. "

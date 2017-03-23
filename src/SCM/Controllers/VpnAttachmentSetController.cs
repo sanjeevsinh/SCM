@@ -109,7 +109,7 @@ namespace SCM.Controllers
                     }
                 }
             }
-            catch (DbUpdateException /** ex **/ )
+            catch (DbUpdateException  /** ex **/ )
             {
                 //Log the error (uncomment ex variable name and write a log.
                 ModelState.AddModelError("", "Unable to save changes. " +
@@ -189,9 +189,13 @@ namespace SCM.Controllers
         private async Task PopulateAttachmentSetsDropDownList(VpnAttachmentSetRequestViewModel vpnAttachmentSetRequest, object selectedAttachmentSet = null)
         {
 
-            var vpn = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetByIDAsync(vpnAttachmentSetRequest.VpnID);
+            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnAttachmentSetRequest.VpnID, 
+                includeProperties:"VpnTopologyType.VpnProtocolType");
+            var vpn = dbResult.Single();
+            var layer3 = vpn.VpnTopologyType.VpnProtocolType.ProtocolType == "IP" ? true : false;
+
             var attachmentSets = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
-                        q.TenantID == vpnAttachmentSetRequest.TenantID);
+                        q.TenantID == vpnAttachmentSetRequest.TenantID && q.IsLayer3 == layer3);
 
             if (vpn.RegionID != null)
             {

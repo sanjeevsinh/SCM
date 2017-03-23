@@ -76,7 +76,7 @@ namespace SCM.Models.NetModels.IpVpnNetModels
                 }
 
                 result.PEs = PEs;
-                result.IsHub = source.IsHub;
+                result.IsHub = source.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke" ? source.IsHub : null;
                 result.TenantPrefixes = Mapper.Map<List<TenantPrefixNetModel>>(source.VpnTenantNetworks);
                 result.TenantCommunities = Mapper.Map<List<TenantCommunityNetModel>>(source.VpnTenantCommunities);
                 result.Name = source.AttachmentSet.Name;

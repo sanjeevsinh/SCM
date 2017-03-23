@@ -108,7 +108,7 @@ namespace SCM.Services.SCMServices
 
         /// <summary>
         /// Validate if a VRF can be deleted. A VRF cannot be deleted if it is bound 
-        /// to one or more attachmen sets.
+        /// to one or more attachment sets.
         /// </summary>
         /// <param name="vrfID"></param>
         /// <returns></returns>

@@ -219,6 +219,7 @@ namespace SCM.Controllers
             if (checkSyncResult.InSync)
             {
                 ViewData["SuccessMessage"] = "The attachment is synchronised with the network.";
+                item.RequiresSync = false;
             }
             else
             {
@@ -230,6 +231,8 @@ namespace SCM.Controllers
                 {
                     ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
+
+                item.RequiresSync = true;
             }
 
             return View("Details", Mapper.Map<AttachmentViewModel>(item));
@@ -250,10 +253,12 @@ namespace SCM.Controllers
             if (syncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The network is synchronised.";
+                item.RequiresSync = false;
             }
             else
             {
                 ViewData["ErrorMessage"] = syncResult.GetMessage();
+                item.RequiresSync = true;
             }
 
             return View("Details", Mapper.Map<AttachmentViewModel>(item));
@@ -294,6 +299,7 @@ namespace SCM.Controllers
             }
 
             await PopulateTenantItem(item.TenantID);
+            item.RequiresSync = true;
             return View("Delete", Mapper.Map<AttachmentViewModel>(item));
         }
 

@@ -28,6 +28,7 @@ namespace SCM.Models.ServiceModels
         public int BandwidthID { get; set; }
         public int? VrfID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
+        public bool RequiresSync { get; set; }
         public Port Port { get; set; }
         public Tenant Tenant { get; set; }
         public Device Device { get; set; }

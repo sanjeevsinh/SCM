@@ -13,7 +13,7 @@ namespace SCM.Models
         public int AssignedNumberSubField { get; set; }
         public bool IsHubExport { get; set; }
         public int VpnID { get; set; }
-        public int RouteTargetRangeID { get; set; }
+        public int? RouteTargetRangeID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Vpn Vpn { get; set; }

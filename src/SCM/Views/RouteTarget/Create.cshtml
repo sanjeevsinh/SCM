@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.RouteTargetViewModel
+@model SCM.Models.ViewModels.RouteTargetRequestViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -26,10 +26,17 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="AssignedNumberSubField" class="col-md-2 control-label"></label>
+            <label asp-for="AutoAllocateAssignedNumberSubField" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="AssignedNumberSubField" class="form-control" />
-                <span asp-validation-for="AssignedNumberSubField" class="text-danger" />
+                <input asp-for="AutoAllocateAssignedNumberSubField" class="form-control" />
+                <span asp-validation-for="AutoAllocateAssignedNumberSubField" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="RequestedAssignedNumberSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="RequestedAssignedNumberSubField" class="form-control" />
+                <span asp-validation-for="RequestedAssignedNumberSubField" class="text-danger" />
             </div>
         </div>
 @if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
@@ -56,4 +63,40 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<script type="text/javascript">
+
+    (function ($) {
+
+        var $autoAllocateAssignedNumberSubField = $('#AutoAllocateAssignedNumberSubField'),
+        autoAllocateAssignedNumberSubField = $autoAllocateAssignedNumberSubField[0];
+        $requestedAssignedNumberSubField = $('#RequestedAssignedNumberSubField'),
+        requestedAssignedNumberSubField = $requestedAssignedNumberSubField[0];
+
+        if (autoAllocateAssignedNumberSubField.checked) {
+
+            requestedAssignedNumberSubField.value = null;
+            requestedAssignedNumberSubField.disabled = true;
+        }
+        else {
+
+            requestedAssignedNumberSubField.disabled = false;
+        }
+
+        $autoAllocateAssignedNumberSubField.on('click', function (e) {
+
+            if (this.checked) {
+
+                requestedAssignedNumberSubField.value = null;
+                requestedAssignedNumberSubField.disabled = true;
+            }
+            else {
+
+                requestedAssignedNumberSubField.disabled = false;
+            }
+        });
+
+    }(jQuery));
+
+</script>
 }

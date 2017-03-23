@@ -203,6 +203,7 @@ namespace SCM.Controllers
             if (checkSyncResult.InSync)
             {
                 ViewData["SuccessMessage"] = "The vif is synchronised with the network.";
+                item.RequiresSync = false;
             }
             else
             {
@@ -214,6 +215,8 @@ namespace SCM.Controllers
                 {
                     ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
+
+                item.RequiresSync = true;
             }
 
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
@@ -235,10 +238,12 @@ namespace SCM.Controllers
             if (syncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The network is synchronised.";
+                item.RequiresSync = false;
             }
             else
             {
                 ViewData["ErrorMessage"] = syncResult.GetMessage();
+                item.RequiresSync = true;
             }
 
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
@@ -279,6 +284,8 @@ namespace SCM.Controllers
             }
 
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            item.RequiresSync = true;
+
             return View("Delete", Mapper.Map<VifViewModel>(item));
         }
 

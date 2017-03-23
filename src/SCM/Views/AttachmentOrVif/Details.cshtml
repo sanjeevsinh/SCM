@@ -1,4 +1,4 @@
-@model SCM.Models.ViewModels.AttachmentAndVifViewModel
+@model SCM.Models.ViewModels.AttachmentOrVifViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -7,7 +7,7 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/AttachmentAndVif/GetAllByVpnID/@Context.Request.Query["vpnID"]">Attachments and VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentOrVif/GetAllByVpnID/@Context.Request.Query["vpnID"]">Attachments and VIFs</a></li>
     <li class="breadcrumb-item active">Details</li>
 </ol>
 
@@ -108,13 +108,21 @@ else
         <dd>
             @Html.DisplayFor(model => model.SubnetMask)
         </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.RequiresSync)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.RequiresSync)
+        </dd>
     </dl>
 </div>
 <form asp-action="">
-    <input type="hidden" asp-for="ID" name="id" />
+    <input type="hidden" asp-for="ID" />
+    <input type="hidden" asp-for="IsVif" />
+    <input type="hidden" asp-for="IsBundle" />
     <div class="form-actions no-color">
-        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="CheckSync" asp-route-vpnID ="@Context.Request.Query["vpnID"]" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" asp-action="Sync" asp-route-vpnID ="@Context.Request.Query["vpnID"]" value="Sync" class="btn btn-default" /> |
         <a asp-action="GetAllByVpnID" asp-route-id="@Context.Request.Query["vpnID"]">Back to Attachment and VIFs List</a>
     </div>
 </form>

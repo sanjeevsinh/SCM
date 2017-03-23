@@ -11,6 +11,7 @@ using SCM.Services;
 using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SCM.Models.ServiceModels;
 
 namespace SCM.Controllers
 {
@@ -34,7 +35,7 @@ namespace SCM.Controllers
 
             var routeTargets = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.VpnID == id);
             await PopulateVpnItem(id.Value);
-            var validateResult = await RouteTargetService.ValidateRouteTargetsAsync(id.Value);
+            var validateResult = await RouteTargetService.ValidateAsync(id.Value);
             if (!validateResult.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty,validateResult.GetMessage());
@@ -81,24 +82,31 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VpnID,AdministratorSubField,AssignedNumberSubField,IsHubExport")] RouteTargetViewModel routeTarget)
+        public async Task<IActionResult> Create([Bind("VpnID,AdministratorSubField,RequestedAssignedNumberSubField," 
+            + "AutoAllocateAssignedNumberSubField,IsHubExport")] RouteTargetRequestViewModel request)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
-                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
+                    var validationResult = await RouteTargetService.CheckVpnOkToAddOrRemoveRouteTargetAsync(request.VpnID);
 
                     if (!validationResult.IsSuccess)
                     {
                         validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        await PopulateVpnItem(routeTarget.VpnID);
-                        return View(routeTarget);
                     }
-
-                    await RouteTargetService.AddAsync(mappedRouteTarget);
-                    return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
+                    else
+                    {
+                        var result = await RouteTargetService.AddAsync(Mapper.Map<RouteTargetRequest>(request));
+                        if (!result.IsSuccess)
+                        {
+                            result.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        }
+                        else
+                        {
+                            return RedirectToAction("GetAllByVpnID", new { id = request.VpnID });
+                        }
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -109,8 +117,8 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVpnItem(routeTarget.VpnID);
-            return View(routeTarget);
+            await PopulateVpnItem(request.VpnID);
+            return View(request);
         }
 
         [HttpGet]
@@ -131,90 +139,6 @@ namespace SCM.Controllers
 
             await PopulateVpnItem(routeTarget.VpnID);
             return View(Mapper.Map<RouteTargetViewModel>(routeTarget));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("RouteTargetID,VpnID,AdministratorSubField,AssignedNumberSubField,IsHubExport,RowVersion")] RouteTargetViewModel routeTarget)
-        {
-            if (id != routeTarget.RouteTargetID)
-            {
-                return NotFound();
-            }
-
-            var dbResult = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.RouteTargetID == id,
-                includeProperties: "Vpn", AsTrackable: false);
-            var currentRouteTarget = dbResult.SingleOrDefault();
-
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    if (currentRouteTarget == null)
-                    {
-                        ModelState.AddModelError(string.Empty, "Unable to save changes. The routeTarget was deleted by another user.");
-                        return View(routeTarget);
-                    }
-
-                    var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
-                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
-
-                    if (!validationResult.IsSuccess)
-                    {
-                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
-                        await PopulateVpnItem(currentRouteTarget.VpnID);
-
-                        return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));
-
-                    }
-
-                    await RouteTargetService.UpdateAsync(mappedRouteTarget);
-                    return RedirectToAction("GetAllByVpnID", new { id = routeTarget.VpnID });
-                }
-            }
-
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var exceptionEntry = ex.Entries.Single();
-
-                var proposedAdministratorSubField = (int)exceptionEntry.Property("AdministratorSubField").CurrentValue;
-                if (currentRouteTarget.AdministratorSubField != proposedAdministratorSubField)
-                {
-                    ModelState.AddModelError("AdministratorSubField", $"Current value: {currentRouteTarget.AdministratorSubField}");
-                }
-
-                var proposedAssignedNumberSubField = (int)exceptionEntry.Property("AssignedNumberSubField").CurrentValue;
-                if (currentRouteTarget.AssignedNumberSubField != proposedAssignedNumberSubField)
-                {
-                    ModelState.AddModelError("AssignedNumberSubField", $"Current value: {currentRouteTarget.AssignedNumberSubField}");
-                }
-
-                var proposedIsHubExport = (bool)exceptionEntry.Property("IsHubExport").CurrentValue;
-                if (currentRouteTarget.IsHubExport != proposedIsHubExport)
-                {
-                    ModelState.AddModelError("IsHubExport", $"Current value: {currentRouteTarget.IsHubExport}");
-                }
-
-
-                ModelState.AddModelError(string.Empty, "The record you attempted to edit "
-                    + "was modified by another user after you got the original value. The "
-                    + "edit operation was cancelled and the current values in the database "
-                    + "have been displayed. If you still want to edit this record, click "
-                    + "the Save button again. Otherwise click the Back to List hyperlink.");
-
-                ModelState.Remove("RowVersion");
-            }
-
-            catch (DbUpdateException /* ex */)
-            {
-                //Log the error (uncomment ex variable name and write a log.
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists " +
-                    "see your system administrator.");
-            }
-
-            await PopulateVpnItem(currentRouteTarget.VpnID);
-            return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));
         }
 
         [HttpGet]
@@ -263,7 +187,7 @@ namespace SCM.Controllers
                 if (currentRouteTarget != null)
                 {
                     var mappedRouteTarget = Mapper.Map<RouteTarget>(routeTarget);
-                    var validationResult = await RouteTargetService.ValidateRouteTargetChangesAsync(mappedRouteTarget);
+                    var validationResult = await RouteTargetService.CheckVpnOkToAddOrRemoveRouteTargetAsync(mappedRouteTarget.VpnID);
 
                     if (!validationResult.IsSuccess)
                     {

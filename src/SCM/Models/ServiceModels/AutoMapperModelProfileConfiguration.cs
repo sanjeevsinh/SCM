@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Linq;
 
 namespace SCM.Models.ServiceModels
 {
@@ -43,6 +44,12 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.InterfaceID));
 
             CreateMap<VifRequest, Vrf>();
+
+            CreateMap<RouteTargetRequest, RouteTarget>()
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.AllocatedAssignedNumberSubField));
+
+            CreateMap<Interface, AttachmentOrVif>().ConvertUsing(new InterfaceAttachmentSetMemberTypeConverter());
+            CreateMap<InterfaceVlan, AttachmentOrVif>().ConvertUsing(new InterfaceVlanAttachmentSetMemberTypeConverter());
         }
 
         public class AttachmentNameResolver : IValueResolver<Interface, Attachment, string>
@@ -71,6 +78,88 @@ namespace SCM.Models.ServiceModels
                 {
                     return $"{source.Interface.Port.Type} {source.Interface.Port.Name}.{source.VlanTag}";
                 }
+            }
+        }
+        public class InterfaceAttachmentSetMemberTypeConverter : ITypeConverter<Interface, AttachmentOrVif>
+        {
+            public AttachmentOrVif Convert(Interface source, AttachmentOrVif destination, ResolutionContext context)
+            {
+                var mapper = context.Mapper;
+                var result = new AttachmentOrVif();
+
+                result.ID = source.InterfaceID;
+                if (source.IsBundle)
+                {
+                    result.IsBundle = true;
+                    result.AttachmentName = $"Bundle {source.BundleID}";
+                }
+                else
+                {
+                    result.AttachmentName = source.Port.Type + source.Port.Name;
+                }
+
+                if (source.Vrf.AttachmentSetVrfs.Count > 0)
+                {
+                    result.AttachmentSetName = source.Vrf.AttachmentSetVrfs.First().AttachmentSet.Name;
+                }
+
+                result.ContractBandwidth = source.ContractBandwidthPool.ContractBandwidth.BandwidthMbps;
+                result.ContractBandwidthPool = source.ContractBandwidthPool.Name;
+                result.DeviceName = source.Device.Name;
+                result.InterfaceBandwidth = source.InterfaceBandwidth.BandwidthGbps;
+                result.IpAddress = source.IpAddress;
+                result.Location = source.Device.Location.SiteName;
+                result.PlaneName = source.Device.Plane.Name;
+                result.Region = source.Device.Location.SubRegion.Region.Name;
+                result.SubRegion = source.Device.Location.SubRegion.Name;
+                result.TenantName = source.Tenant.Name;
+                result.SubnetMask = source.SubnetMask;
+                result.TenantName = source.Tenant.Name;
+                result.VrfName = source.Vrf.Name;
+                result.RequiresSync = source.RequiresSync;
+
+                return result;
+            }
+        }
+        public class InterfaceVlanAttachmentSetMemberTypeConverter : ITypeConverter<InterfaceVlan, AttachmentOrVif>
+        {
+            public AttachmentOrVif Convert(InterfaceVlan source, AttachmentOrVif destination, ResolutionContext context)
+            {
+                var mapper = context.Mapper;
+                var result = new AttachmentOrVif();
+
+                result.ID = source.InterfaceVlanID;
+                if (source.Interface.IsBundle)
+                {
+                    result.IsBundle = true;
+                    result.AttachmentName = $"Bundle {source.Interface.BundleID}";
+                }
+                else
+                {
+                    result.AttachmentName = source.Interface.Port.Type + source.Interface.Port.Name;
+                }
+                if (source.Vrf.AttachmentSetVrfs.Count > 0)
+                {
+                    result.AttachmentSetName = source.Vrf.AttachmentSetVrfs.First().AttachmentSet.Name;
+                }
+
+                result.ContractBandwidth = source.ContractBandwidthPool.ContractBandwidth.BandwidthMbps;
+                result.ContractBandwidthPool = source.ContractBandwidthPool.Name;
+                result.DeviceName = source.Interface.Device.Name;
+                result.InterfaceBandwidth = source.Interface.InterfaceBandwidth.BandwidthGbps;
+                result.IpAddress = source.IpAddress;
+                result.SubnetMask = source.SubnetMask;
+                result.Location = source.Interface.Device.Location.SiteName;
+                result.PlaneName = source.Interface.Device.Plane.Name;
+                result.Region = source.Interface.Device.Location.SubRegion.Region.Name;
+                result.SubRegion = source.Interface.Device.Location.SubRegion.Name;
+                result.TenantName = source.Tenant.Name;
+                result.IsVif = true;
+                result.VifName = $"{result.AttachmentName}.{source.VlanTag}";
+                result.VrfName = source.Vrf.Name;
+                result.RequiresSync = source.RequiresSync;
+
+                return result;
             }
         }
     }

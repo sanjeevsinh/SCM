@@ -16,7 +16,7 @@ namespace SCM.Models.ViewModels
         [Required]
         [Range(1, 4294967295)]
         public string AssignedNumberSubField { get; set; }
-        [Display(Name = "Hub Export", Prompt = "Tick this box if the route target is for export from a Hub VRF")]
+        [Display(Name = "Hub Export")]
         public bool IsHubExport { get; set; }
         public int VpnID { get; set; }
         public byte[] RowVersion { get; set; }

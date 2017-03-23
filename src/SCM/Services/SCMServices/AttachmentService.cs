@@ -28,7 +28,7 @@ namespace SCM.Services.SCMServices
 
             var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
                 "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers," 
+                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,"
                 + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
@@ -93,6 +93,17 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment)
         {
+
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
+
+            if (iface == null)
+            {
+                var result = new NetworkCheckSyncServiceResult();
+                result.NetworkSyncServiceResult.Add("The attachment resource was not found.");
+
+                return result;
+            }
+
             if (attachment.IsBundle)
             {
                 if (attachment.IsTagged)
@@ -100,6 +111,8 @@ namespace SCM.Services.SCMServices
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentBundleServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync, true);
 
                     return attachmentCheckSyncResult;
                 }
@@ -121,6 +134,8 @@ namespace SCM.Services.SCMServices
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentBundleServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
 
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
+
                     return attachmentCheckSyncResult;
                 }
             }
@@ -132,6 +147,8 @@ namespace SCM.Services.SCMServices
                     var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
 
                     return attachmentCheckSyncResult;
                 }
@@ -154,6 +171,8 @@ namespace SCM.Services.SCMServices
                         $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
+
                     return attachmentCheckSyncResult;
                 }
             }
@@ -161,6 +180,17 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment)
         {
+
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
+
+            if (iface == null)
+            {
+                var result = new NetworkSyncServiceResult();
+                result.Add("The attachment resource was not found.");
+
+                return result;
+            }
+
             if (attachment.IsBundle)
             {
                 if (attachment.IsTagged)
@@ -168,6 +198,8 @@ namespace SCM.Services.SCMServices
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentBundleServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
 
                     return attachmentSyncResult;
                 }
@@ -181,6 +213,7 @@ namespace SCM.Services.SCMServices
 
                         if (!vrfSyncResult.IsSuccess)
                         {
+                            await UpdateRequiresSyncAsync(iface, true);
                             return vrfSyncResult;
                         }
                     }
@@ -188,6 +221,8 @@ namespace SCM.Services.SCMServices
                     var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentBundleServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
 
                     return attachmentSyncResult;
                 }
@@ -201,6 +236,8 @@ namespace SCM.Services.SCMServices
                         $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
 
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
+
                     return attachmentSyncResult;
                 }
                 else
@@ -213,6 +250,7 @@ namespace SCM.Services.SCMServices
 
                         if (!vrfSyncResult.IsSuccess)
                         {
+                            await UpdateRequiresSyncAsync(iface, true);
                             return vrfSyncResult;
                         }
                     }
@@ -221,6 +259,8 @@ namespace SCM.Services.SCMServices
                     var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentServiceModelData,
                         $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
 
                     return attachmentSyncResult;
                 }
@@ -237,16 +277,12 @@ namespace SCM.Services.SCMServices
 
             var result = new ServiceResult { IsSuccess = true };
 
-            if (attachment.VrfID != null)
-            {
-                var validateVrfDelete = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
-                if (!validateVrfDelete.IsSuccess)
-                {
-                    result.AddRange(validateVrfDelete.GetMessageList());
-                    result.IsSuccess = false;
+            // Validate the attachment can be deleted - if not quit 
 
-                    return result;
-                }
+            await ValidateDeleteAsync(attachment, result);
+            if (!result.IsSuccess)
+            {
+                return result;
             }
 
             var syncResult = await DeleteFromNetworkAsync(attachment);
@@ -282,19 +318,24 @@ namespace SCM.Services.SCMServices
         {
             var syncResult = new NetworkSyncServiceResult();
 
-            // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
-            // is to be deleted, and one or more VPNs are bound to the  VRF, 
-            // then quit and warn the user
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
 
-            if (attachment.VrfID != null)
+            if (iface == null)
             {
-                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
-                if (!vrfValidationResult.IsSuccess)
-                {
-                    syncResult.AddRange(vrfValidationResult.GetMessageList());
+                syncResult.Add("The attachment resource was not found.");
 
-                    return syncResult;
-                }
+                return syncResult;
+            }
+
+            // Validate the attachment can be deleted - if not quit 
+
+            var result = new ServiceResult { IsSuccess = true };
+            await ValidateDeleteAsync(attachment, result);
+            if (!result.IsSuccess)
+            {
+                syncResult.AddRange(result.GetMessageList());
+
+                return syncResult;
             }
 
             if (attachment.IsBundle)
@@ -304,6 +345,8 @@ namespace SCM.Services.SCMServices
                     var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
                        + $"/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, true);
 
                     return attachmentSyncResult;
                 }
@@ -322,8 +365,10 @@ namespace SCM.Services.SCMServices
                     }
 
                     var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}" 
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
                         + $"/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, true);
 
                     return attachmentSyncResult;
 
@@ -337,6 +382,8 @@ namespace SCM.Services.SCMServices
                     var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
                         + $"/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
                         + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, true);
 
                     return attachmentSyncResult;
                 }
@@ -357,6 +404,8 @@ namespace SCM.Services.SCMServices
                     var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
                         + $"/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
                         + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, true);
 
                     return attachmentSyncResult;
                 }
@@ -461,6 +510,52 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Helper to validate if an attachment can be deleted.
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private async Task ValidateDeleteAsync(Attachment attachment, ServiceResult result)
+        {
+            // Check if attachment has a vrf. If it does, check if the VRF participates in any services
+
+            if (attachment.VrfID != null)
+            {
+                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
+                if (!vrfValidationResult.IsSuccess)
+                {
+                    result.IsSuccess = false;
+                    result.AddRange(vrfValidationResult.GetMessageList());
+
+                    return;
+                }
+            }
+
+            // If the attachment is tagged, check if the attachment has any vifs, then check if each vif has a vrf.
+            // If a vrf exists, check if it participates in an services
+
+            if (attachment.IsTagged)
+            {
+                var ifaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == attachment.ID);
+                if (ifaceVlans.Count > 0)
+                {
+                    foreach (InterfaceVlan ifaceVlan in ifaceVlans)
+                    {
+                        if (ifaceVlan.VrfID != null)
+                        {
+                            var vrfValidationResult = await VrfService.ValidateDeleteAsync(ifaceVlan.VrfID.Value);
+                            if (!vrfValidationResult.IsSuccess)
+                            {
+                                result.IsSuccess = false;
+                                result.AddRange(vrfValidationResult.GetMessageList());
+                            }
+                        }   
+                    }
+                }
+            }
+        }
+
         private async Task<IEnumerable<Port>> FindPortsAsync(AttachmentRequest request, ServiceResult result)
         {
             var device = await FindDeviceAsync(request, result);
@@ -511,7 +606,7 @@ namespace SCM.Services.SCMServices
             // of the required bandwidth.
             // Free ports are not already assigned to a tenant.
 
-            devices = devices.Where(q => q.Ports.Where(p => p.TenantID == null 
+            devices = devices.Where(q => q.Ports.Where(p => p.TenantID == null
                 && p.PortBandwidth.BandwidthGbps == request.PortBandwidthRequired).Count() >= request.NumPortsRequired).ToList();
 
             Device device = null;
@@ -520,7 +615,7 @@ namespace SCM.Services.SCMServices
             {
                 result.Add("Ports matching the requested location and "
                     + "bandwidth parameters could not be found. "
-                    + "Please change the input parameters and try again, " 
+                    + "Please change the input parameters and try again, "
                     + "or contact your system adminstrator to report this issue.");
 
                 result.IsSuccess = false;
@@ -555,6 +650,7 @@ namespace SCM.Services.SCMServices
             var iface = Mapper.Map<Interface>(request);
             iface.DeviceID = port.DeviceID;
             iface.PortID = port.ID;
+            iface.RequiresSync = true;
 
             Vrf vrf = null;
             if (request.IsLayer3)
@@ -578,7 +674,7 @@ namespace SCM.Services.SCMServices
 
                         return;
                     }
-        
+
                     iface.VrfID = vrf.VrfID;
                 }
 
@@ -614,7 +710,8 @@ namespace SCM.Services.SCMServices
             var bundleIface = Mapper.Map<Interface>(request);
             var port = ports.First();
             bundleIface.DeviceID = port.Device.ID;
-            var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID).Where(q => q != null );
+            bundleIface.RequiresSync = true;
+            var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID).Where(q => q != null);
 
             // Find the first un-used bundle ID in the range 1, 65535 (this is the Cisco IOS-XR allowable range for bundle IDs).
 
@@ -703,8 +800,8 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         private async Task DeleteBundleAttachmentAsync(Attachment attachment, ServiceResult result)
         {
-            var bundlePorts = await UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == attachment.ID, 
-                includeProperties:"Port");
+            var bundlePorts = await UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == attachment.ID,
+                includeProperties: "Port");
 
             var ports = bundlePorts.Select(q => q.Port);
 
@@ -738,6 +835,37 @@ namespace SCM.Services.SCMServices
 
                 result.IsSuccess = false;
             }
+        }
+
+        /// <summary>
+        /// Helper to update the RequiresSync property of an interface record.
+        /// </summary>
+        /// <param name="iface"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true)
+        {
+            iface.RequiresSync = requiresSync;
+            UnitOfWork.InterfaceRepository.Update(iface);
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
+            }
+
+            return;
+        }
+        /// <summary>
+        /// Helper to update the RequiresSync property of an interface record.
+        /// </summary>
+        /// <param name="iface"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(int ifaceID, bool requiresSync, bool saveChanges = true)
+        {
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(ifaceID);
+            await UpdateRequiresSyncAsync(iface, requiresSync, saveChanges);
+
+            return;
         }
     }
 }

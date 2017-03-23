@@ -44,6 +44,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.ContractBandwidthPool)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RequiresSync)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -75,6 +78,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
                     @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |

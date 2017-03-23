@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Data;
+using SCM.Models.ServiceModels;
 
 namespace SCM.Services.SCMServices
 {
@@ -13,10 +14,10 @@ namespace SCM.Services.SCMServices
 
         Task<IEnumerable<RouteTarget>> GetAllAsync();
         Task<RouteTarget> GetByIDAsync(int id);
-        Task<int> AddAsync(RouteTarget routeTarget);
-        Task<int> UpdateAsync(RouteTarget routeTarget);
+        Task<ServiceResult> AddAsync(RouteTargetRequest request);
         Task<int> DeleteAsync(RouteTarget routeTarget);
-        Task<ServiceResult> ValidateRouteTargetChangesAsync(RouteTarget routeTarget);
-        Task<ServiceResult> ValidateRouteTargetsAsync(int vpnID);
+        Task<ServiceResult> CheckVpnOkToAddOrRemoveRouteTargetAsync(int vpnID);
+        Task<ServiceResult> ValidateAsync(int vpnID);
+        Task<IEnumerable<RouteTarget>> AllocateAllVpnRouteTargetsAsync(string vpnTopologyType, ServiceResult result);
     }
 }

@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170320135814_Update11")]
+    partial class Update11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -565,7 +566,7 @@ namespace SCM.Migrations
 
                     b.Property<bool>("IsHubExport");
 
-                    b.Property<int?>("RouteTargetRangeID");
+                    b.Property<int>("RouteTargetRangeID");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -1140,7 +1141,8 @@ namespace SCM.Migrations
                 {
                     b.HasOne("SCM.Models.RouteTargetRange", "RouteTargetRange")
                         .WithMany("RouteTargets")
-                        .HasForeignKey("RouteTargetRangeID");
+                        .HasForeignKey("RouteTargetRangeID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Vpn", "Vpn")
                         .WithMany("RouteTargets")

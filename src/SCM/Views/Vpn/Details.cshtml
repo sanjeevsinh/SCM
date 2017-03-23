@@ -77,6 +77,12 @@
             @Html.DisplayFor(model => model.IsExtranet)
         </dd>
 }
+        <dt>
+            @Html.DisplayNameFor(model => model.RequiresSync)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.RequiresSync)
+        </dd>
     </dl>
 </div>
 <form asp-action="Sync">

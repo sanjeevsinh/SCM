@@ -29,6 +29,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Location)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RequiresSync)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -46,6 +49,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Location.SiteName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |

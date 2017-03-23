@@ -56,10 +56,17 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            var item = await DeviceService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
             var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
             if (checkSyncResult.InSync)
             {
                 ViewData["SuccessMessage"] = "The device is synchronised with the network.";
+                item.RequiresSync = false;
             }
             else
             {
@@ -71,12 +78,8 @@ namespace SCM.Controllers
                 {
                     ViewData["ErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
-            }
 
-            var item = await DeviceService.GetByIDAsync(id.Value);
-            if (item == null)
-            {
-                return NotFound();
+                item.RequiresSync = true;
             }
 
             return View("Details", Mapper.Map<DeviceViewModel>(item));
@@ -107,6 +110,8 @@ namespace SCM.Controllers
             {
                 ViewData["ErrorMessage"] = syncResult.GetMessage();
             }
+
+            item.RequiresSync = !syncResult.IsSuccess;
 
             return View("Details", Mapper.Map<DeviceViewModel>(item));
         }
@@ -194,6 +199,8 @@ namespace SCM.Controllers
                     device.Name = currentDevice.Name;
                     device.PlaneID = currentDevice.PlaneID;
                     device.LocationID = currentDevice.LocationID;
+                    device.RequiresSync = currentDevice.RequiresSync;
+
                     await DeviceService.UpdateAsync(Mapper.Map<Device>(device));
 
                     return RedirectToAction("GetAll");
@@ -333,6 +340,7 @@ namespace SCM.Controllers
                 ViewData["ErrorMessage"] = message;
             }
 
+            device.RequiresSync = !syncResult.IsSuccess;
             return View("Delete", Mapper.Map<DeviceViewModel>(device));
         }
 

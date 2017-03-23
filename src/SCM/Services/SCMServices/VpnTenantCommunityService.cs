@@ -9,9 +9,12 @@ namespace SCM.Services.SCMServices
 {
     public class VpnTenantCommunityService : BaseService, IVpnTenantCommunityService
     {
-        public VpnTenantCommunityService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public VpnTenantCommunityService(IUnitOfWork unitOfWork, IVpnService vpnService) : base(unitOfWork)
         {
+            VpnService = vpnService;
         }
+ 
+        private IVpnService VpnService { get; set; }
 
         public async Task<IEnumerable<VpnTenantCommunity>> GetAllAsync()
         {
@@ -25,19 +28,28 @@ namespace SCM.Services.SCMServices
 
         public async Task<int> AddAsync(VpnTenantCommunity vpnTenantCommunity)
         {
-            this.UnitOfWork.VpnTenantCommunityRepository.Insert(vpnTenantCommunity);
+            UnitOfWork.VpnTenantCommunityRepository.Insert(vpnTenantCommunity);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> UpdateAsync(VpnTenantCommunity vpnTenantCommunity)
         {
             this.UnitOfWork.VpnTenantCommunityRepository.Update(vpnTenantCommunity);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> DeleteAsync(VpnTenantCommunity vpnTenantCommunity)
         {
             this.UnitOfWork.VpnTenantCommunityRepository.Delete(vpnTenantCommunity);
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
+            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
+
             return await this.UnitOfWork.SaveAsync();
         }
 

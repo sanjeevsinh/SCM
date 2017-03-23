@@ -17,6 +17,8 @@ namespace SCM.Models.ViewModels
         public string Name { get; set; }
         [StringLength(250)]
         public string Description { get; set; }
+        [Display(Name = "Requires Sync")]
+        public bool RequiresSync { get; set; }
         public byte[] RowVersion { get; set; }
         [Required(ErrorMessage = "A plane must be selected")]
         public int PlaneID { get; set; }
