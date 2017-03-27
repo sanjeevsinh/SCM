@@ -17,6 +17,11 @@ textarea {
     max-width: 280px;
 }
 
+.checkbox {
+    width: 25px; 
+    height: 25px;
+}
+
 /* Carousel */
 .carousel-caption p {
     font-size: 20px;

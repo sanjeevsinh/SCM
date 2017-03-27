@@ -14,6 +14,7 @@ namespace SCM.Models
         public bool IsLayer3 { get; set; }
         public bool IsBundle { get; set; }
         public int? BundleID { get; set; }
+        public bool IsMultiPort { get; set; }
         [MaxLength(15)]
         public string IpAddress { get; set; }
         [MaxLength(15)]

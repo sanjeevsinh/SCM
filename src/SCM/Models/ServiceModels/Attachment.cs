@@ -39,7 +39,6 @@ namespace SCM.Models.ServiceModels
         public Plane Plane { get; set; }
         public Vrf Vrf { get; set; }
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
-        public ICollection<MultiPortPort> MultiPortPorts { get; set; }
         public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
         public ICollection<Vif> Vifs { get; set; }
     }

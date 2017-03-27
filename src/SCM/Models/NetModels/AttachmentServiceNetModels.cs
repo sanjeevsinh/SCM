@@ -47,6 +47,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -79,6 +81,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int BundleID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -103,6 +107,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "vlan-id")]
         public int VlanID { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]

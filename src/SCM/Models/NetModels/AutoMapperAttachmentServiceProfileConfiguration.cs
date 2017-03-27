@@ -14,6 +14,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
             CreateMap<Interface, TaggedAttachmentInterfaceNetModel>()
@@ -26,6 +27,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
             CreateMap<Interface, TaggedAttachmentBundleInterfaceNetModel>()
@@ -39,6 +41,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
@@ -66,6 +69,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Attachment, UntaggedAttachmentInterfaceServiceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
                 .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new AttachmentLayer3NetModelTypeResolver()));
@@ -78,6 +82,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
                 .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new BundleAttachmentLayer3NetModelTypeResolver()));
 
@@ -98,10 +103,12 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Vif, VifNetModel>()
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
+               .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
 
             CreateMap<Vif, VifServiceNetModel>()
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+               .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
 

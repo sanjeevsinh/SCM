@@ -40,8 +40,7 @@
         <div class="form-group">
             <label asp-for="AutoAllocateVlanTag" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="AutoAllocateVlanTag" class="form-control"/>
-                <span asp-validation-for="AutoAllocateVlanTag" class="text-danger"></span>
+                <input asp-for="AutoAllocateVlanTag" class="checkbox"/>
             </div>
         </div>
         <div class="form-group">
@@ -54,22 +53,69 @@
         <div class="form-group">
             <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="IsLayer3" class="form-control" />
-                <span asp-validation-for="IsLayer3" class="text-danger"></span>
+                <input asp-for="IsLayer3" class="checkbox" />
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="IpAddress" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IpAddress" class="form-control" />
-                <span asp-validation-for="IpAddress" class="text-danger"></span>
+        <div id="L3Components1">
+            <div class="form-group">
+                <label asp-for="IpAddress1" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress1" class="form-control" />
+                    <span asp-validation-for="IpAddress1" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask1" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask1" class="form-control" />
+                    <span asp-validation-for="SubnetMask1" class="text-danger"></span>
+                </div>
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="SubnetMask" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="SubnetMask" class="form-control" />
-                <span asp-validation-for="SubnetMask" class="text-danger"></span>
+        <div id="L3Components2">
+            <div class="form-group">
+                <label asp-for="IpAddress2" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress2" class="form-control" />
+                    <span asp-validation-for="IpAddress2" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask2" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask2" class="form-control" />
+                    <span asp-validation-for="SubnetMask2" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div id="L3Components4">
+            <div class="form-group">
+                <label asp-for="IpAddress3" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress3" class="form-control" />
+                    <span asp-validation-for="IpAddress3" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask3" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask3" class="form-control" />
+                    <span asp-validation-for="SubnetMask3" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="IpAddress4" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress4" class="form-control" />
+                    <span asp-validation-for="IpAddress4" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask4" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask4" class="form-control" />
+                    <span asp-validation-for="SubnetMask4" class="text-danger"></span>
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -93,10 +139,6 @@
 
             var $isLayer3 = $('#IsLayer3'),
             isLayer3 = $isLayer3[0],
-            $ipAddress = $('#IpAddress'),
-            ipAddress = $ipAddress[0],
-            $subnetMask = $('#SubnetMask'),
-            subnetMask = $subnetMask[0],
             $contractBandwidthPool = $('#ContractBandwidthPoolID'),
             contractBandwidthPool = $contractBandwidthPool[0],
             $tenant = $('#TenantID'),
@@ -104,7 +146,10 @@
             $autoAllocateVlanTag = $('#AutoAllocateVlanTag'),
             autoAllocateVlanTag = $autoAllocateVlanTag[0];
             $requestedVlanTag = $('#RequestedVlanTag'),
-            requestedVlanTag = $requestedVlanTag[0];
+            requestedVlanTag = $requestedVlanTag[0],
+            $l3Components1 = $('#L3Components1'),
+            $l3Components2 = $('#L3Components2'),
+            $l3Components4 = $('#L3Components4');
 
             if (autoAllocateVlanTag.checked) {
 
@@ -129,17 +174,11 @@
                 }
             });
 
-            if (!isLayer3.checked) {
-
-                ipAddress.disabled = true;
-                subnetMask.disabled = true;
-            }
+            showHideL3Components();
 
             $isLayer3.on('click', function (e) {
 
-                var isLayer3Checked = this.checked;
-                ipAddress.disabled = !isLayer3Checked;
-                subnetMask.disabled = !isLayer3Checked;
+                showHideL3Components();
             });
 
             $tenant.on('change', function (e) {
@@ -151,6 +190,22 @@
                     $contractBandwidthPool.html(data);
                 });
             });
+
+            function showHideL3Components() {
+
+                $l3Components1.fadeOut();
+                $l3Components2.fadeOut();
+                $l3Components4.fadeOut();
+
+                if (!isLayer3.checked) {
+
+                    return;
+                }
+
+                $l3Components1.fadeIn();
+                //$l3Components2.fadeIn();
+                //$l3Components4.fadeIn();
+            }
 
         }(jQuery));
 

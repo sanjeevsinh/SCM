@@ -26,7 +26,6 @@ namespace SCM.Data
         public DbSet<Device> Devices { get; set; }
         public DbSet<Port> Ports { get; set; }
         public DbSet<MultiPort> MultiPorts { get; set; }
-        public DbSet<MultiPortPort> MultiPortPorts { get; set; }
         public DbSet<Interface> Interfaces { get; set; }
         public DbSet<PortBandwidth> PortBandwidth { get; set; }
         public DbSet<InterfaceBandwidth> InterfaceBandwidth { get; set; }
@@ -61,7 +60,6 @@ namespace SCM.Data
             builder.Entity<PortBandwidth>().ToTable("PortBandwidth");
             builder.Entity<Port>().ToTable("Port");
             builder.Entity<MultiPort>().ToTable("MultiPort");
-            builder.Entity<MultiPortPort>().ToTable("MultiPortPort");
             builder.Entity<Region>().ToTable("Region");
             builder.Entity<RouteTarget>().ToTable("RouteTarget");
             builder.Entity<SubRegion>().ToTable("SubRegion");

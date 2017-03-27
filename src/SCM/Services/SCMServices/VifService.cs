@@ -76,6 +76,8 @@ namespace SCM.Services.SCMServices
                 var iface = await this.UnitOfWork.InterfaceRepository.GetByIDAsync(request.AttachmentID);
                 vrf = Mapper.Map<Vrf>(request);
                 vrf.DeviceID = iface.DeviceID;
+                ifaceVlan.IpAddress = request.IpAddress1;
+                ifaceVlan.SubnetMask = request.SubnetMask1;
             }
 
             try

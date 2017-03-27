@@ -21,6 +21,7 @@ namespace SCM.Data
         private GenericRepository<InterfaceVlan> interfaceVlanRepository;
         private GenericRepository<Location> locationRepository;
         private GenericRepository<InterfaceBandwidth> interfaceBandwidthRepository;
+        private GenericRepository<MultiPort> multiPortRepository;
         private GenericRepository<PortBandwidth> portBandwidthRepository;
         private GenericRepository<Port> portRepository;
         private GenericRepository<Region> regionRepository;
@@ -209,6 +210,18 @@ namespace SCM.Data
                     this.portBandwidthRepository = new GenericRepository<PortBandwidth>(context);
                 }
                 return portBandwidthRepository;
+            }
+        }
+
+        public GenericRepository<MultiPort> MultiPortRepository
+        {
+            get
+            {
+                if (this.multiPortRepository == null)
+                {
+                    this.multiPortRepository = new GenericRepository<MultiPort>(context);
+                }
+                return multiPortRepository;
             }
         }
 

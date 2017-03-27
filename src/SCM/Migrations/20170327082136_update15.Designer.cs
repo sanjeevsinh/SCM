@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170327082136_update15")]
+    partial class update15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -406,12 +407,6 @@ namespace SCM.Migrations
                     b.Property<int>("MultiPortID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("ContractBandwidthPoolID");
-
-                    b.Property<int>("DeviceID");
-
-                    b.Property<int>("InterfaceBandwidthID");
-
                     b.Property<string>("LocalFailureDetectionIpAddress")
                         .IsRequired()
                         .HasMaxLength(15);
@@ -426,19 +421,9 @@ namespace SCM.Migrations
 
                     b.Property<int>("TenantID");
 
-                    b.Property<int?>("VrfID");
-
                     b.HasKey("MultiPortID");
 
-                    b.HasIndex("ContractBandwidthPoolID");
-
-                    b.HasIndex("DeviceID");
-
-                    b.HasIndex("InterfaceBandwidthID");
-
                     b.HasIndex("TenantID");
-
-                    b.HasIndex("VrfID");
 
                     b.ToTable("MultiPort");
                 });
@@ -1119,28 +1104,10 @@ namespace SCM.Migrations
 
             modelBuilder.Entity("SCM.Models.MultiPort", b =>
                 {
-                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
-                        .WithMany()
-                        .HasForeignKey("ContractBandwidthPoolID");
-
-                    b.HasOne("SCM.Models.Device", "Device")
-                        .WithMany("MultiPorts")
-                        .HasForeignKey("DeviceID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.InterfaceBandwidth", "InterfaceBandwidth")
-                        .WithMany()
-                        .HasForeignKey("InterfaceBandwidthID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("SCM.Models.Tenant")
                         .WithMany("MultiPorts")
                         .HasForeignKey("TenantID")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany()
-                        .HasForeignKey("VrfID");
                 });
 
             modelBuilder.Entity("SCM.Models.Port", b =>

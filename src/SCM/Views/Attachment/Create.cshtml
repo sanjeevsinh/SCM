@@ -65,24 +65,6 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="BundleRequired" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="BundleRequired" class="form-control" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IsLayer3" class="form-control" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="IsTagged" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IsTagged" class="form-control" />
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
@@ -92,17 +74,89 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="IpAddress" class="col-md-2 control-label"></label>
+            <label asp-for="BundleRequired" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="IpAddress" class="form-control" />
-                <span asp-validation-for="IpAddress" class="text-danger"></span>
+                <input asp-for="BundleRequired" class="checkbox" />
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="SubnetMask" class="col-md-2 control-label"></label>
+            <label asp-for="MultiPortRequired" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="SubnetMask" class="form-control" />
-                <span asp-validation-for="SubnetMask" class="text-danger"></span>
+                <input asp-for="MultiPortRequired" class="checkbox" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="IsTagged" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsTagged" class="checkbox" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="IsLayer3" class="checkbox" />
+            </div>
+        </div>
+        <div id="L3Components1">
+            <div class="form-group">
+                <label asp-for="IpAddress1" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress1" class="form-control" />
+                    <span asp-validation-for="IpAddress1" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask1" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask1" class="form-control" />
+                    <span asp-validation-for="SubnetMask1" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div id="L3Components2">
+            <div class="form-group">
+                <label asp-for="IpAddress2" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress2" class="form-control" />
+                    <span asp-validation-for="IpAddress2" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask2" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask2" class="form-control" />
+                    <span asp-validation-for="SubnetMask2" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div id="L3Components4">
+            <div class="form-group">
+                <label asp-for="IpAddress3" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress3" class="form-control" />
+                    <span asp-validation-for="IpAddress3" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask3" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask3" class="form-control" />
+                    <span asp-validation-for="SubnetMask3" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="IpAddress4" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="IpAddress4" class="form-control" />
+                    <span asp-validation-for="IpAddress4" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubnetMask4" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input asp-for="SubnetMask4" class="form-control" />
+                    <span asp-validation-for="SubnetMask4" class="text-danger"></span>
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -130,16 +184,21 @@
             subregion = $subregion[0],
             $location = $('#LocationID'),
             location = $location[0],
+            $bandwidth = $('#BandwidthID'),
+            bandwidth = $bandwidth[0],
             $isLayer3 = $('#IsLayer3'),
             isLayer3 = $isLayer3[0],
-            $ipAddress = $('#IpAddress'),
-            ipAddress = $ipAddress[0],
-            $subnetMask = $('#SubnetMask'),
-            subnetMask = $subnetMask[0],
             $isTagged = $('#IsTagged'),
             isTagged = $isTagged[0],
+            $bundleRequired = $('#BundleRequired'),
+            bundleRequired = $bundleRequired[0],
+            $multiPortRequired = $('#MultiPortRequired'),
+            multiPortRequired = $multiPortRequired[0],
             $contractBandwidthPool = $('#ContractBandwidthPoolID'),
-            contractBandwidthPool = $contractBandwidthPool[0];
+            contractBandwidthPool = $contractBandwidthPool[0],
+            $l3Components1 = $('#L3Components1'),
+            $l3Components2 = $('#L3Components2'),
+            $l3Components4 = $('#L3Components4');
 
             if (location.value == null || location.value == "" || region.value == null || region.value == "") {
 
@@ -147,16 +206,12 @@
                 location.disabled = true;
             }
 
-            if (!isLayer3.checked) {
-
-                ipAddress.disabled = true;
-                subnetMask.disabled = true;
-            }
-
             if (isTagged.checked) {
 
                 contractBandwidthPool.disabled = true;
             }
+
+            showHideL3Components();
 
             $region.on('change', function (e) {
 
@@ -175,10 +230,7 @@
                     location.selectedIndex = 0;
                     location.disabled = true;
 
-                    $.get("/Attachment/SubRegions", { id: regionID })
-                    .done(function (data) {
-                        $subregion.html(data);
-                    });
+                    PopulateHtmlFromUrl($subregion, "/Attachment/SubRegions", {id : regionID });
                 }
             });
 
@@ -187,46 +239,91 @@
                 var subRegionID = this.value;
                 location.disabled = false;
 
-                $.get("/Attachment/Locations", { id: subRegionID })
-                .done(function (data) {
-                    $location.html(data);
-                });
+                PopulateHtmlFromUrl($location, "/Attachment/Locations", { id: subRegionID });
             });
 
             $isLayer3.on('click', function (e) {
 
                 var isLayer3Checked = this.checked;
-                ipAddress.disabled = !isLayer3Checked;
-                subnetMask.disabled = !isLayer3Checked;
+                showHideL3Components();
 
                 if (isLayer3Checked) {
 
                     contractBandwidthPool.disabled = false;
                     isTagged.checked = false;
                 }
-                else
-                {
-                    ipAddress.value = null;
-                    subnetMask.value = null;
-                }
             });
 
             $isTagged.on('click', function (e) {
 
                 var isTaggedChecked = this.checked;
+
                 if (isTaggedChecked) {
+
                     isLayer3.checked = false;
-                    ipAddress.value = null;
-                    subnetMask.value = null;
-                    ipAddress.disabled = true;
-                    subnetMask.disabled = true;
+                    showHideL3Components();
                     contractBandwidthPool.selectedIndex = 0;
                     contractBandwidthPool.disabled = true;
                 }
                 else {
+
                     contractBandwidthPool.disabled = false;
                 }
             });
+
+            $multiPortRequired.on('click', function (e) {
+
+                bundleRequired.checked = false;
+                showHideL3Components();
+            });
+
+            $bundleRequired.on('click', function (e) {
+
+                multiPortRequired.checked = false;
+                showHideL3Components();
+            });
+
+            $bandwidth.on('change', function (e) {
+
+                showHideL3Components();
+            });
+
+            function PopulateHtmlFromUrl($e, url, data) {
+
+                $.get(url, data)
+                .done(function (data) {
+                    $e.html(data);
+                });
+            }
+
+            function showHideL3Components() {
+
+                $l3Components1.fadeOut();
+                $l3Components2.fadeOut();
+                $l3Components4.fadeOut();
+
+                if (!isLayer3.checked) {
+
+                   return;
+                }
+
+                $l3Components1.fadeIn();
+
+                var selectedBandwith = bandwidth.options[bandwidth.selectedIndex].text;
+
+                if (multiPortRequired.checked) {
+
+                    if (selectedBandwith == "20") {
+
+                        $l3Components2.fadeIn();
+                    }
+                    else if (selectedBandwith == "40") {
+
+                        $l3Components2.fadeIn();
+                        $l3Components4.fadeIn();
+                    }
+                }
+            }
 
         }(jQuery));
     

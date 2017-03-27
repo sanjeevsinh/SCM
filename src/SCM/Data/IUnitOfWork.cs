@@ -18,6 +18,7 @@ namespace SCM.Data
         GenericRepository<InterfaceVlan> InterfaceVlanRepository { get; }
         GenericRepository<Location> LocationRepository { get; }
         GenericRepository<InterfaceBandwidth> InterfaceBandwidthRepository { get; }
+        GenericRepository<MultiPort> MultiPortRepository { get; }
         GenericRepository<PortBandwidth> PortBandwidthRepository { get; }
         GenericRepository<Port> PortRepository { get; }
         GenericRepository<Region> RegionRepository { get; }

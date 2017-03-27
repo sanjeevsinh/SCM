@@ -4,6 +4,13 @@
     ViewData["Title"] = "Delete";
 }
 
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/TenantCommunity/GetAllByTenantID/@Model.TenantID">Communities</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
 <h2>Delete</h2>
 
 @if (@ViewData["ErrorMessage"] != null)

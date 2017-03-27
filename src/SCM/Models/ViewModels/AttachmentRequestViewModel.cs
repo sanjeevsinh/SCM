@@ -17,14 +17,6 @@ namespace SCM.Models.ViewModels
         public bool MultiPortRequired { get; set; }
         [Display(Name = "Tagged")]
         public bool IsTagged { get; set; }
-        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-            ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
-        [Display(Name = "IP Address")]
-        public string IpAddress { get; set; }
-        [Display(Name = "Subnet Mask")]
-        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-            ErrorMessage = "A valid subnet mask must be entered, e.g. 255.255.255.252")]
-        public string SubnetMask { get; set; }
         [Required(ErrorMessage = "A tenant must be selected")]
         public int TenantID { get; set; }
         public TenantViewModel Tenant { get; set; }
@@ -47,19 +39,52 @@ namespace SCM.Models.ViewModels
         public int? ContractBandwidthPoolID { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
-
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
+        [Display(Name = "IP Address 1")]
+        public string IpAddress1 { get; set; }
+        [Display(Name = "Subnet Mask 1")]
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid subnet mask must be entered, e.g. 255.255.255.252")]
+        public string SubnetMask1 { get; set; }
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
+        [Display(Name = "IP Address 2")]
+        public string IpAddress2 { get; set; }
+        [Display(Name = "Subnet Mask 2")]
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid subnet mask must be entered, e.g. 255.255.255.252")]
+        public string SubnetMask2 { get; set; }
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
+        [Display(Name = "IP Address 3")]
+        public string IpAddress3 { get; set; }
+        [Display(Name = "Subnet Mask 3")]
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid subnet mask must be entered, e.g. 255.255.255.252")]
+        public string SubnetMask3 { get; set; }
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
+        [Display(Name = "IP Address 4")]
+        public string IpAddress4 { get; set; }
+        [Display(Name = "Subnet Mask 4")]
+        [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            ErrorMessage = "A valid subnet mask must be entered, e.g. 255.255.255.252")]
+        public string SubnetMask4 { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsTagged)
             {
-                if (!string.IsNullOrEmpty(IpAddress))
+                if (!string.IsNullOrEmpty(IpAddress1) || !string.IsNullOrEmpty(IpAddress2) 
+                    || !string.IsNullOrEmpty(IpAddress3) || !string.IsNullOrEmpty(IpAddress4))
                 {
                     yield return new ValidationResult(
                         "An IP address cannot be specified for tagged attachments.");
                 }
 
-                if (!string.IsNullOrEmpty(SubnetMask))
+                if (!string.IsNullOrEmpty(SubnetMask1) || !string.IsNullOrEmpty(SubnetMask2) 
+                    || !string.IsNullOrEmpty(SubnetMask3) || !string.IsNullOrEmpty(SubnetMask4))
                 {
                     yield return new ValidationResult(
                         "A subnet mask cannot be specified for tagged attachments.");
@@ -79,31 +104,20 @@ namespace SCM.Models.ViewModels
                 }
             }
 
-            if (IsLayer3)
+            if (!IsLayer3)   
             {
-                if (string.IsNullOrEmpty(IpAddress))
+                if (!string.IsNullOrEmpty(IpAddress1) || !string.IsNullOrEmpty(IpAddress2) 
+                    || !string.IsNullOrEmpty(IpAddress3) || !string.IsNullOrEmpty(IpAddress4))
                 {
                     yield return new ValidationResult(
-                        "An IP address must be specified for layer 3 attachments.");
-                }
-                if (string.IsNullOrEmpty(SubnetMask))
-                {
-                    yield return new ValidationResult(
-                        "A subnet mask must be specified for layer 3 attachments.");
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(IpAddress))
-                {
-                    yield return new ValidationResult(
-                        "An IP address can only be specified for layer 3 attachments.");
+                        "IP addresses can only be specified for layer 3 attachments.");
                 }
 
-                if (!string.IsNullOrEmpty(SubnetMask))
+                if (!string.IsNullOrEmpty(SubnetMask1) || !string.IsNullOrEmpty(SubnetMask2) 
+                    || !string.IsNullOrEmpty(SubnetMask3) || !string.IsNullOrEmpty(SubnetMask4))
                 {
                     yield return new ValidationResult(
-                        "A subnet mask can only be specified for layer 3 attachments.");
+                        "Subnet masks can only be specified for layer 3 attachments.");
                 }
             }
         }

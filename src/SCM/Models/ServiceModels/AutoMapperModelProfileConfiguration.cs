@@ -28,7 +28,10 @@ namespace SCM.Models.ServiceModels
 
             CreateMap<AttachmentRequest, Interface>()
                 .ForMember(dest => dest.InterfaceBandwidthID, conf => conf.MapFrom(src => src.BandwidthID))
-                .ForMember(dest => dest.IsBundle, conf => conf.MapFrom(src => src.BundleRequired));
+                .ForMember(dest => dest.IsBundle, conf => conf.MapFrom(src => src.BundleRequired))
+                .ForMember(dest => dest.IsMultiPort, conf => conf.MapFrom(src => src.MultiPortRequired));
+
+            CreateMap<AttachmentRequest, MultiPort>();
 
             CreateMap<AttachmentRequest, Vrf>();
 

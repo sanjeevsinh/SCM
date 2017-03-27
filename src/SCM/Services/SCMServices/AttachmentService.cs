@@ -23,63 +23,91 @@ namespace SCM.Services.SCMServices
             VrfService = vrfService;
         }
 
-        public async Task<Attachment> GetByIDAsync(int id)
+        public async Task<Attachment> GetByIDAsync(int id, bool? multiPort = false)
         {
+            if (multiPort.Value)
+            {
 
-            var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id, includeProperties:
-                "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant,Port,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,"
-                + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
-                AsTrackable: false);
+                // TO-DO
+                return null;
+            }
 
-            return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
+            else
+            {
+                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id && q.IsMultiPort == multiPort,
+                    includeProperties: "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
+                    + "Tenant,Port.MultiPort,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,"
+                    + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                    AsTrackable: false);
+
+                return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
+            }
         }
 
         public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
         {
-            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.TenantID == tenant.TenantID,
+            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.TenantID == tenant.TenantID && !q.IsMultiPort,
                 includeProperties: "Port,Device.Location.SubRegion.Region,Device.Plane,"
                 + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
                 + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
-            return Mapper.Map<List<Attachment>>(ifaces);
+            var multiPorts = await UnitOfWork.MultiPortRepository.GetAsync(q => q.TenantID == tenant.TenantID,
+                includeProperties: "Device.Location.SubRegion.Region,Device.Plane,"
+                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool",
+                AsTrackable: false);
+
+            return Mapper.Map<List<Attachment>>(ifaces).ToList().Concat(Mapper.Map<List<Attachment>>(multiPorts)).ToList();
         }
 
-        public async Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null)
+        public async Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false)
         {
-            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(filter,
-                includeProperties: "Port,Device.Location.SubRegion.Region,Device.Plane,"
-                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
-                + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
-                AsTrackable: false);
+            if (multiPort.Value)
+            {
+                return null;
+            }
+            else
+            {
+                var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(filter,
+                    includeProperties: "Port.MultiPort,Device.Location.SubRegion.Region,Device.Plane,"
+                    + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,BundleInterfacePorts,"
+                    + "InterfaceVlans.Vrf.BgpPeers,InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                    AsTrackable: false);
 
-            return Mapper.Map<List<Attachment>>(ifaces);
+                return Mapper.Map<List<Attachment>>(ifaces);
+            }
         }
 
         public async Task<ServiceResult> AddAsync(AttachmentRequest request)
         {
             var result = new ServiceResult { IsSuccess = true };
+            IEnumerable<Port> ports = Enumerable.Empty<Port>();
 
-            if (request.BundleRequired)
+            if (request.BundleRequired || request.MultiPortRequired)
             {
                 request.NumPortsRequired = request.Bandwidth.BandwidthGbps / request.Bandwidth.BundleOrMultiPortMemberBandwidthGbps.Value;
                 request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps / request.NumPortsRequired;
 
-                var ports = await FindPortsAsync(request, result);
+                ports = await FindPortsAsync(request, result);
                 if (ports.Count() == 0)
                 {
                     return result;
                 }
-
-                await AddBundleAttachmentAsync(request, ports, result);
+            }
+            if (request.BundleRequired)
+            {
+                await AddBundleAttachmentAsync(request, ports.ToList(), result);
+            }
+            else if (request.MultiPortRequired)
+            {
+                await AddMultiPortAsync(request, ports.ToList(), result);
             }
             else
             {
                 request.NumPortsRequired = 1;
                 request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps;
 
-                var ports = await FindPortsAsync(request, result);
+                ports = await FindPortsAsync(request, result);
                 if (ports.Count() == 0)
                 {
                     return result;
@@ -428,8 +456,15 @@ namespace SCM.Services.SCMServices
                     result.Add($"The requested bandwidth ({request.Bandwidth.BandwidthGbps} Gbps) is not supported by a bundle attachment. "
                         + "Uncheck the bundle option to request this bandwidth.");
                     result.IsSuccess = false;
-
-                    return result;
+                }
+            }
+            else if (request.MultiPortRequired)
+            {
+                if (!request.Bandwidth.SupportedByMultiPort)
+                {
+                    result.Add($"The requested bandwidth ({request.Bandwidth.BandwidthGbps} Gbps) is not supported by a multi-port attachment. "
+                        + "Uncheck the multi-port option to request this bandwidth.");
+                    result.IsSuccess = false;
                 }
             }
             else
@@ -440,11 +475,57 @@ namespace SCM.Services.SCMServices
                        + "Check the bundle or multi-port option to request this bandwidth.");
 
                     result.IsSuccess = false;
-
-                    return result;
                 }
             }
 
+            if (request.IsLayer3)
+            {
+                if (request.MultiPortRequired)
+                {
+                    if (request.Bandwidth.BandwidthGbps == 20)
+                    {
+                        if (string.IsNullOrEmpty(request.IpAddress1) || string.IsNullOrEmpty(request.IpAddress2))
+                        {
+                            result.Add("Two IP addresses must be entered.");
+                            result.IsSuccess = false;
+                        }
+                        if (string.IsNullOrEmpty(request.SubnetMask1) || string.IsNullOrEmpty(request.SubnetMask2))
+                        {
+                            result.Add("Two subnet masks must be entered.");
+                            result.IsSuccess = false;
+                        }
+                    }
+                    else if (request.Bandwidth.BandwidthGbps == 40)
+                    {
+                        if (string.IsNullOrEmpty(request.IpAddress1) || string.IsNullOrEmpty(request.IpAddress2)
+                            || string.IsNullOrEmpty(request.IpAddress3) || string.IsNullOrEmpty(request.IpAddress4))
+                        {  
+                            result.Add("Four IP addresses must be entered.");
+                            result.IsSuccess = false;
+                        }
+                        if (string.IsNullOrEmpty(request.SubnetMask1) || string.IsNullOrEmpty(request.SubnetMask2)
+                            || string.IsNullOrEmpty(request.SubnetMask3) || string.IsNullOrEmpty(request.SubnetMask4))
+                        {
+                            result.Add("Four subnet masks must be entered.");
+                            result.IsSuccess = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(request.IpAddress1))
+                    {
+                        result.Add("An IP address must be specified for layer 3 attachments.");
+                        result.IsSuccess = false;
+                    }
+                    if (string.IsNullOrEmpty(request.SubnetMask1))
+                    {
+                        result.Add("A subnet mask must be specified for layer 3 attachments.");
+                        result.IsSuccess = false;
+                    }
+                }
+            }
+     
             if (!request.IsTagged)
             {
                 var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
@@ -455,8 +536,6 @@ namespace SCM.Services.SCMServices
                 {
                     result.Add("The requested contract bandwidth pool was not found.");
                     result.IsSuccess = false;
-
-                    return result;
                 }
 
                 if (contractBandwidthPool.Interfaces.Count > 0)
@@ -474,8 +553,6 @@ namespace SCM.Services.SCMServices
                     }
 
                     result.IsSuccess = false;
-
-                    return result;
                 }
 
                 if (contractBandwidthPool.InterfaceVlans.Count > 0)
@@ -494,8 +571,6 @@ namespace SCM.Services.SCMServices
                     }
 
                     result.IsSuccess = false;
-
-                    return result;
                 }
 
                 if (contractBandwidthPool.ContractBandwidth.BandwidthMbps > request.Bandwidth.BandwidthGbps * 1000)
@@ -657,6 +732,8 @@ namespace SCM.Services.SCMServices
             {
                 vrf = Mapper.Map<Vrf>(request);
                 vrf.DeviceID = port.Device.ID;
+                iface.IpAddress = request.IpAddress1;
+                iface.SubnetMask = request.SubnetMask1;
             }
 
             // Need to implement Transaction Scope here when available in dotnet core
@@ -698,16 +775,19 @@ namespace SCM.Services.SCMServices
         /// <param name="ports"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddBundleAttachmentAsync(AttachmentRequest request, IEnumerable<Port> ports, ServiceResult result)
+        private async Task AddBundleAttachmentAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
         {
             Vrf vrf = null;
+            var bundleIface = Mapper.Map<Interface>(request);
+
             if (request.IsLayer3)
             {
                 vrf = Mapper.Map<Vrf>(request);
                 vrf.DeviceID = ports.First().Device.ID;
+                bundleIface.IpAddress = request.IpAddress1;
+                bundleIface.SubnetMask = request.SubnetMask1;
             }
 
-            var bundleIface = Mapper.Map<Interface>(request);
             var port = ports.First();
             bundleIface.DeviceID = port.Device.ID;
             bundleIface.RequiresSync = true;
@@ -745,6 +825,102 @@ namespace SCM.Services.SCMServices
 
                     var bundleIfacePort = new BundleInterfacePort { PortID = p.ID, InterfaceID = bundleIface.InterfaceID };
                     UnitOfWork.BundleInterfacePortRepository.Insert(bundleIfacePort);
+                }
+
+                await UnitOfWork.SaveAsync();
+            }
+
+            catch (DbUpdateException /** ex **/)
+            {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the database update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+
+                result.IsSuccess = false;
+            }
+        }
+
+        /// <summary>
+        /// Add a multiport attachment to the inventory
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="port"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private async Task AddMultiPortAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
+        {
+            Vrf vrf = null;
+            var deviceID = ports.First().DeviceID;
+
+            if (request.IsLayer3)
+            {
+                vrf = Mapper.Map<Vrf>(request);
+                vrf.DeviceID = ports.First().Device.ID;
+            }
+
+            try
+            {
+                // Need to implement Transaction Scope here when available in dotnet core
+
+                if (vrf != null)
+                {
+                    var vrfResult = await VrfService.AddAsync(vrf);
+                    if (!vrfResult.IsSuccess)
+                    {
+                        result.AddRange(vrfResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return;
+                    }
+                }
+
+                var multiPort = Mapper.Map<MultiPort>(request);
+                multiPort.LocalFailureDetectionIpAddress = "1.1.1.1";
+                multiPort.RemoteFailureDetectionIpAddress = "1.1.1.2";
+
+                UnitOfWork.MultiPortRepository.Insert(multiPort);
+                await UnitOfWork.SaveAsync();
+                var portsCount = ports.Count();
+
+                for (var i = 1; i <= portsCount; i++)
+                {
+                    var iface = Mapper.Map<Interface>(request);
+                    var port = ports[i - 1];
+                    iface.DeviceID = deviceID;
+                    iface.PortID = port.ID;
+                    iface.RequiresSync = true;
+
+                    if (request.IsLayer3)
+                    {
+                        iface.VrfID = vrf.VrfID;
+
+                        if (i == 1)
+                        {
+                            iface.IpAddress = request.IpAddress1;
+                            iface.SubnetMask = request.SubnetMask1;
+                        }
+                        else if (i == 2)
+                        {
+                            iface.IpAddress = request.IpAddress2;
+                            iface.SubnetMask = request.SubnetMask2;
+                        }
+                        else if (i == 3)
+                        {
+                            iface.IpAddress = request.IpAddress3;
+                            iface.SubnetMask = request.SubnetMask3;
+                        }
+                        else if (i == 4)
+                        {
+                            iface.IpAddress = request.IpAddress4;
+                            iface.SubnetMask = request.SubnetMask4;
+                        }
+                    }
+
+                    UnitOfWork.InterfaceRepository.Insert(iface);
+
+                    port.TenantID = request.TenantID;
+                    port.MultiPortID = multiPort.MultiPortID;
+                    UnitOfWork.PortRepository.Update(port);
                 }
 
                 await UnitOfWork.SaveAsync();

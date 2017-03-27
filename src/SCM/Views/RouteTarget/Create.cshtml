@@ -28,7 +28,7 @@
         <div class="form-group">
             <label asp-for="AutoAllocateAssignedNumberSubField" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="AutoAllocateAssignedNumberSubField" class="form-control" />
+                <input asp-for="AutoAllocateAssignedNumberSubField" class="checkbox" />
                 <span asp-validation-for="AutoAllocateAssignedNumberSubField" class="text-danger" />
             </div>
         </div>
@@ -44,8 +44,7 @@
         <div class="form-group">
             <label asp-for="IsHubExport" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="IsHubExport" class="form-control" />
-                <span asp-validation-for="IsHubExport" class="text-danger"></span>
+                <input asp-for="IsHubExport" class="checkbox" />
             </div>
         </div>
 }

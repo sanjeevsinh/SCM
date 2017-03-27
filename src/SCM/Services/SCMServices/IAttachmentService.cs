@@ -12,9 +12,9 @@ namespace SCM.Services.SCMServices
     public interface IAttachmentService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<Attachment> GetByIDAsync(int id);
+        Task<Attachment> GetByIDAsync(int id, bool? multiPort = false);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
-        Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null);
+        Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
         Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment);

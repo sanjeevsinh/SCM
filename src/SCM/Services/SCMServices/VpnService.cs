@@ -12,12 +12,16 @@ namespace SCM.Services.SCMServices
 {
     public class VpnService : BaseService, IVpnService
     {
-        public VpnService(IUnitOfWork unitOfWork, IMapper mapper, IRouteTargetService routeTargetService, INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
+        public VpnService(IUnitOfWork unitOfWork, IMapper mapper, 
+            IRouteTargetService routeTargetService, IAttachmentOrVifService attachmentOrVifService, 
+            INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
         {
             RouteTargetService = routeTargetService;
+            AttachmentOrVifService = attachmentOrVifService;
         }
 
         private IRouteTargetService RouteTargetService { get; set; }
+        private IAttachmentOrVifService AttachmentOrVifService { get; set; }
 
         public async Task<IEnumerable<Vpn>> GetAllAsync()
         {
@@ -222,7 +226,7 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-                var validationResult = ValidateVpn(vpn);
+                var validationResult = await ValidateVpn(vpn);
                 if (!validationResult.IsSuccess)
                 {
                     checkSyncResult.NetworkSyncServiceResult.Add(validationResult.GetMessage());
@@ -256,7 +260,7 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-                var validationResult = ValidateVpn(vpn);
+                var validationResult = await ValidateVpn(vpn);
                 if (!validationResult.IsSuccess)
                 {
                     syncResult.Add(validationResult.GetMessage());
@@ -334,7 +338,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpn"></param>
         /// <returns></returns>
-        private ServiceResult ValidateVpn(Vpn vpn)
+        private async Task<ServiceResult> ValidateVpn(Vpn vpn)
         {
             var validationResult = new ServiceResult { IsSuccess = true };
 
@@ -355,7 +359,13 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-
+            var attachmentsAndVifs = await AttachmentOrVifService.GetAllByVpnIDAsync(vpn.VpnID);
+            if (attachmentsAndVifs.Where(q => q.RequiresSync == true).Count() > 0)
+            {
+                validationResult.IsSuccess = false;
+                validationResult.Add("One or more attachments or vifs for the VPN require synchronisation with the network.");
+                validationResult.Add("Synchronise the attachments or vifs first and then try again.");
+            }
 
             return validationResult;
         }

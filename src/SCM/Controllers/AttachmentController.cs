@@ -92,8 +92,9 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TenantID,IpAddress,SubnetMask,BandwidthID,RegionID,SubRegionID,LocationID," 
-            + "PlaneID,IsLayer3,IsTagged,BundleRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
+        public async Task<IActionResult> Create([Bind("TenantID,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,"
+            + "IpAddress3,SubnetMask3,IpAddress4,SubnetMask4,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID," 
+            + "IsLayer3,IsTagged,BundleRequired,MultiPortRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
         {
 
             if (ModelState.IsValid)

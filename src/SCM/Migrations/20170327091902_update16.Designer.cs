@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170327091902_update16")]
+    partial class update16
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -406,9 +407,11 @@ namespace SCM.Migrations
                     b.Property<int>("MultiPortID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("ContractBandwidthPoolID");
+                    b.Property<int>("ContractBandwidthPoolID");
 
                     b.Property<int>("DeviceID");
+
+                    b.Property<int?>("DeviceID1");
 
                     b.Property<int>("InterfaceBandwidthID");
 
@@ -426,13 +429,15 @@ namespace SCM.Migrations
 
                     b.Property<int>("TenantID");
 
-                    b.Property<int?>("VrfID");
+                    b.Property<int>("VrfID");
 
                     b.HasKey("MultiPortID");
 
                     b.HasIndex("ContractBandwidthPoolID");
 
                     b.HasIndex("DeviceID");
+
+                    b.HasIndex("DeviceID1");
 
                     b.HasIndex("InterfaceBandwidthID");
 
@@ -1124,9 +1129,12 @@ namespace SCM.Migrations
                         .HasForeignKey("ContractBandwidthPoolID");
 
                     b.HasOne("SCM.Models.Device", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceID");
+
+                    b.HasOne("SCM.Models.Device")
                         .WithMany("MultiPorts")
-                        .HasForeignKey("DeviceID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("DeviceID1");
 
                     b.HasOne("SCM.Models.InterfaceBandwidth", "InterfaceBandwidth")
                         .WithMany()

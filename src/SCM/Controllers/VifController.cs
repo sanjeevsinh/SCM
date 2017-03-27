@@ -90,7 +90,8 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress,IsLayer3,SubnetMask,AutoAllocateVlanTag,"
+        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,IpAddress3,SubnetMask3,"
+            + "IpAddress4,SubnetMask4,IsLayer3,AutoAllocateVlanTag,"
             + "RequestedVlanTag,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
         {
 

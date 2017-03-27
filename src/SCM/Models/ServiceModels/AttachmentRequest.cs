@@ -13,8 +13,14 @@ namespace SCM.Models.ServiceModels
         public bool MultiPortRequired { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
-        public string IpAddress { get; set; }
-        public string SubnetMask { get; set; }
+        public string IpAddress1 { get; set; }
+        public string SubnetMask1 { get; set; }
+        public string IpAddress2 { get; set; }
+        public string SubnetMask2 { get; set; }
+        public string IpAddress3 { get; set; }
+        public string SubnetMask3 { get; set; }
+        public string IpAddress4 { get; set; }
+        public string SubnetMask4 { get; set; }
         public int TenantID { get; set; }
         public int LocationID { get; set; }
         public int RegionID { get; set; }
