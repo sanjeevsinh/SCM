@@ -8,7 +8,7 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID?attachmentIsMultiPort=@ViewBag.Attachment.IsMultiPort">VIFs</a></li>
     <li class="breadcrumb-item active">Create</li>
 </ol>
 
@@ -19,6 +19,8 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.ID" />
+        <input type="hidden" asp-for="AttachmentIsMultiPort" value="@ViewBag.Attachment.IsMultiPort" />
+        <input type="hidden" id ="MultiPortMemberPortsCount" value="@ViewBag.Attachment.MultiPortMembers.Count" />
         <div class="form-group">
             <label asp-for="Tenant" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -127,7 +129,7 @@
 </form>
 
 <div>
-    <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Attachment.ID">Back to VIFs List</a>
+    <a asp-action="GetAllByAttachmentID" asp-route-id = "@ViewBag.Attachment.ID" asp-route-attachmentIsMultiPort = "@ViewBag.Attachment.IsMultiPort" >Back to VIFs List</a>
 </div>
 
 @section Scripts {
@@ -147,6 +149,10 @@
             autoAllocateVlanTag = $autoAllocateVlanTag[0];
             $requestedVlanTag = $('#RequestedVlanTag'),
             requestedVlanTag = $requestedVlanTag[0],
+            $attachmentIsMultiPort = $('#AttachmentIsMultiPort'),
+            attachmentIsMultiPort = $attachmentIsMultiPort[0],
+            $multiPortMemberPortsCount = $('#MultiPortMemberPortsCount'),
+            multiPortMemberPortsCount = $multiPortMemberPortsCount[0],
             $l3Components1 = $('#L3Components1'),
             $l3Components2 = $('#L3Components2'),
             $l3Components4 = $('#L3Components4');
@@ -203,8 +209,16 @@
                 }
 
                 $l3Components1.fadeIn();
-                //$l3Components2.fadeIn();
-                //$l3Components4.fadeIn();
+
+                if (attachmentIsMultiPort.value) {
+
+                    $l3Components2.fadeIn();
+                }
+
+                if (multiPortMemberPortsCount.value == 4) {
+
+                    $l3Components4.fadeIn();
+                }
             }
 
         }(jQuery));

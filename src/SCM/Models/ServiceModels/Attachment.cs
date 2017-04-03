@@ -17,6 +17,7 @@ namespace SCM.Models.ServiceModels
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public bool IsBundle { get; set; }
+        public bool IsMultiPort { get; set; }
         public string IpAddress { get; set; }
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }
@@ -40,6 +41,7 @@ namespace SCM.Models.ServiceModels
         public Vrf Vrf { get; set; }
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
         public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
+        public ICollection<Port> MultiPortMembers { get; set; }
         public ICollection<Vif> Vifs { get; set; }
     }
 }

@@ -14,6 +14,8 @@ namespace SCM.Models.ViewModels
         public int TenantID { get; set; }
         [Display(Name = "Bundle Attachment")]
         public bool IsBundle { get; set; }
+        [Display(Name = "Multi-Port Attachment")]
+        public bool IsMultiPort { get; set; }
         [Display(Name = "Enabled for Layer 3")]
         public bool IsLayer3 { get; set; }
         [Display(Name = "Enabled with Tagging")]

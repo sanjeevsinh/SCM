@@ -68,6 +68,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="IsMultiPort" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |

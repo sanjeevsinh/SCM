@@ -40,21 +40,27 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByAttachmentID(int? id)
+        public async Task<IActionResult> GetAllByAttachmentID(int? id, bool? attachmentIsMultiPort)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Attachment = attachment;
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, bool? attachmentIsMultiPort)
         {
             if (id == null)
             {
@@ -68,20 +74,30 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
             return View(Mapper.Map<VifViewModel>(item));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(int? id)
+        public async Task<IActionResult> Create(int? id, bool? attachmentIsMultiPort)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var attachment =  await AttachmentService.GetByIDAsync(id.Value);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
             ViewBag.Attachment = attachment;
+
             await PopulateTenantsDropDownList(attachment.TenantID);
             await PopulateContractBandwidthPoolsDropDownList(attachment.TenantID);
 
@@ -90,9 +106,8 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,IpAddress3,SubnetMask3,"
-            + "IpAddress4,SubnetMask4,IsLayer3,AutoAllocateVlanTag,"
-            + "RequestedVlanTag,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
+        public async Task<IActionResult> Create([Bind("AttachmentID,AttachmentIsMultiPort,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,IpAddress3,SubnetMask3,"
+            + "IpAddress4,SubnetMask4,IsLayer3,AutoAllocateVlanTag,RequestedVlanTag,TenantID,ContractBandwidthPoolID")] VifRequestViewModel request)
         {
 
             if (ModelState.IsValid)
@@ -114,13 +129,18 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID });
+                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID, isMultiPort = request.AttachmentIsMultiPort });
                     }
                 }
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID, request.AttachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
             ViewBag.Attachment = attachment;
+
             await PopulateTenantsDropDownList(attachment.TenantID);
             await PopulateContractBandwidthPoolsDropDownList(attachment.TenantID);
 
@@ -128,9 +148,9 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, int? attachmentID, bool? attachmentIsMultiPort, bool? concurrencyError = false)
         {
-            if (id == null)
+            if (id == null || attachmentID == null)
             {
                 return NotFound();
             }
@@ -140,7 +160,7 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID });
+                    return RedirectToAction("GetAllByAttachmentID", new { id = attachmentID, attachmentIsMultiPort = attachmentIsMultiPort });
                 }
 
                 return NotFound();
@@ -156,7 +176,13 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(attachmentID.Value, attachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Attachment = attachment;
+
             return View(Mapper.Map<VifViewModel>(vif));
         }
 
@@ -174,19 +200,31 @@ namespace SCM.Controllers
                     if (!result.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = result.GetHtmlListMessage();
-                        ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+
+                        var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+                        if (attachment == null)
+                        {
+                            return NotFound();
+                        }
+                        ViewBag.Attachment = attachment;
 
                         return View(Mapper.Map<VifViewModel>(item));
                     }
                 }
 
-                return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID });
+                return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID, attachmentIsMultiPort = vif.AttachmentIsMultiPort });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = vif.ID });
+                return RedirectToAction("Delete", new
+                {
+                    concurrencyError = true,
+                    id = vif.ID,
+                    attachmentID = vif.AttachmentID,
+                    attachmentIsMultiPort = vif.AttachmentIsMultiPort
+                });
             }
         }
 
@@ -220,7 +258,13 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Attachment = attachment;
+
             return View("Details", Mapper.Map<VifViewModel>(item));
         }
 
@@ -247,7 +291,13 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Attachment = attachment;
+
             return View("Details", Mapper.Map<VifViewModel>(item));
         }
 
@@ -260,7 +310,7 @@ namespace SCM.Controllers
             {
                 ViewData["VifDeletedMessage"] = "The vif has been deleted by another user. Return to the list.";
 
-                return View("VifDeleted", new { AttachmentID = Request.Query["AttachmentID"] });
+                return View("VifDeleted", vif);
             }
 
             var syncResult = await VifService.DeleteFromNetworkAsync(item);
@@ -284,7 +334,13 @@ namespace SCM.Controllers
                 ViewData["ErrorMessage"] = message;
             }
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Attachment = attachment;
+
             item.RequiresSync = true;
 
             return View("Delete", Mapper.Map<VifViewModel>(item));

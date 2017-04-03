@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170402202331_update23")]
+    partial class update23
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -479,8 +480,6 @@ namespace SCM.Migrations
                     b.HasKey("MultiPortVlanID");
 
                     b.HasIndex("ContractBandwidthPoolID");
-
-                    b.HasIndex("MultiPortID");
 
                     b.HasIndex("TenantID");
 
@@ -1196,11 +1195,6 @@ namespace SCM.Migrations
                     b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
                         .WithMany()
                         .HasForeignKey("ContractBandwidthPoolID");
-
-                    b.HasOne("SCM.Models.MultiPort", "MultiPort")
-                        .WithMany("MultiPortVlans")
-                        .HasForeignKey("MultiPortID")
-                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany()

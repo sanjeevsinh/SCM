@@ -27,6 +27,9 @@
                 @Html.DisplayNameFor(model => model.IsBundle)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.IsMultiPort)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.IsTagged)
             </th>
             <th>
@@ -62,6 +65,9 @@
                     @Html.DisplayFor(modelItem => item.IsBundle)
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.IsMultiPort)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.IsTagged)
                 </td>
                 <td>
@@ -83,11 +89,15 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |
-                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.ID, isMultiPort = item.IsMultiPort, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.ID, isMultiPort = item.IsMultiPort, tenantID = item.TenantID })
                     @if (item.IsBundle)
                     {
-                        <span>|</span> @Html.ActionLink("Bundle Member Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
+                        <span>|</span> @Html.ActionLink("Member Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
+                    }
+                    @if (item.IsMultiPort)
+                    {
+                        <span>|</span> @Html.ActionLink("Member Ports", "GetMultiPortMemberPorts", new { ID = item.ID, tenantID = item.TenantID })
                     }
                     @if (item.IsLayer3)
                     {
@@ -95,7 +105,7 @@
                     }
                     @if (item.IsTagged)
                     {
-                        <span>|</span> @Html.ActionLink("VIFs", "GetAllByAttachmentID", "Vif", new { ID = item.ID, tenantID = item.TenantID })
+                        <span>|</span> @Html.ActionLink("VIFs", "GetAllByAttachmentID", "Vif", new { ID = item.ID, attachmentIsMultiPort = item.IsMultiPort, tenantID = item.TenantID })
                     }
                 </td>
             </tr>

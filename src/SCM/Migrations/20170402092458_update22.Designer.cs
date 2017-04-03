@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170402092458_update22")]
+    partial class update22
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -449,46 +450,6 @@ namespace SCM.Migrations
                     b.HasIndex("VrfID");
 
                     b.ToTable("MultiPort");
-                });
-
-            modelBuilder.Entity("SCM.Models.MultiPortVlan", b =>
-                {
-                    b.Property<int>("MultiPortVlanID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int?>("ContractBandwidthPoolID");
-
-                    b.Property<bool>("IsLayer3");
-
-                    b.Property<int>("MultiPortID");
-
-                    b.Property<bool>("RequiresSync");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<int>("TenantID");
-
-                    b.Property<int>("VlanTag");
-
-                    b.Property<int?>("VlanTagRangeID");
-
-                    b.Property<int?>("VrfID");
-
-                    b.HasKey("MultiPortVlanID");
-
-                    b.HasIndex("ContractBandwidthPoolID");
-
-                    b.HasIndex("MultiPortID");
-
-                    b.HasIndex("TenantID");
-
-                    b.HasIndex("VlanTagRangeID");
-
-                    b.HasIndex("VrfID");
-
-                    b.ToTable("MultiPortVlan");
                 });
 
             modelBuilder.Entity("SCM.Models.Plane", b =>
@@ -1188,30 +1149,6 @@ namespace SCM.Migrations
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("MultiPorts")
-                        .HasForeignKey("VrfID");
-                });
-
-            modelBuilder.Entity("SCM.Models.MultiPortVlan", b =>
-                {
-                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
-                        .WithMany()
-                        .HasForeignKey("ContractBandwidthPoolID");
-
-                    b.HasOne("SCM.Models.MultiPort", "MultiPort")
-                        .WithMany("MultiPortVlans")
-                        .HasForeignKey("MultiPortID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantID");
-
-                    b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
-                        .WithMany()
-                        .HasForeignKey("VlanTagRangeID");
-
-                    b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany()
                         .HasForeignKey("VrfID");
                 });
 

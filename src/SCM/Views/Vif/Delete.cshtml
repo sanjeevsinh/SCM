@@ -40,10 +40,11 @@
     <form asp-action="Delete">
         <input type="hidden" asp-for="ID" />
         <input type="hidden" asp-for="AttachmentID" />
+        <input type="hidden" asp-for="AttachmentIsMultiPort" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" value="Delete" class="btn btn-default" /> |
-            <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
+            <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID" asp-route-attachmentIsMultiPort = "@ViewBag.Attachment.IsMultiPort" >Back to VIFs List</a>
         </div>
     </form>
 </div>

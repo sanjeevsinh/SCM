@@ -32,12 +32,24 @@
         <dd>
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.IsBundle)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.IsBundle)
-        </dd>
+        @if (Model.IsMultiPort)
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.IsMultiPort)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.IsMultiPort)
+            </dd>
+        }
+        else
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.IsBundle)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.IsBundle)
+            </dd>
+        }
         <dt>
             @Html.DisplayNameFor(model => model.Location)
         </dt>
@@ -127,6 +139,7 @@
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id" />
     <input type="hidden" asp-for="IsBundle" />
+    <input type="hidden" asp-for="IsMultiPort" />
     <div class="form-actions no-color">
         <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
         <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |

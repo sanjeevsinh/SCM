@@ -24,6 +24,7 @@ namespace SCM.Models
         public virtual Device Device { get; set; }
         public virtual Tenant Tenant { get; set; }
         public virtual ICollection<Interface> Interfaces { get; set; }
+        public virtual ICollection<MultiPort> MultiPorts { get; set; }
         public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
         public virtual ICollection<BgpPeer> BgpPeers { get; set; }
         public virtual ICollection<AttachmentSetVrf> AttachmentSetVrfs { get; set; }

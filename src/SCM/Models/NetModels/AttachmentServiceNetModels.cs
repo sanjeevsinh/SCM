@@ -49,6 +49,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -83,6 +85,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -103,12 +107,50 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public List<VifNetModel> Vifs { get; set; }
     }
 
+    public class MultiPortMemberNetModel
+    {
+        [XmlElement(ElementName = "interface-type")]
+        public string InterfaceType { get; set; }
+        [XmlElement(ElementName = "interface-id")]
+        public string InterfaceID { get; set; }
+        [XmlElement(ElementName = "interface-bandwidth")]
+        public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "layer-3")]
+        public Layer3NetModel Layer3 { get; set; }
+    }
+
+    public class UntaggedAttachmentMultiPortNetModel
+    {
+        [XmlElement(ElementName = "name")]
+        public string Name { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
+        [XmlElement(ElementName = "enable-layer-3")]
+        public bool EnableLayer3 { get; set; }
+        [XmlElement(ElementName = "multiport-member")]
+        public List<MultiPortMemberNetModel> MultiPortMembers { get; set; }
+    }
+
+    public class TaggedAttachmentMultiPortNetModel
+    {
+        [XmlElement(ElementName = "name")]
+        public string Name { get; set; }
+        [XmlElement(ElementName = "multiport-member")]
+        public List<MultiPortMemberNetModel> MultiPortMembers { get; set; }
+        [XmlElement(ElementName = "vif")]
+        public List<VifNetModel> Vifs { get; set; }
+    }
+
     public class VifNetModel
     {
         [XmlElement(ElementName = "vlan-id")]
         public int VlanID { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -135,6 +177,12 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
         [XmlElement(ElementName = "tagged-attachment-bundle-interface")]
         public List<TaggedAttachmentBundleInterfaceNetModel> TaggedAttachmentBundleInterfaces { get; set; }
+
+        [XmlElement(ElementName = "untagged-attachment-multiport")]
+        public List<UntaggedAttachmentMultiPortNetModel> UntaggedAttachmentMultiPorts { get; set; }
+
+        [XmlElement(ElementName = "tagged-attachment-multiport")]
+        public List<TaggedAttachmentMultiPortNetModel> TaggedAttachmentMultiPorts { get; set; }
     }
 
     [XmlRoot(ElementName = "vrf", Namespace = "urn:thomsonreuters:attachment")]
@@ -159,6 +207,16 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
     [XmlRoot(ElementName = "tagged-attachment-bundle-interface", Namespace = "urn:thomsonreuters:attachment")]
     public class TaggedAttachmentBundleInterfaceServiceNetModel : TaggedAttachmentBundleInterfaceNetModel
+    {
+    }
+
+    [XmlRoot(ElementName = "untagged-attachment-multiport", Namespace = "urn:thomsonreuters:attachment")]
+    public class UntaggedAttachmentMultiPortServiceNetModel : UntaggedAttachmentMultiPortNetModel
+    {
+    }
+
+    [XmlRoot(ElementName = "tagged-attachment-multiport", Namespace = "urn:thomsonreuters:attachment")]
+    public class TaggedAttachmentMultiPortServiceNetModel : TaggedAttachmentMultiPortNetModel
     {
     }
 

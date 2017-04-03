@@ -15,7 +15,7 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Port != null ? src.Port.Name : null))
                 .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Device.Location))
                 .ForMember(dest => dest.LocationID, conf => conf.MapFrom(src => src.Device.LocationID))
-                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new AttachmentNameResolver()))
+                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new AttachmentInterfaceNameResolver()))
                 .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Device.Plane))
                 .ForMember(dest => dest.PlaneID, conf => conf.MapFrom(src => src.Device.PlaneID))
                 .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
@@ -26,8 +26,23 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
 
+            CreateMap<MultiPort, Attachment>()
+                .ForMember(dest => dest.Bandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth))
+                .ForMember(dest => dest.BandwidthID, conf => conf.MapFrom(src => src.InterfaceBandwidthID))
+                .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.MultiPortID))
+                .ForMember(dest => dest.IsMultiPort, conf => conf.UseValue(true))
+                .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Device.Location))
+                .ForMember(dest => dest.LocationID, conf => conf.MapFrom(src => src.Device.LocationID))
+                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort {src.Identifier}"))
+                .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Device.Plane))
+                .ForMember(dest => dest.PlaneID, conf => conf.MapFrom(src => src.Device.PlaneID))
+                .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
+                .ForMember(dest => dest.RegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegion.RegionID))
+                .ForMember(dest => dest.SubRegion, conf => conf.MapFrom(src => src.Device.Location.SubRegion))
+                .ForMember(dest => dest.SubRegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegionID));
+                
             CreateMap<AttachmentRequest, Interface>()
-                .ForMember(dest => dest.InterfaceBandwidthID, conf => conf.MapFrom(src => src.BandwidthID))
                 .ForMember(dest => dest.IsBundle, conf => conf.MapFrom(src => src.BundleRequired))
                 .ForMember(dest => dest.IsMultiPort, conf => conf.MapFrom(src => src.MultiPortRequired));
 
@@ -41,10 +56,22 @@ namespace SCM.Models.ServiceModels
 
             CreateMap<InterfaceVlan, Vif>()
                 .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.InterfaceVlanID))
-                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new VifNameResolver()))
+                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new InterfaceVlanVifNameResolver()))
                 .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.InterfaceID));
+
+            CreateMap<VifRequest, MultiPortVlan>()
+                .ForMember(dest => dest.MultiPortID, conf => conf.MapFrom(src => src.AttachmentID))
+                .ForMember(dest => dest.VlanTag, conf => conf.MapFrom(src => src.AllocatedVlanTag));
+
+            CreateMap<MultiPortVlan, Vif>()
+                .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.MultiPortVlanID))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort {src.MultiPort.Identifier}.{src.VlanTag}"))
+                .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
+                .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
+                .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.MultiPortID))
+                .ForMember(dest => dest.AttachmentIsMultiPort, conf => conf.UseValue(true));
 
             CreateMap<VifRequest, Vrf>();
 
@@ -55,7 +82,7 @@ namespace SCM.Models.ServiceModels
             CreateMap<InterfaceVlan, AttachmentOrVif>().ConvertUsing(new InterfaceVlanAttachmentSetMemberTypeConverter());
         }
 
-        public class AttachmentNameResolver : IValueResolver<Interface, Attachment, string>
+        public class AttachmentInterfaceNameResolver : IValueResolver<Interface, Attachment, string>
         {
             public string Resolve(Interface source, Attachment destination, string destMember, ResolutionContext context)
             {
@@ -69,7 +96,8 @@ namespace SCM.Models.ServiceModels
                 }
             }
         }
-        public class VifNameResolver : IValueResolver<InterfaceVlan, Vif, string>
+
+        public class InterfaceVlanVifNameResolver : IValueResolver<InterfaceVlan, Vif, string>
         {
             public string Resolve(InterfaceVlan source, Vif destination, string destMember, ResolutionContext context)
             {
@@ -83,6 +111,7 @@ namespace SCM.Models.ServiceModels
                 }
             }
         }
+
         public class InterfaceAttachmentSetMemberTypeConverter : ITypeConverter<Interface, AttachmentOrVif>
         {
             public AttachmentOrVif Convert(Interface source, AttachmentOrVif destination, ResolutionContext context)

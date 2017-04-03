@@ -49,7 +49,7 @@ namespace SCM.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID);
+            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
             if (item == null)
             {
                 return NotFound();
@@ -71,6 +71,21 @@ namespace SCM.Controllers
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
            
             return View(Mapper.Map<List<BundleInterfacePortViewModel>>(bundleInterfacePorts));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMultiPortMemberPorts(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var multiPortMemberPorts = await AttachmentService.UnitOfWork.PortRepository.GetAsync(q => q.MultiPortID == id.Value,
+                includeProperties: "Device", AsTrackable: false);
+            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value, multiPort: true);
+
+            return View(Mapper.Map<List<PortViewModel>>(multiPortMemberPorts));
         }
 
         [HttpGet]
@@ -148,10 +163,10 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, [FromQuery]bool isMultiPort, bool? concurrencyError = false)
         {
 
-            var item = await AttachmentService.GetByIDAsync(id.Value);
+            var item = await AttachmentService.GetByIDAsync(id.Value, multiPort:isMultiPort);
             if (item == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -182,7 +197,7 @@ namespace SCM.Controllers
         {
             try
             {
-                var item = await AttachmentService.GetByIDAsync(attachment.ID);
+                var item = await AttachmentService.GetByIDAsync(attachment.ID, multiPort:attachment.IsMultiPort);
 
                 if (item != null)
                 {
@@ -209,7 +224,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> CheckSync(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID);
+            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
 
             if (item == null)
             {
@@ -243,7 +258,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(AttachmentViewModel attachment)
         {
 
-            var item = await AttachmentService.GetByIDAsync(attachment.ID);
+            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
             if (item == null)
             {
                 return NotFound();

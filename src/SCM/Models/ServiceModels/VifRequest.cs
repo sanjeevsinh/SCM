@@ -21,8 +21,10 @@ namespace SCM.Models.ServiceModels
         public string IpAddress3 { get; set; }
         public string SubnetMask3 { get; set; }
         public string IpAddress4 { get; set; }
+        public string SubnetMask4 { get; set; }
         public int TenantID { get; set; }
         public int AttachmentID { get; set; }
+        public bool AttachmentIsMultiPort { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
     }
 }

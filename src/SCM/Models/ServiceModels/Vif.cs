@@ -12,6 +12,7 @@ namespace SCM.Models.ServiceModels
         public int ID { get; set; }
         public int VlanTag { get; set; }
         public int AttachmentID { get; set; }
+        public bool AttachmentIsMultiPort { get; set; }
         public string Name { get; set; }
         public bool IsLayer3 { get; set; }
         public string IpAddress { get; set; }

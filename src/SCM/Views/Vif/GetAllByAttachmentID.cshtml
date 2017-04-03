@@ -14,7 +14,8 @@
 <h2>VIFs for Attachment @ViewBag.Attachment.Name</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Attachment.ID" asp-route-tenantID="@ViewBag.Attachment.Tenant.TenantID">Create New</a>
+    <a asp-action="Create" asp-route-id="@ViewBag.Attachment.ID" asp-route-attachmentIsMultiPort="@ViewBag.Attachment.IsMultiPort" 
+       asp-route-tenantID="@ViewBag.Attachment.TenantID">Create New</a>
 </p>
 
 
@@ -66,8 +67,8 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID, tenantID = item.TenantID }) |
-                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, tenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.ID, isMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, isMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID })
                     @if (item.IsLayer3)
                     {
                         <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { ID = item.Vrf.VrfID,

@@ -21,7 +21,8 @@ namespace SCM.Services.SCMServices
         Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateAsync(AttachmentRequest request);
-        Task UpdateRequiresSyncAsync(int interfaceID, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false);
         Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(MultiPort multiPort, bool requiresSync, bool saveChanges = true);
     }
 }

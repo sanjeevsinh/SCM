@@ -26,6 +26,7 @@ namespace SCM.Data
         public DbSet<Device> Devices { get; set; }
         public DbSet<Port> Ports { get; set; }
         public DbSet<MultiPort> MultiPorts { get; set; }
+        public DbSet<MultiPortVlan> MultiPortVlans { get; set; }
         public DbSet<Interface> Interfaces { get; set; }
         public DbSet<PortBandwidth> PortBandwidth { get; set; }
         public DbSet<InterfaceBandwidth> InterfaceBandwidth { get; set; }
@@ -60,6 +61,7 @@ namespace SCM.Data
             builder.Entity<PortBandwidth>().ToTable("PortBandwidth");
             builder.Entity<Port>().ToTable("Port");
             builder.Entity<MultiPort>().ToTable("MultiPort");
+            builder.Entity<MultiPortVlan>().ToTable("MultiPortVlan");
             builder.Entity<Region>().ToTable("Region");
             builder.Entity<RouteTarget>().ToTable("RouteTarget");
             builder.Entity<SubRegion>().ToTable("SubRegion");
@@ -140,6 +142,11 @@ namespace SCM.Data
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<InterfaceVlan>()
+                    .HasOne(c => c.Tenant)
+                    .WithMany()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MultiPortVlan>()
                     .HasOne(c => c.Tenant)
                     .WithMany()
                     .OnDelete(DeleteBehavior.Restrict);

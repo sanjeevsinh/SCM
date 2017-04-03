@@ -25,16 +25,19 @@ namespace SCM.Services.SCMServices
 
         public async Task<Attachment> GetByIDAsync(int id, bool? multiPort = false)
         {
-            if (multiPort.Value)
+            if (multiPort.GetValueOrDefault())
             {
+                var dbResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == id,
+                              includeProperties: "Device.Location.SubRegion.Region,Device.Plane,"
+                              + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,Ports",
+                              AsTrackable: false);
 
-                // TO-DO
-                return null;
+                return Mapper.Map<Attachment>(dbResult.SingleOrDefault());
             }
 
             else
             {
-                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id && q.IsMultiPort == multiPort,
+                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id && q.IsMultiPort == false,
                     includeProperties: "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
                     + "Tenant,Port.MultiPort,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,"
                     + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
@@ -54,7 +57,7 @@ namespace SCM.Services.SCMServices
 
             var multiPorts = await UnitOfWork.MultiPortRepository.GetAsync(q => q.TenantID == tenant.TenantID,
                 includeProperties: "Device.Location.SubRegion.Region,Device.Plane,"
-                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool",
+                + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,Ports",
                 AsTrackable: false);
 
             return Mapper.Map<List<Attachment>>(ifaces).ToList().Concat(Mapper.Map<List<Attachment>>(multiPorts)).ToList();
@@ -121,177 +124,25 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment)
         {
-
-            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
-
-            if (iface == null)
+            if (attachment.IsMultiPort)
             {
-                var result = new NetworkCheckSyncServiceResult();
-                result.NetworkSyncServiceResult.Add("The attachment resource was not found.");
-
-                return result;
-            }
-
-            if (attachment.IsBundle)
-            {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentBundleServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync, true);
-
-                    return attachmentCheckSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
-                            $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfCheckSyncResult.InSync)
-                        {
-                            return vrfCheckSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentBundleServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
-
-                    return attachmentCheckSyncResult;
-                }
+                return await CheckAttachmentMultiPortNetworkSyncAsync(attachment);
             }
             else
             {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
-                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
-
-                    return attachmentCheckSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
-                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfCheckSyncResult.InSync)
-                        {
-                            return vrfCheckSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
-                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
-
-                    return attachmentCheckSyncResult;
-                }
+                return await CheckAttachmentNetworkSyncAsync(attachment);
             }
         }
 
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment)
         {
-
-            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
-
-            if (iface == null)
+            if (attachment.IsMultiPort)
             {
-                var result = new NetworkSyncServiceResult();
-                result.Add("The attachment resource was not found.");
-
-                return result;
-            }
-
-            if (attachment.IsBundle)
-            {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentBundleServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
-
-                    return attachmentSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfSyncResult.IsSuccess)
-                        {
-                            await UpdateRequiresSyncAsync(iface, true);
-                            return vrfSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentBundleServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
-
-                    return attachmentSyncResult;
-                }
+                return await SyncMultiPortToNetwork(attachment);
             }
             else
             {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
-                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
-
-                    return attachmentSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfSyncResult.IsSuccess)
-                        {
-                            await UpdateRequiresSyncAsync(iface, true);
-                            return vrfSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentServiceModelData,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
-                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
-
-                    return attachmentSyncResult;
-                }
+                return await SyncAttachmentToNetwork(attachment);
             }
         }
 
@@ -302,7 +153,6 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<ServiceResult> DeleteAsync(Attachment attachment)
         {
-
             var result = new ServiceResult { IsSuccess = true };
 
             // Validate the attachment can be deleted - if not quit 
@@ -317,17 +167,24 @@ namespace SCM.Services.SCMServices
 
             // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
 
-            if (!syncResult.IsSuccess && syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+            if (!syncResult.IsSuccess)
             {
-                result.IsSuccess = false;
-                result.AddRange(syncResult.GetMessageList());
+                if (syncResult.NetworkHttpResponse == null || syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+                {
+                    result.IsSuccess = false;
+                    result.AddRange(syncResult.GetMessageList());
 
-                return result;
+                    return result;
+                }
             }
 
             if (attachment.IsBundle)
             {
                 await DeleteBundleAttachmentAsync(attachment, result);
+            }
+            else if (attachment.IsMultiPort)
+            {
+                await DeleteMultiPortAttachmentAsync(attachment, result);
             }
             else
             {
@@ -337,106 +194,15 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        /// <summary>
-        /// Delete an attachment from the network only.
-        /// </summary>
-        /// <param name="attachment"></param>
-        /// <returns></returns>
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment)
         {
-            var syncResult = new NetworkSyncServiceResult();
-
-            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
-
-            if (iface == null)
+            if (attachment.IsMultiPort)
             {
-                syncResult.Add("The attachment resource was not found.");
-
-                return syncResult;
-            }
-
-            // Validate the attachment can be deleted - if not quit 
-
-            var result = new ServiceResult { IsSuccess = true };
-            await ValidateDeleteAsync(attachment, result);
-            if (!result.IsSuccess)
-            {
-                syncResult.AddRange(result.GetMessageList());
-
-                return syncResult;
-            }
-
-            if (attachment.IsBundle)
-            {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                       + $"/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, true);
-
-                    return attachmentSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                            + $"/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfSyncResult.IsSuccess)
-                        {
-                            return vrfSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                        + $"/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
-
-                    await UpdateRequiresSyncAsync(iface, true);
-
-                    return attachmentSyncResult;
-
-                }
+                return await DeleteMultiPortFromNetworkAsync(attachment);
             }
             else
             {
-                if (attachment.IsTagged)
-                {
-                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                        + $"/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
-                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, true);
-
-                    return attachmentSyncResult;
-                }
-                else
-                {
-                    if (attachment.IsLayer3)
-                    {
-                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
-                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
-
-                        if (!vrfSyncResult.IsSuccess)
-                        {
-                            return vrfSyncResult;
-                        }
-                    }
-
-                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
-                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                        + $"/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
-                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
-
-                    await UpdateRequiresSyncAsync(iface, true);
-
-                    return attachmentSyncResult;
-                }
+                return await DeleteAttachmentFromNetworkAsync(attachment);
             }
         }
 
@@ -585,6 +351,278 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        private async Task<NetworkCheckSyncServiceResult> CheckAttachmentNetworkSyncAsync(Attachment attachment)
+        {
+
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
+
+            if (iface == null)
+            {
+                var result = new NetworkCheckSyncServiceResult();
+                result.NetworkSyncServiceResult.Add("The attachment resource was not found.");
+
+                return result;
+            }
+
+            if (attachment.IsBundle)
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentBundleServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync, true);
+
+                    return attachmentCheckSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
+                            $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfCheckSyncResult.InSync)
+                        {
+                            return vrfCheckSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentBundleServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
+
+                    return attachmentCheckSyncResult;
+                }
+            }
+            else
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
+                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
+
+                    return attachmentCheckSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfCheckSyncResult.InSync)
+                        {
+                            return vrfCheckSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
+                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentCheckSyncResult.InSync);
+
+                    return attachmentCheckSyncResult;
+                }
+            }
+        }
+
+        private async Task<NetworkCheckSyncServiceResult> CheckAttachmentMultiPortNetworkSyncAsync(Attachment attachment)
+        {
+
+            var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(attachment.ID);
+
+            if (multiPort == null)
+            {
+                var result = new NetworkCheckSyncServiceResult();
+                result.NetworkSyncServiceResult.Add("The multiport resource was not found.");
+
+                return result;
+            }
+
+            if (attachment.IsTagged)
+            {
+                var taggedAttachmentMultiPortServiceModelData = Mapper.Map<TaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(taggedAttachmentMultiPortServiceModelData,
+                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-multiport/{taggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, !attachmentCheckSyncResult.InSync, true);
+
+                return attachmentCheckSyncResult;
+            }
+            else
+            {
+                if (attachment.IsLayer3)
+                {
+                    var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                    var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
+
+                    if (!vrfCheckSyncResult.InSync)
+                    {
+                        return vrfCheckSyncResult;
+                    }
+                }
+
+                var untaggedAttachmentMultiPortServiceModelData = Mapper.Map<UntaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentCheckSyncResult = await NetSync.CheckNetworkSyncAsync(untaggedAttachmentMultiPortServiceModelData,
+                    $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-multiport/{untaggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, !attachmentCheckSyncResult.InSync);
+
+                return attachmentCheckSyncResult;
+            }
+        }
+
+        private async Task<NetworkSyncServiceResult> SyncAttachmentToNetwork(Attachment attachment) {
+
+            var result = new NetworkSyncServiceResult();
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
+
+            if (iface == null)
+            {
+                result.Add("The attachment resource was not found.");
+
+                return result;
+            }
+
+            if (attachment.IsBundle)
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentBundleServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
+
+                    return attachmentSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfSyncResult.IsSuccess)
+                        {
+                            await UpdateRequiresSyncAsync(iface, true);
+
+                            return vrfSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentBundleServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
+
+                    return attachmentSyncResult;
+                }
+            }
+            else
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
+                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
+
+                    return attachmentSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
+                            $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfSyncResult.IsSuccess)
+                        {
+                            await UpdateRequiresSyncAsync(iface, true);
+
+                            return vrfSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
+                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, !attachmentSyncResult.IsSuccess);
+
+                    return attachmentSyncResult;
+                }
+            }
+        }
+
+        private async Task<NetworkSyncServiceResult> SyncMultiPortToNetwork(Attachment attachment)
+        {
+            var result = new NetworkSyncServiceResult();
+            var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(attachment.ID);
+
+            if (multiPort == null)
+            {
+                result.Add("The multiport resource was not found.");
+
+                return result;
+            }
+
+            if (attachment.IsTagged)
+            {
+                var taggedAttachmentMultiPortServiceModelData = Mapper.Map<TaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentSyncResult = await NetSync.SyncNetworkAsync(taggedAttachmentMultiPortServiceModelData,
+                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-multiport/{taggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, !attachmentSyncResult.IsSuccess);
+
+                return attachmentSyncResult;
+            }
+            else
+            {
+                if (attachment.IsLayer3)
+                {
+                    var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                    var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
+                        $"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
+                    if (!vrfSyncResult.IsSuccess)
+                    {
+                        await UpdateRequiresSyncAsync(multiPort, true);
+
+                        return vrfSyncResult;
+                    }
+                }
+
+                var untaggedAttachmentMultiPortServiceModelData = Mapper.Map<UntaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentSyncResult = await NetSync.SyncNetworkAsync(untaggedAttachmentMultiPortServiceModelData,
+                    $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-multiport/{untaggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, !attachmentSyncResult.IsSuccess);
+
+                return attachmentSyncResult;
+            }
+        }
+
         /// <summary>
         /// Helper to validate if an attachment can be deleted.
         /// </summary>
@@ -631,6 +669,173 @@ namespace SCM.Services.SCMServices
             }
         }
 
+        /// <summary>
+        /// Delete an attachment from the network only.
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <returns></returns>
+        private async Task<NetworkSyncServiceResult> DeleteAttachmentFromNetworkAsync(Attachment attachment)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+
+            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(attachment.ID);
+
+            if (iface == null)
+            {
+                syncResult.Add("The attachment resource was not found.");
+
+                return syncResult;
+            }
+
+            // Validate the attachment can be deleted - if not quit 
+
+            var result = new ServiceResult { IsSuccess = true };
+            await ValidateDeleteAsync(attachment, result);
+            if (!result.IsSuccess)
+            {
+                syncResult.AddRange(result.GetMessageList());
+
+                return syncResult;
+            }
+
+            if (attachment.IsBundle)
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentBundleServiceModelData = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                       + $"/tagged-attachment-bundle-interface/{taggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, true);
+
+                    return attachmentSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                            + $"/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfSyncResult.IsSuccess)
+                        {
+                            return vrfSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentBundleServiceModelData = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/untagged-attachment-bundle-interface/{untaggedAttachmentBundleServiceModelData.BundleID}");
+
+                    await UpdateRequiresSyncAsync(iface, true);
+
+                    return attachmentSyncResult;
+
+                }
+            }
+            else
+            {
+                if (attachment.IsTagged)
+                {
+                    var taggedAttachmentServiceModelData = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/tagged-attachment-interface/{taggedAttachmentServiceModelData.InterfaceType},"
+                        + taggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, true);
+
+                    return attachmentSyncResult;
+                }
+                else
+                {
+                    if (attachment.IsLayer3)
+                    {
+                        var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                        var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/vrf/{vrfServiceModelData.VrfName}");
+
+                        if (!vrfSyncResult.IsSuccess)
+                        {
+                            return vrfSyncResult;
+                        }
+                    }
+
+                    var untaggedAttachmentServiceModelData = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
+                    var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/untagged-attachment-interface/{untaggedAttachmentServiceModelData.InterfaceType},"
+                        + untaggedAttachmentServiceModelData.InterfaceID.Replace("/", "%2F"));
+
+                    await UpdateRequiresSyncAsync(iface, true);
+
+                    return attachmentSyncResult;
+                }
+            }
+        }
+        /// <summary>
+        /// Delete a multiport attachment from the network only.
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <returns></returns>
+        private async Task<NetworkSyncServiceResult> DeleteMultiPortFromNetworkAsync(Attachment attachment)
+        {
+            var syncResult = new NetworkSyncServiceResult();
+
+            var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(attachment.ID);
+
+            if (multiPort == null)
+            {
+                syncResult.Add("The multiport resource was not found.");
+
+                return syncResult;
+            }
+
+            // Validate the multiport attachment can be deleted - if not quit 
+
+            var result = new ServiceResult { IsSuccess = true };
+            await ValidateDeleteAsync(attachment, result);
+            if (!result.IsSuccess)
+            {
+                syncResult.AddRange(result.GetMessageList());
+
+                return syncResult;
+            }
+
+            if (attachment.IsTagged)
+            {
+                var taggedAttachmentMultiPortServiceModelData = Mapper.Map<TaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                   + $"/tagged-attachment-multiport/{taggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, true);
+
+                return attachmentSyncResult;
+            }
+            else
+            {
+                if (attachment.IsLayer3)
+                {
+                    var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(attachment);
+                    var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/vrf/{vrfServiceModelData.VrfName}");
+
+                    if (!vrfSyncResult.IsSuccess)
+                    {
+                        return vrfSyncResult;
+                    }
+                }
+
+                var untaggedAttachmentMultiPortServiceModelData = Mapper.Map<UntaggedAttachmentMultiPortServiceNetModel>(attachment);
+                var attachmentSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                    + $"/untagged-attachment-multiport/{untaggedAttachmentMultiPortServiceModelData.Name}");
+
+                await UpdateRequiresSyncAsync(multiPort, true);
+
+                return attachmentSyncResult;
+
+            } 
+        }
+
+
         private async Task<IEnumerable<Port>> FindPortsAsync(AttachmentRequest request, ServiceResult result)
         {
             var device = await FindDeviceAsync(request, result);
@@ -668,7 +873,7 @@ namespace SCM.Services.SCMServices
             // Find all devices in the requested location
 
             var devices = await UnitOfWork.DeviceRepository.GetAsync(q => q.LocationID == request.LocationID,
-                includeProperties: "Ports.PortBandwidth,Ports.Device,Interfaces");
+                includeProperties: "Ports.PortBandwidth,Ports.Device,Interfaces,Ports.Device.MultiPorts");
 
             // Filter devices collection to include only those devices which belong to the requested plane (if specified)
 
@@ -725,6 +930,7 @@ namespace SCM.Services.SCMServices
             var iface = Mapper.Map<Interface>(request);
             iface.DeviceID = port.DeviceID;
             iface.PortID = port.ID;
+            iface.InterfaceBandwidthID = request.BandwidthID;
             iface.RequiresSync = true;
 
             Vrf vrf = null;
@@ -790,6 +996,7 @@ namespace SCM.Services.SCMServices
 
             var port = ports.First();
             bundleIface.DeviceID = port.Device.ID;
+            bundleIface.InterfaceBandwidthID = request.BandwidthID;
             bundleIface.RequiresSync = true;
             var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID).Where(q => q != null);
 
@@ -850,13 +1057,34 @@ namespace SCM.Services.SCMServices
         private async Task AddMultiPortAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
         {
             Vrf vrf = null;
-            var deviceID = ports.First().DeviceID;
+            var port = ports.First();
+            var deviceID = port.DeviceID;
+
+            // Check to create a vrf
 
             if (request.IsLayer3)
             {
                 vrf = Mapper.Map<Vrf>(request);
-                vrf.DeviceID = ports.First().Device.ID;
+                vrf.DeviceID = deviceID;
             }
+
+            var usedIds = port.Device.MultiPorts.Select(q => q.Identifier);
+
+            // Find the first un-used identifier in the range 1, 65535 (this range is fairly arbitrary - the identifer is not used
+            // for network configuration of a multiport. It serves only to create an ID which is unique to a device and which is used
+            // in the NSO service models).
+
+            var id = Enumerable.Range(1, 65535).Except(usedIds).First();
+
+            // Create a new multiport
+
+            var multiPort = Mapper.Map<MultiPort>(request);
+            multiPort.Identifier = id;
+            multiPort.DeviceID = deviceID;
+            multiPort.InterfaceBandwidthID = request.BandwidthID;
+            multiPort.LocalFailureDetectionIpAddress = "1.1.1.1";
+            multiPort.RemoteFailureDetectionIpAddress = "1.1.1.2";
+            multiPort.RequiresSync = true;
 
             try
             {
@@ -865,8 +1093,12 @@ namespace SCM.Services.SCMServices
                 if (vrf != null)
                 {
                     var vrfResult = await VrfService.AddAsync(vrf);
-                    if (!vrfResult.IsSuccess)
+                    if (vrfResult.IsSuccess)
                     {
+                        multiPort.VrfID = vrf.VrfID;
+                    }
+                    else
+                    { 
                         result.AddRange(vrfResult.GetMessageList());
                         result.IsSuccess = false;
 
@@ -874,20 +1106,28 @@ namespace SCM.Services.SCMServices
                     }
                 }
 
-                var multiPort = Mapper.Map<MultiPort>(request);
-                multiPort.LocalFailureDetectionIpAddress = "1.1.1.1";
-                multiPort.RemoteFailureDetectionIpAddress = "1.1.1.2";
+                // Generate key for the multiport record
 
                 UnitOfWork.MultiPortRepository.Insert(multiPort);
                 await UnitOfWork.SaveAsync();
-                var portsCount = ports.Count();
 
-                for (var i = 1; i <= portsCount; i++)
+                // Create interface records, one for each member interface 
+                // of the multiport
+
+                var interfaceBandwidthsQuery = await UnitOfWork.InterfaceBandwidthRepository.GetAsync(q => 
+                    q.BandwidthGbps == request.PortBandwidthRequired);
+
+                var interfaceBandwidth = interfaceBandwidthsQuery.Single();
+
+                var portCount = ports.Count();
+
+                for (var i = 1; i <= portCount; i++)
                 {
                     var iface = Mapper.Map<Interface>(request);
-                    var port = ports[i - 1];
+                    var p = ports[i - 1];
                     iface.DeviceID = deviceID;
-                    iface.PortID = port.ID;
+                    iface.PortID = p.ID;
+                    iface.InterfaceBandwidthID = interfaceBandwidth.InterfaceBandwidthID;
                     iface.RequiresSync = true;
 
                     if (request.IsLayer3)
@@ -918,9 +1158,12 @@ namespace SCM.Services.SCMServices
 
                     UnitOfWork.InterfaceRepository.Insert(iface);
 
-                    port.TenantID = request.TenantID;
-                    port.MultiPortID = multiPort.MultiPortID;
-                    UnitOfWork.PortRepository.Update(port);
+                    // Assign the port to the tenant and make it a member
+                    // of the multiport
+
+                    p.TenantID = request.TenantID;
+                    p.MultiPortID = multiPort.MultiPortID;
+                    UnitOfWork.PortRepository.Update(p);
                 }
 
                 await UnitOfWork.SaveAsync();
@@ -968,6 +1211,7 @@ namespace SCM.Services.SCMServices
                 result.IsSuccess = false;
             }
         }
+
         /// <summary>
         /// Delete a bundle attachment from inventory
         /// </summary>
@@ -1014,6 +1258,52 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
+        /// Delete a multiport attachment from inventory
+        /// </summary>
+        /// <param name="multiport"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private async Task DeleteMultiPortAttachmentAsync(Attachment attachment, ServiceResult result)
+        {
+            var ports = await UnitOfWork.PortRepository.GetAsync(q => q.MultiPortID == attachment.ID,
+                includeProperties: "Interface");
+
+            var interfaces = ports.Select(q => q.Interface);
+
+            try
+            {
+                foreach (var port in ports)
+                {
+                    port.TenantID = null;
+                    port.MultiPortID = null;
+                    UnitOfWork.PortRepository.Update(port);
+                }
+
+                foreach (var iface in interfaces)
+                {
+                    UnitOfWork.InterfaceRepository.Delete(iface);
+                }
+
+                if (attachment.VrfID != null)
+                {
+                    var vrf = await VrfService.GetByIDAsync(attachment.VrfID.Value);
+                    await VrfService.DeleteAsync(vrf);
+                }
+
+                await this.UnitOfWork.MultiPortRepository.DeleteAsync(attachment.ID);
+                await UnitOfWork.SaveAsync();
+            }
+
+            catch (DbUpdateException  /** ex **/ )
+            {
+                result.Add("The delete operation failed. The error has been logged. "
+                   + "Please try again and contact your system administrator if the problem persists.");
+
+                result.IsSuccess = false;
+            }
+        }
+
+        /// <summary>
         /// Helper to update the RequiresSync property of an interface record.
         /// </summary>
         /// <param name="iface"></param>
@@ -1036,10 +1326,36 @@ namespace SCM.Services.SCMServices
         /// <param name="iface"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(int ifaceID, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false)
         {
-            var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(ifaceID);
-            await UpdateRequiresSyncAsync(iface, requiresSync, saveChanges);
+            if (isMultiPort.Value)
+            {
+                var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(id);
+                await UpdateRequiresSyncAsync(multiPort, requiresSync, saveChanges);
+            }
+            else
+            {
+                var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(id);
+                await UpdateRequiresSyncAsync(iface, requiresSync, saveChanges);
+            }
+
+            return;
+        }
+
+        /// <summary>
+        /// Helper to update the RequiresSync property of a multiport record.
+        /// </summary>
+        /// <param name="multiPort"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(MultiPort multiPort, bool requiresSync, bool saveChanges = true)
+        {
+            multiPort.RequiresSync = requiresSync;
+            UnitOfWork.MultiPortRepository.Update(multiPort);
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
+            }
 
             return;
         }

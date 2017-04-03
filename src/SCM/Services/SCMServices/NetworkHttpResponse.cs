@@ -16,7 +16,7 @@ namespace SCM.Services.SCMServices
 
         public string GetMessage()
         {
-            return string.Join("\r\n", Messages);
+            return string.Join("", Messages);
         }
         public void Add(string message)
         {
