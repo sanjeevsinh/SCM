@@ -42,6 +42,64 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.ContractBandwidthPoolRepository.Delete(contractBandwidthPool);
             return await this.UnitOfWork.SaveAsync();
         }
+
+        public async Task<ServiceResult> ValidateAsync(int contractBandwidthPoolID)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
+                 q.ContractBandwidthPoolID == contractBandwidthPoolID,
+                 includeProperties: "ContractBandwidth,Interfaces.Port,InterfaceVlans.Interface.Port,MultiPorts,MultiPortVlans.MultiPort");
+
+            var contractBandwidthPool = dbResult.SingleOrDefault();
+
+            if (contractBandwidthPool == null)
+            {
+                result.Add("The requested contract bandwidth pool was not found.");
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            if (contractBandwidthPool.Interfaces.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following attachments :");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.Interfaces.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            if (contractBandwidthPool.InterfaceVlans.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following vifs :");
+                var vifs = Mapper.Map<List<Vif>>(contractBandwidthPool.InterfaceVlans.ToList());
+                result.AddRange(vifs.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            if (contractBandwidthPool.MultiPorts.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port attachments :");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.MultiPorts.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            if (contractBandwidthPool.MultiPortVlans.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port vifs :");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.Interfaces.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            return result;
+        }
+
         public ServiceResult ValidateDelete(ContractBandwidthPool contractBandwidthPool)
         {
             var result = new ServiceResult { IsSuccess = true };
@@ -57,6 +115,22 @@ namespace SCM.Services.SCMServices
             {
                 result.Add("The contract bandwidth pool cannot be deleted because the following vifs which reference the pool are defined:");
                 var vifs = Mapper.Map<List<Vif>>(contractBandwidthPool.InterfaceVlans.ToList());
+                result.AddRange(vifs.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            else if (contractBandwidthPool.MultiPorts.Count() > 0)
+            {
+                result.Add("The contract bandwidth pool cannot be deleted because the following multi-port attachments which reference the pool are defined:");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.MultiPorts.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+            }
+
+            else if (contractBandwidthPool.MultiPortVlans.Count() > 0)
+            {
+                result.Add("The contract bandwidth pool cannot be deleted because the following multi-port vifs which reference the pool are defined:");
+                var vifs = Mapper.Map<List<Vif>>(contractBandwidthPool.MultiPortVlans.ToList());
                 result.AddRange(vifs.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
                 result.IsSuccess = false;
             }

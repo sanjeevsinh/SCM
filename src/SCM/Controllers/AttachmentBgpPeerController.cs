@@ -13,14 +13,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SCM.Controllers
 {
-    public class BgpPeerController : BaseViewController
+    public class AttachmentBgpPeerController : BaseViewController
     {
-        public BgpPeerController(IBgpPeerService bgpPeerService, IMapper mapper)
+        public AttachmentBgpPeerController(IBgpPeerService bgpPeerService, IAttachmentService vifService, IMapper mapper)
         {
            BgpPeerService = bgpPeerService;
+           AttachmentService = vifService;
            Mapper = mapper;
         }
+
         private IBgpPeerService BgpPeerService { get; set; }
+        private IAttachmentService AttachmentService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -32,7 +35,7 @@ namespace SCM.Controllers
             }
 
             var bgpPeers = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(q => q.VrfID == id);
-            await PopulateVrfItem(id.Value);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(id.Value);
 
             return View(Mapper.Map<List<BgpPeerViewModel>>(bgpPeers));
         }
@@ -51,7 +54,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfItem(item.VrfID);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(item.VrfID);
+
             return View(Mapper.Map<BgpPeerViewModel>(item));
         }
 
@@ -63,14 +67,14 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfItem(id.Value);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(id.Value);
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromQuery]int? attachmentID, [FromQuery]int? vifID, 
-            [Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
+        public async Task<IActionResult> Create([Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
         {
             try
             {
@@ -78,14 +82,7 @@ namespace SCM.Controllers
                 {
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
-                    if (vifID != null)
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
-                    }
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -96,7 +93,8 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateVrfItem(bgpPeer.VrfID); 
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
 
@@ -115,14 +113,14 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfItem(bgpPeer.VrfID);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([FromQuery]int? attachmentID, [FromQuery]int? vifID, int id, 
-            [Bind("BgpPeerID,VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled,RowVersion")] BgpPeerViewModel bgpPeer)
+        public async Task<ActionResult> Edit(int id, [Bind("BgpPeerID,VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled,RowVersion")] BgpPeerViewModel bgpPeer)
         {
             if (id != bgpPeer.BgpPeerID)
             {
@@ -145,14 +143,7 @@ namespace SCM.Controllers
                     {
                         await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
-                        if (vifID != null) 
-                        {
-                            return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
-                        }
-                        else
-                        {
-                            return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
-                        }
+                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                     }
                 }
             }
@@ -185,12 +176,13 @@ namespace SCM.Controllers
 
             }
 
-            await PopulateVrfItem(bgpPeer.VrfID);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, int? vifID, int? attachmentID, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
         {
             if (id == null)
             {
@@ -202,14 +194,8 @@ namespace SCM.Controllers
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    if (vifID != null)
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
-                    }
-                    else
-                    {
-                        return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
-                    }
+
+                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
                 }
 
                 return NotFound();
@@ -225,13 +211,14 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulateVrfItem(bgpPeer.VrfID);
+            ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete([FromQuery]int? attachmentID, [FromQuery]int? vifID, BgpPeerViewModel bgpPeer)
+        public async Task<IActionResult> Delete(BgpPeerViewModel bgpPeer)
         {
             try
             {
@@ -243,30 +230,13 @@ namespace SCM.Controllers
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
 
-                if (vifID != null)
-                {
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID, attachmentID = attachmentID, vifID = vifID });
-                }
-                else
-                {
-                    return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
-                }
+                return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = bgpPeer.BgpPeerID, attachmentID = attachmentID, vifID = vifID });
-            }
-        }
-
-        private async Task PopulateVrfItem(int vrfID)
-        {
-            var dbResult = await BgpPeerService.UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "Tenant");
-            var vrf = dbResult.SingleOrDefault();
-            if (vrf != null)
-            {
-                ViewBag.Vrf = vrf;
+                return RedirectToAction("Delete", new { concurrencyError = true, id = bgpPeer.BgpPeerID });
             }
         }
     }

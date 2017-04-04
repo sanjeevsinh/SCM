@@ -1,0 +1,71 @@
+@model IEnumerable<SCM.Models.ViewModels.BgpPeerViewModel>
+
+@{
+    ViewData["Title"] = "BGP Peers";
+}
+
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID?attachmentIsMultiPort=@ViewBag.Vif.AttachmentIsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item active">BGP Peers</li>
+</ol>
+
+<h2>BGP Peers for VRF '@ViewBag.Vif.Vrf.Name'</h2>
+<p>
+    <a asp-action="Create" asp-route-id="@ViewBag.Vif.VrfID">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vrf)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AutonomousSystem)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaximumRoutes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsBfdEnabled)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Vrf.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AutonomousSystem)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaximumRoutes)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsBfdEnabled)
+            </td>
+            <td>
+            @Html.ActionLink("Edit", "Edit", new { id = item.BgpPeerID }) |
+            @Html.ActionLink("Details", "Details", new { id = item.BgpPeerID }) |
+            @Html.ActionLink("Delete", "Delete", new { id = item.BgpPeerID })
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="GetAllByAttachmentID" asp-controller="Vif" asp-route-id="@ViewBag.Vif.AttachmentID">Back to VIFs</a>
+</div>

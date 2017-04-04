@@ -22,5 +22,6 @@ namespace SCM.Models
         public virtual ICollection<Interface> Interfaces { get; set; }
         public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
         public virtual ICollection<MultiPort> MultiPorts { get; set; }
+        public virtual ICollection<MultiPortVlan> MultiPortVlans { get; set; }
     }
 }

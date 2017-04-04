@@ -8,7 +8,7 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID?attachmentIsMultiPort=@ViewBag.Attachment.IsMultiPort">VIFs</a></li>
     <li class="breadcrumb-item active">Details</li>
 </ol>
 
@@ -102,6 +102,6 @@
     <div class="form-actions no-color">
         <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
         <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
-        <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID" asp-route-attachmentIsMultiPort="@Model.AttachmentIsMultiPort">Back to VIFs List</a>
+        <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID" asp-route-attachmentIsMultiPort="@ViewBag.Attachment.IsMultiPort">Back to VIFs List</a>
     </div>
 </form>

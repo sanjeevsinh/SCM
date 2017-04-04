@@ -34,7 +34,7 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Device.Location))
                 .ForMember(dest => dest.LocationID, conf => conf.MapFrom(src => src.Device.LocationID))
                 .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports))
-                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort {src.Identifier}"))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort{src.Identifier}"))
                 .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Device.Plane))
                 .ForMember(dest => dest.PlaneID, conf => conf.MapFrom(src => src.Device.PlaneID))
                 .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
@@ -67,7 +67,7 @@ namespace SCM.Models.ServiceModels
 
             CreateMap<MultiPortVlan, Vif>()
                 .ForMember(dest => dest.ID, conf => conf.MapFrom(src => src.MultiPortVlanID))
-                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort {src.MultiPort.Identifier}.{src.VlanTag}"))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort{src.MultiPort.Identifier}.{src.VlanTag}"))
                 .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.MultiPortID))

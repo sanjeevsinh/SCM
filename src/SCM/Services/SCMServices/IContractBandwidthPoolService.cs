@@ -15,6 +15,7 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(ContractBandwidthPool contractBandwidthPool);
         Task<int> UpdateAsync(ContractBandwidthPool contractBandwidthPool);
         Task<int> DeleteAsync(ContractBandwidthPool contractBandwidthPool);
+        Task<ServiceResult> ValidateAsync(int contractBandwidthPoolID);
         ServiceResult ValidateDelete(ContractBandwidthPool contractBandwidthPool);
     }
 }

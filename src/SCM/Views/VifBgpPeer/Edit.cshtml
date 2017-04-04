@@ -1,29 +1,28 @@
 @model SCM.Models.ViewModels.BgpPeerViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Edit";
 }
 
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vrf.TenantID">Attachments</a></li>
-    @if (!string.IsNullOrEmpty(Context.Request.Query["vifID"]))
-    {
-        <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@Context.Request.Query["attachmentID"]">VIFs</a></li>
-    }
-    <li class="breadcrumb-item"><a href="/BgpPeer/GetAllByVrfID/@ViewBag.Vrf.VrfID">BGP Peers</a></li>
-    <li class="breadcrumb-item active">Create</li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID?attachmentIsMultiPort=@ViewBag.Vif.AttachmentIsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/VifBgpPeer/GetAllByVrfID/@ViewBag.Vif.VrfID">BGP Peers</a></li>
+    <li class="breadcrumb-item active">Edit</li>
 </ol>
 
-<h2>Create BGP Peer for VRF '@ViewBag.Vrf.Name'</h2>
+<h2>Edit</h2>
 
-<form asp-action="Create">
+<form asp-action="Edit">
     <div class="form-horizontal">
+        <h4>BGP Peer</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-        <input type="hidden" asp-for="VrfID" value="@ViewBag.Vrf.VrfID" />
-       
+        <input type="hidden" asp-for="VrfID" />
+        <input type="hidden" asp-for="BgpPeerID" />
+        <input type="hidden" asp-for="RowVersion" />
         <div class="form-group">
             <label asp-for="IpAddress" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -53,27 +52,16 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" 
-                       asp-route-attachmentID="@Context.Request.Query["attachmentID"]" 
-                       asp-route-vifID="@Context.Request.Query["vifID"]" class="btn btn-default" />
+                <input type="submit" value="Save" class="btn btn-default" />
             </div>
         </div>
     </div>
 </form>
+
 <div>
-    @if (!string.IsNullOrEmpty(Context.Request.Query["vifID"]))
-    {
-    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" 
-       asp-route-tenantID="@Context.Request.Query["tenantID"]"
-       asp-route-attachmentID="@Context.Request.Query["attachmentID"]" 
-       asp-route-vifID = "@Context.Request.Query["vifID"]">Back to BGP Peers List</a>
-    }
-    else
-    {
-    <a asp-action="GetAllByVrfID" asp-controller="BgpPeer" asp-route-id="@ViewBag.Vrf.VrfID" asp-route-tenantID="@Context.Request.Query["tenantID"]">Back to BGP Peers List</a>
-    }
+    <a asp-action="GetAllByVrfID" asp-route-id="@Model.VrfID">Back to BGP Peers List</a>
 </div>
 
-    @section Scripts {
-        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    }
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

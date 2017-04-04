@@ -73,7 +73,7 @@ namespace SCM.Services.SCMServices
                                + "Interfaces.Vrf.BgpPeers,"
                                + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
                                + "Interfaces.BundleInterfacePorts.Port," 
-                               + "MultiPorts.Port.Interface");
+                               + "MultiPorts.Ports.Interface");
 
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)
@@ -102,8 +102,8 @@ namespace SCM.Services.SCMServices
                                + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
                                + "Interfaces.BundleInterfacePorts.Port,"
                                + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
-                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth"
-                               + "MultiPorts.Port.Interface");
+                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                               + "MultiPorts.Ports.Interface");
 
             var device = deviceDbResult.SingleOrDefault();
             if (device == null)

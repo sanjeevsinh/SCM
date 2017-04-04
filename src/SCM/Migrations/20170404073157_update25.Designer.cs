@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170404073157_update25")]
+    partial class update25
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -1211,7 +1212,7 @@ namespace SCM.Migrations
                         .HasForeignKey("VlanTagRangeID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("MultiPortVlans")
+                        .WithMany()
                         .HasForeignKey("VrfID");
                 });
 

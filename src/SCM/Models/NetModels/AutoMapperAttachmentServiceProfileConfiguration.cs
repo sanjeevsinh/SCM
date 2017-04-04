@@ -52,6 +52,11 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp));
 
+            CreateMap<MultiPort, TaggedAttachmentMultiPortNetModel>()
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort{src.Identifier}"))
+                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports))
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.MultiPortVlans));
+
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))

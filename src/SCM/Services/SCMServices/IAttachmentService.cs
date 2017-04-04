@@ -13,6 +13,7 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<Attachment> GetByIDAsync(int id, bool? multiPort = false);
+        Task<Attachment> GetByVrfIDAsync(int vrfID);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
         Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);

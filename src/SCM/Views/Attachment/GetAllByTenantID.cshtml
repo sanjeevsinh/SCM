@@ -101,7 +101,7 @@
                     }
                     @if (item.IsLayer3)
                     {
-                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { ID = item.Vrf.VrfID, tenantID = item.TenantID })
+                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "AttachmentBgpPeer", new { ID = item.Vrf.VrfID, tenantID = item.TenantID })
                     }
                     @if (item.IsTagged)
                     {

@@ -16,22 +16,24 @@ namespace SCM.Services.SCMServices
     public class VifService : BaseService, IVifService
     {
         public VifService(IUnitOfWork unitOfWork, IMapper mapper, IAttachmentService attachmentService,
-            IVrfService vrfService, INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
+            IVrfService vrfService, IContractBandwidthPoolService contractBandwidthPoolService, INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
         {
             AttachmentService = attachmentService;
             VrfService = vrfService;
+            ContractBandwidthPoolService = contractBandwidthPoolService;
         }
 
         private IAttachmentService AttachmentService { get; set; }
         private IVrfService VrfService { get; set; }
+        private IContractBandwidthPoolService ContractBandwidthPoolService { get; set; }
 
         public async Task<Vif> GetByIDAsync(int id, bool? attachmentIsMultiPort = false)
         {
             if (attachmentIsMultiPort.GetValueOrDefault())
             {
                 var dbResult = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortVlanID == id, includeProperties:
-                    "MultiPort.Device.Location.SubRegion.Region,Device.Plane,MultiPort.Ports.InterfaceInterfaceBandwidth," +
-                    "MultiPort.Vrf.BgpPeers,MultiPort.Device,ContractBandwidthPool.ContractBandwidth,Tenant",
+                    "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth," +
+                    "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant",
                     AsTrackable: false);
 
                 return Mapper.Map<Vif>(dbResult.SingleOrDefault());
@@ -48,14 +50,42 @@ namespace SCM.Services.SCMServices
             }
         }
 
+        /// <summary>
+        /// Return a VIF from the VRF which the VIF is associated with.
+        /// </summary>
+        /// <param name="vrfID"></param>
+        /// <returns></returns>
+        public async Task<Vif> GetByVrfIDAsync(int vrfID) 
+        {
+            var dbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "InterfaceVlans,MultiPortVlans");
+            var vrf = dbResult.Single();
+
+            if (vrf.MultiPortVlans.Count > 0)
+            {
+                var multiPortVlan = vrf.MultiPortVlans.Single();
+
+                return await GetByIDAsync(multiPortVlan.MultiPortVlanID, true);
+            }
+            else if (vrf.InterfaceVlans.Count > 0)
+            {
+                var ifaceVlan = vrf.InterfaceVlans.Single();
+
+                return await GetByIDAsync(ifaceVlan.InterfaceVlanID, false);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<List<Vif>> GetAllByAttachmentIDAsync(int id, bool? attachmentIsMultiPort = false)
         {
 
             if (attachmentIsMultiPort.GetValueOrDefault())
             {
-                var vifs = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == id,
-                includeProperties: "MultiPort.Device.Location.SubRegion.Region,Device.Plane,MultiPort.Ports.InterfaceInterfaceBandwidth," +
-                    "MultiPort.Vrf.BgpPeers,MultiPort.Device,ContractBandwidthPool.ContractBandwidth,Tenant",
+                var vifs = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortID == id,
+                includeProperties: "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth," +
+                    "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant",
                 AsTrackable: false);
 
                 return Mapper.Map<List<Vif>>(vifs);
@@ -369,6 +399,12 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Validates a request for an Attachment or Bundle Attachment VIF
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
         private async Task ValidateAttachmentVifRequest(VifRequest request, ServiceResult result)
         {
             var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID,
@@ -391,28 +427,22 @@ namespace SCM.Services.SCMServices
                 return;
             }
 
-            var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, 
-                   includeProperties: "ContractBandwidth,Interfaces.Port,InterfaceVlans.Interface.Port,MultiPorts");
+            // Validate the requested Contract Bandwidth Pool
 
-            var contractBandwidthPool = dbResult.SingleOrDefault();
-            if (contractBandwidthPool == null)
+            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateAsync(request.ContractBandwidthPoolID.Value);
+            if (!validateContractBandwidthPoolResult.IsSuccess)
             {
-                result.Add("The requested contract bandwidth pool was not found.");
                 result.IsSuccess = false;
+                result.AddRange(validateContractBandwidthPoolResult.GetMessageList());
 
-                return;
-            }
-
-            CheckContractBandwidthPool(contractBandwidthPool, result);
-
-            if (!result.IsSuccess)
-            {
-                return;
+                return; 
             }
 
             var vifs = await GetAllByAttachmentIDAsync(iface.InterfaceID);
             var aggregateContractBandwidthMbps = vifs.Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
+            var contractBandwidthPoolResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.ContractBandwidthPoolID == request.ContractBandwidthPoolID, 
+                includeProperties: "ContractBandwidth");
+            var contractBandwidthPool = contractBandwidthPoolResult.Single();
 
             if ((aggregateContractBandwidthMbps + contractBandwidthPool.ContractBandwidth.BandwidthMbps) > iface.InterfaceBandwidth.BandwidthGbps * 1000)
             {
@@ -424,9 +454,15 @@ namespace SCM.Services.SCMServices
             }
         }
 
+        /// <summary>
+        /// Validates a request for a Multiport VIF
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
         private async Task ValidateMultiPortVifRequest(VifRequest request, ServiceResult result)
         {
-            var dbMultiPortResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == request.AttachmentID);
+            var dbMultiPortResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == request.AttachmentID, includeProperties: "InterfaceBandwidth");
             var multiPort = dbMultiPortResult.SingleOrDefault();
 
             if (multiPort == null)
@@ -445,30 +481,22 @@ namespace SCM.Services.SCMServices
                 return;
             }
 
-            var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
-                   q.ContractBandwidthPoolID == request.ContractBandwidthPoolID,
-                   includeProperties: "ContractBandwidth,Interfaces.Port,InterfaceVlans.Interface.Port,MultiPorts");
+            // Validate the requested Contract Bandwidth Pool
 
-            var contractBandwidthPool = dbResult.SingleOrDefault();
-;
-            if (contractBandwidthPool == null)
+            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateAsync(request.ContractBandwidthPoolID.Value);
+            if (!validateContractBandwidthPoolResult.IsSuccess)
             {
-                result.Add("The requested contract bandwidth pool was not found.");
                 result.IsSuccess = false;
+                result.AddRange(validateContractBandwidthPoolResult.GetMessageList());
 
-                return;
-            }
-
-            CheckContractBandwidthPool(contractBandwidthPool, result);
-
-            if (!result.IsSuccess)
-            {
                 return;
             }
 
             var vifs = await GetAllByAttachmentIDAsync(multiPort.MultiPortID, true);
-
             var aggregateContractBandwidthMbps = vifs.Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
+            var contractBandwidthPoolResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.ContractBandwidthPoolID == request.ContractBandwidthPoolID,
+               includeProperties: "ContractBandwidth");
+            var contractBandwidthPool = contractBandwidthPoolResult.Single();
 
             if ((aggregateContractBandwidthMbps + contractBandwidthPool.ContractBandwidth.BandwidthMbps) > multiPort.InterfaceBandwidth.BandwidthGbps * 1000)
             {
@@ -477,49 +505,43 @@ namespace SCM.Services.SCMServices
                 result.Add($"Requested bandwidth : {contractBandwidthPool.ContractBandwidth.BandwidthMbps} Mbps.");
 
                 result.IsSuccess = false;
-            }
-        }
-
-        private void CheckContractBandwidthPool(ContractBandwidthPool contractBandwidthPool, ServiceResult result)
-        {
-            if (contractBandwidthPool.Interfaces.Count > 0)
-            {
-                var intface = contractBandwidthPool.Interfaces.Single();
-                if (intface.IsBundle)
-                {
-                    result.Add($"The selected contract bandwidth pool is in-use for attachment bundle {intface.BundleID}. "
-                        + "Select another contract bandwidth pool.");
-                }
-                else
-                {
-                    result.Add($"The selected contract bandwidth pool is in-use for attachment {intface.Port.Type}{intface.Port.Name}. "
-                        + "Select another contract bandwidth pool.");
-                }
-
-                result.IsSuccess = false;
 
                 return;
             }
 
-            if (contractBandwidthPool.InterfaceVlans.Count > 0)
+            if (request.IsLayer3)
             {
-                var ifaceVlan = contractBandwidthPool.InterfaceVlans.Single();
-                if (ifaceVlan.Interface.IsBundle)
+                if (multiPort.InterfaceBandwidth.BandwidthGbps == 20)
                 {
-                    result.Add($"The selected contract bandwidth pool is in-use for vif {ifaceVlan.Interface.BundleID}.{ifaceVlan.VlanTag}. "
-                        + "Select another contract bandwidth pool.");
+                    if (string.IsNullOrEmpty(request.IpAddress1) || string.IsNullOrEmpty(request.IpAddress2))
+                    {
+                        result.Add("Two IP addresses must be entered.");
+                        result.IsSuccess = false;
+                    }
+                    if (string.IsNullOrEmpty(request.SubnetMask1) || string.IsNullOrEmpty(request.SubnetMask2))
+                    {
+                        result.Add("Two subnet masks must be entered.");
+                        result.IsSuccess = false;
+                    }
                 }
-                else
+                else if (multiPort.InterfaceBandwidth.BandwidthGbps == 40)
                 {
-                    result.Add($"The selected contract bandwidth pool is in-use for vif "
-                        + $"{ifaceVlan.Interface.Port.Type}{ifaceVlan.Interface.Port.Name}.{ifaceVlan.VlanTag}. "
-                        + "Select another contract bandwidth pool.");
+                    if (string.IsNullOrEmpty(request.IpAddress1) || string.IsNullOrEmpty(request.IpAddress2)
+                        || string.IsNullOrEmpty(request.IpAddress3) || string.IsNullOrEmpty(request.IpAddress4))
+                    {
+                        result.Add("Four IP addresses must be entered.");
+                        result.IsSuccess = false;
+                    }
+                    if (string.IsNullOrEmpty(request.SubnetMask1) || string.IsNullOrEmpty(request.SubnetMask2)
+                        || string.IsNullOrEmpty(request.SubnetMask3) || string.IsNullOrEmpty(request.SubnetMask4))
+                    {
+                        result.Add("Four subnet masks must be entered.");
+                        result.IsSuccess = false;
+                    }
                 }
-                result.IsSuccess = false;
-
-                return;
             }
         }
+
 
         /// <summary>
         /// Add a VIF to an Attachment
@@ -620,7 +642,7 @@ namespace SCM.Services.SCMServices
                         return;
                     }
 
-                    multiPort.VrfID = vrf.VrfID;
+                    multiPortVlan.VrfID = vrf.VrfID;
                 }
 
                 var ports = multiPort.Ports.ToList();

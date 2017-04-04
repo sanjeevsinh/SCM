@@ -49,7 +49,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
         public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
@@ -85,7 +85,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
         public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
@@ -125,7 +125,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string Name { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
         public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
@@ -149,7 +149,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int VlanID { get; set; }
         [XmlElement(ElementName = "contract-bandwidth")]
         public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-or-dscp")]
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
         public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }

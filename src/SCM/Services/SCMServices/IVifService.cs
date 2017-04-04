@@ -13,6 +13,7 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<Vif> GetByIDAsync(int id, bool? attachmentIsMultiPort = false);
+        Task<Vif> GetByVrfIDAsync(int vrfID);
         Task<List<Vif>> GetAllByAttachmentIDAsync(int id, bool? attachmentIsMultiPort = false);
         Task<List<Vif>> GetAsync(Expression<Func<InterfaceVlan, bool>> filter = null);
         Task<List<Vif>> GetAsync(Expression<Func<MultiPortVlan, bool>> filter = null);

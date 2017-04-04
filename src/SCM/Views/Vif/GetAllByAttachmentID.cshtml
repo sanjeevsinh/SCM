@@ -67,12 +67,18 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID, isMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID }) |
-                    @Html.ActionLink("Delete", "Delete", new { ID = item.ID, isMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.ID, attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new
+               {
+                   ID = item.ID,
+                   attachmentID = ViewBag.Attachment.ID,
+                   attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort,
+                   tenantID = item.TenantID
+               })
+
                     @if (item.IsLayer3)
                     {
-                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "BgpPeer", new { ID = item.Vrf.VrfID,
-                                      tenantID = item.TenantID, attachmentID = item.AttachmentID, vifID = item.ID })
+                        <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "VifBgpPeer", new { ID = item.Vrf.VrfID, tenantID = item.TenantID })
                     }
                 </td>
             </tr>

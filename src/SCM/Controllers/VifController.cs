@@ -54,7 +54,7 @@ namespace SCM.Controllers
             }
 
             ViewBag.Attachment = attachment;
-            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
+            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value, attachmentIsMultiPort);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
         }
@@ -67,18 +67,19 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var item = await VifService.GetByIDAsync(id.Value);
+            var item = await VifService.GetByIDAsync(id.Value, attachmentIsMultiPort);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, attachmentIsMultiPort);
             if (attachment == null)
             {
                 return NotFound();
             }
+            ViewBag.Attachment = attachment;
 
             return View(Mapper.Map<VifViewModel>(item));
         }
@@ -129,7 +130,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID, isMultiPort = request.AttachmentIsMultiPort });
+                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID, attachmentIsMultiPort = request.AttachmentIsMultiPort });
                     }
                 }
             }
@@ -155,7 +156,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var vif = await VifService.GetByIDAsync(id.Value);
+            var vif = await VifService.GetByIDAsync(id.Value, attachmentIsMultiPort);
             if (vif == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -192,7 +193,7 @@ namespace SCM.Controllers
         {
             try
             {
-                var item = await VifService.GetByIDAsync(vif.ID);
+                var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
 
                 if (item != null)
                 {

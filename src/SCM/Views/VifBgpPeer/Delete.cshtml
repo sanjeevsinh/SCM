@@ -1,0 +1,68 @@
+@model SCM.Models.ViewModels.BgpPeerViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID?attachmentIsMultiPort=@ViewBag.Vif.AttachmentIsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/VifBgpPeer/GetAllByVrfID/@ViewBag.Vif.VrfID">BGP Peers</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
+<h2>Delete</h2>
+
+@if (@ViewData["ErrorMessage"] != null)
+{
+<div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IpAddress)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IpAddress)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.AutonomousSystem)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.AutonomousSystem)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Vrf)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Vrf.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.MaximumRoutes)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.MaximumRoutes)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsBfdEnabled)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsBfdEnabled)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="VrfID" />
+        <input type="hidden" asp-for="BgpPeerID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-actions no-color">          
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <a asp-action="GetAllByVrfID" asp-route-id="@Model.VrfID">Back to BGP Peers List</a>
+        </div>
+    </form>
+</div>
