@@ -202,7 +202,7 @@ namespace SCM.Controllers
                     {
                         ViewData["ErrorMessage"] = result.GetHtmlListMessage();
 
-                        var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+                        var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
                         if (attachment == null)
                         {
                             return NotFound();
@@ -232,7 +232,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> CheckSync(VifViewModel vif)
         {
-            var item = await VifService.GetByIDAsync(vif.ID);
+            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
 
             if (item == null)
             {
@@ -249,7 +249,7 @@ namespace SCM.Controllers
             {
                 if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
+                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetHtmlListMessage();
                 }
                 else
                 {
@@ -259,7 +259,7 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
             if (attachment == null)
             {
                 return NotFound();
@@ -273,7 +273,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(VifViewModel vif)
         {
 
-            var item = await VifService.GetByIDAsync(vif.ID);
+            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
             if (item == null)
             {
                 return NotFound();
@@ -292,7 +292,7 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
             if (attachment == null)
             {
                 return NotFound();
@@ -305,7 +305,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFromNetwork(VifViewModel vif)
         {
-            var item = await VifService.GetByIDAsync(vif.ID);
+            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
 
             if (item == null)
             {
@@ -335,7 +335,7 @@ namespace SCM.Controllers
                 ViewData["ErrorMessage"] = message;
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.AttachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
             if (attachment == null)
             {
                 return NotFound();

@@ -24,6 +24,11 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkSyncServiceResult> SyncNetworkAsync(Object item, string resource)
         {
+            return await SyncNetworkAsync(item, resource, HttpMethod.Put);
+        }
+
+        public async Task<NetworkSyncServiceResult> SyncNetworkAsync(Object item, string resource, HttpMethod method)
+        {
             var syncResult = new NetworkSyncServiceResult();
             syncResult.IsSuccess = true;
 
@@ -32,7 +37,7 @@ namespace SCM.Services.SCMServices
             var request = new HttpRequestMessage()
             {
                 RequestUri = new Uri(NetworkBaseUri + resource),
-                Method = HttpMethod.Put,
+                Method = method,
                 Content = new StringContent(xmlStr, Encoding.UTF8, "application/vnd.yang.data+xml")
             };
 

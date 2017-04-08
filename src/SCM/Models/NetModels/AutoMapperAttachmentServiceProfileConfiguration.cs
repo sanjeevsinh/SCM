@@ -2,6 +2,7 @@
 using SCM.Models.ServiceModels;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace SCM.Models.NetModels.AttachmentNetModels
 {
@@ -16,6 +17,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
             CreateMap<Interface, TaggedAttachmentInterfaceNetModel>()
@@ -30,6 +32,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.InterfaceBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
 
             CreateMap<Interface, TaggedAttachmentBundleInterfaceNetModel>()
@@ -41,36 +44,52 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name));
 
-            CreateMap<Port, MultiPortMemberNetModel>()
+            CreateMap<Port, UntaggedMultiPortMemberNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps));
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Interface.Vrf.Name))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Interface.IsLayer3 ? src.Interface : null));
+
+            CreateMap<Port, TaggedMultiPortMemberNetModel>()
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Type))
+                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Name))
+                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Interface.InterfaceVlans));
 
             CreateMap<MultiPort, UntaggedAttachmentMultiPortNetModel>()
                 .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort{src.Identifier}"))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
-                .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp));
+                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports));
 
             CreateMap<MultiPort, TaggedAttachmentMultiPortNetModel>()
                 .ForMember(dest => dest.Name, conf => conf.MapFrom(src => $"MultiPort{src.Identifier}"))
-                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports))
-                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.MultiPortVlans));
+                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Ports));
 
             CreateMap<InterfaceVlan, VifNetModel>()
                 .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null));
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+                .Include<InterfaceVlan, VifServiceNetModel>();
+
+            CreateMap<InterfaceVlan, VifServiceNetModel>();
 
             CreateMap<Interface, Layer3NetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<AttachmentAndVifs, Layer3NetModel>()
+                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+
+            CreateMap<Vif, Layer3NetModel>()
                 .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<InterfaceVlan, Layer3NetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
@@ -83,90 +102,96 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.PeerIpv4Address, conf => conf.MapFrom(src => src.IpAddress))
                 .ForMember(dest => dest.PeerAutonomousSystem, conf => conf.MapFrom(src => src.AutonomousSystem));
 
-            CreateMap<Device, AttachmentServiceNetModel>().ConvertUsing(new DeviceTypeConverter());
-
-            CreateMap<Attachment, UntaggedAttachmentInterfaceServiceNetModel>()
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentInterfaceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
-                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new AttachmentLayer3NetModelTypeResolver()));
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+                .Include<AttachmentAndVifs, UntaggedAttachmentInterfaceServiceNetModel>();
 
-            CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>()
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentInterfaceServiceNetModel>();
+
+            CreateMap<Attachment, TaggedAttachmentInterfaceNetModel>()
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Port.Name))
-                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type));
+                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Port.Type))
+                .Include<Attachment, TaggedAttachmentInterfaceServiceNetModel>()
+                .Include<AttachmentAndVifs, TaggedAttachmentInterfaceNetModel>()
+                .Include<AttachmentAndVifs, TaggedAttachmentInterfaceServiceNetModel>();
 
-            CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>()
+            CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentInterfaceNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentInterfaceServiceNetModel>();
+
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentBundleInterfaceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
                 .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
-                .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new BundleAttachmentLayer3NetModelTypeResolver()));
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+                .Include<AttachmentAndVifs, UntaggedAttachmentBundleInterfaceServiceNetModel>();
 
-            CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>()
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentBundleInterfaceServiceNetModel>();
+
+            CreateMap<Attachment, TaggedAttachmentBundleInterfaceNetModel>()
               .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Bandwidth.BandwidthGbps))
-              .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts));
+              .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.BundleInterfacePorts))
+              .Include<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>()
+              .Include<AttachmentAndVifs, TaggedAttachmentBundleInterfaceNetModel>()
+              .Include<AttachmentAndVifs, TaggedAttachmentBundleInterfaceServiceNetModel>();
 
-            CreateMap<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
+            CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentBundleInterfaceNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentBundleInterfaceServiceNetModel>();
 
-            CreateMap<Attachment, UntaggedAttachmentMultiPortServiceNetModel>()
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentMultiPortNetModel>()
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-               .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
-               .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp));
+               .Include<AttachmentAndVifs, UntaggedAttachmentMultiPortServiceNetModel>();
 
-            CreateMap<Attachment, VrfNetModel>()
+            CreateMap<AttachmentAndVifs, UntaggedAttachmentMultiPortServiceNetModel>();
+
+            CreateMap<Attachment, TaggedAttachmentMultiPortNetModel>();
+            CreateMap<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentMultiPortNetModel>();
+            CreateMap<AttachmentAndVifs, TaggedAttachmentMultiPortServiceNetModel>();
+
+            CreateMap<AttachmentAndVifs, VrfNetModel>()
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
-                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField))
+                .Include<AttachmentAndVifs, VrfServiceNetModel>();
 
-            CreateMap<Attachment, VrfServiceNetModel>()
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-                .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
-                .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+            CreateMap<AttachmentAndVifs, VrfServiceNetModel>();
 
             CreateMap<Vif, VifNetModel>()
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
-               .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
+               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
+               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+               .Include<Vif, VifServiceNetModel>();
 
-            CreateMap<Vif, VifServiceNetModel>()
-               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-               .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
-               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
-               .ForMember(dest => dest.Layer3, conf => conf.ResolveUsing(new VifLayer3NetModelTypeResolver()));
+            CreateMap<Vif, VifServiceNetModel>();
 
             CreateMap<Vif, VrfNetModel>()
               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
               .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
-              .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
+              .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField))
+              .Include<Vif, VrfServiceNetModel>();
 
-            CreateMap<Vif, VrfServiceNetModel>()
-              .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-              .ForMember(dest => dest.AdministratorSubField, conf => conf.MapFrom(src => src.Vrf.AdministratorSubField))
-              .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.Vrf.AssignedNumberSubField));
-        }
+            CreateMap<Vif, VrfServiceNetModel>();
 
-        public class AttachmentLayer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentInterfaceServiceNetModel, Layer3NetModel>
-        {
-            public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
-            {
-                var layer3NetModelResolver = new AttachmentLayer3NetModelResolver();
-                return layer3NetModelResolver.Create(source, context);
-            }
-        }
+            CreateMap<Device, AttachmentServiceNetModel>().ConvertUsing(new DeviceTypeConverter());
 
-        public class BundleAttachmentLayer3NetModelTypeResolver : IValueResolver<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel, Layer3NetModel>
-        {
-            public Layer3NetModel Resolve(Attachment source, UntaggedAttachmentBundleInterfaceServiceNetModel destination, Layer3NetModel destMember, ResolutionContext context)
-            {
-                var layer3NetModelResolver = new AttachmentLayer3NetModelResolver();
-                return layer3NetModelResolver.Create(source, context);
-            }
+            CreateMap<AttachmentAndVifs, AttachmentServiceNetModel>().ConvertUsing(new AttachmentTypeConverter());
+
+            CreateMap<Vif, AttachmentServiceNetModel>().ConvertUsing(new VifTypeConverter());
         }
 
         public class DeviceTypeConverter : ITypeConverter<Device, AttachmentServiceNetModel>
@@ -175,12 +200,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             {
                 var result = new AttachmentServiceNetModel();
                 var mapper = context.Mapper;
-                var untaggedAttachmentInterfaces = new List<UntaggedAttachmentInterfaceNetModel>();
-                var taggedAttachmentInterfaces = new List<TaggedAttachmentInterfaceNetModel>();
-                var untaggedAttachmentBundleInterfaces = new List<UntaggedAttachmentBundleInterfaceNetModel>();
-                var taggedAttachmentBundleInterfaces = new List<TaggedAttachmentBundleInterfaceNetModel>();
-                var untaggedAttachmentMultiPorts = new List<UntaggedAttachmentMultiPortNetModel>();
-                var taggedAttachmentMultiPorts = new List<TaggedAttachmentMultiPortNetModel>();
 
                 result.PEName = source.Name;
                 result.Vrfs = mapper.Map<List<VrfNetModel>>(source.Vrfs);
@@ -193,22 +212,23 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                         {
                             if (iface.IsTagged)
                             {
-                                taggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(iface));
+
+                                result.TaggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(iface));
                             }
                             else
                             {
-                                untaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(iface));
+                                result.UntaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(iface));
                             }
                         }
-                        else
+                        else if (!iface.IsMultiPort)
                         {
                             if (iface.IsTagged)
                             {
-                                taggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(iface));
+                                result.TaggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(iface));
                             }
                             else
                             {
-                                untaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(iface));
+                                result.UntaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(iface));
                             }
                         }
                     }
@@ -220,71 +240,120 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     {
                         if (multiPort.IsTagged)
                         {
-                            taggedAttachmentMultiPorts.Add(mapper.Map<TaggedAttachmentMultiPortNetModel>(multiPort));
+                            result.TaggedAttachmentMultiPorts.Add(mapper.Map<TaggedAttachmentMultiPortNetModel>(multiPort));
                         }
                         else
                         {
-                            untaggedAttachmentMultiPorts.Add(mapper.Map<UntaggedAttachmentMultiPortNetModel>(multiPort));
+                            result.UntaggedAttachmentMultiPorts.Add(mapper.Map<UntaggedAttachmentMultiPortNetModel>(multiPort));
                         }
                     }
                 }
 
-                result.TaggedAttachmentInterfaces = taggedAttachmentInterfaces;
-                result.UntaggedAttachmentInterfaces = untaggedAttachmentInterfaces;
-                result.TaggedAttachmentBundleInterfaces = taggedAttachmentBundleInterfaces;
-                result.UntaggedAttachmentBundleInterfaces = untaggedAttachmentBundleInterfaces;
-                result.TaggedAttachmentMultiPorts = taggedAttachmentMultiPorts;
-                result.UntaggedAttachmentMultiPorts = untaggedAttachmentMultiPorts;
+                return result;
+            }
+        }
+        public class AttachmentTypeConverter : ITypeConverter<AttachmentAndVifs, AttachmentServiceNetModel>
+        {
+            public AttachmentServiceNetModel Convert(AttachmentAndVifs source, AttachmentServiceNetModel destination, ResolutionContext context)
+            {
+                var result = new AttachmentServiceNetModel();
+                var mapper = context.Mapper;
 
+                result.PEName = source.Device.Name;
+                var vrfs = new List<Vrf>();
+
+                if (source.IsBundle)
+                {
+                    if (source.IsTagged)
+                    {
+
+                        result.TaggedAttachmentBundleInterfaces.Add(mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(source));
+                        result.Vrfs.AddRange(mapper.Map<List<VrfNetModel>>(source.Vifs.Select(q => q.Vrf)));
+                    }
+                    else
+                    {
+                        result.UntaggedAttachmentBundleInterfaces.Add(mapper.Map<UntaggedAttachmentBundleInterfaceNetModel>(source));
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
+                }
+                else if (source.IsMultiPort)
+                {
+                    if (source.IsTagged)
+                    {
+                        result.TaggedAttachmentMultiPorts.Add(mapper.Map<TaggedAttachmentMultiPortNetModel>(source));
+                        result.Vrfs.AddRange(mapper.Map<List<VrfNetModel>>(source.Vifs.Select(q => q.Vrf)));
+                    }
+                    else
+                    {
+                        result.UntaggedAttachmentMultiPorts.Add(mapper.Map<UntaggedAttachmentMultiPortNetModel>(source));
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
+                }
+                else
+                {
+                    if (source.IsTagged)
+                    {
+                        result.TaggedAttachmentInterfaces.Add(mapper.Map<TaggedAttachmentInterfaceNetModel>(source));
+                        result.Vrfs.AddRange(mapper.Map<List<VrfNetModel>>(source.Vifs.Select(q => q.Vrf)));
+                    }
+                    else
+                    {
+                        result.UntaggedAttachmentInterfaces.Add(mapper.Map<UntaggedAttachmentInterfaceNetModel>(source));
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
+                }               
                 return result;
             }
         }
 
-
-        public class AttachmentLayer3NetModelResolver
+        public class VifTypeConverter : ITypeConverter<Vif, AttachmentServiceNetModel>
         {
-            public Layer3NetModel Create(Attachment source, ResolutionContext context)
+            public AttachmentServiceNetModel Convert(Vif source, AttachmentServiceNetModel destination, ResolutionContext context)
             {
-                var result = new Layer3NetModel();
+                var result = new AttachmentServiceNetModel();
                 var mapper = context.Mapper;
 
-                if (source.IsLayer3)
-                {
-                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
-                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
-                    result.IpAddress = source.IpAddress;
-                    result.SubnetMask = source.SubnetMask;
-                    result.VrfName = source.Vrf.Name;
+                result.PEName = source.Vrf.Device.Name;
 
-                    return result;
+                if (source.Attachment.IsBundle)
+                {
+                    if (source.Attachment.IsTagged)
+                    {
+                        var data = mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(source.Attachment);
+                        data.Vifs.Clear();
+                        data.Vifs.Add(mapper.Map<VifNetModel>(source));
+                        result.TaggedAttachmentBundleInterfaces.Add(data);
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
+                }
+                else if (source.Attachment.IsMultiPort)
+                {
+                    if (source.Attachment.IsTagged)
+                    {
+                        var data = mapper.Map<TaggedAttachmentMultiPortNetModel>(source.Attachment);
+                        var vif = mapper.Map<VifNetModel>(source);
+                        foreach (var member in data.MultiPortMembers)
+                        {
+                            member.Vifs.Clear();
+                            member.Vifs.Add(vif);
+                        }
+                        result.TaggedAttachmentMultiPorts.Add(data);
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
                 }
                 else
                 {
-                    return null;
+                    if (source.Attachment.IsTagged)
+                    {
+                        var data = mapper.Map<TaggedAttachmentInterfaceNetModel>(source.Attachment);
+                        data.Vifs.Clear();
+                        data.Vifs.Add(mapper.Map<VifNetModel>(source));
+                        result.TaggedAttachmentInterfaces.Add(data);
+                        result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
+                    }
                 }
-            }
-        }
-        public class VifLayer3NetModelTypeResolver : IValueResolver<Vif, VifNetModel, Layer3NetModel>
-        {
-            public Layer3NetModel Resolve(Vif source, VifNetModel destination, Layer3NetModel destMember, ResolutionContext context)
-            {
-                var result = new Layer3NetModel();
-                var mapper = context.Mapper;
 
-                if (source.IsLayer3)
-                {
-                    result.EnableBgp = source.Vrf.BgpPeers.Count > 0;
-                    result.BgpPeers = mapper.Map<List<BgpPeerNetModel>>(source.Vrf.BgpPeers);
-                    result.IpAddress = source.IpAddress;
-                    result.SubnetMask = source.SubnetMask;
-                    result.VrfName = source.Vrf.Name;
-
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
+                return result;
             }
         }
     }

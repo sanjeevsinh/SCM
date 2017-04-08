@@ -25,5 +25,6 @@ namespace SCM.Models
         public virtual Vrf Vrf { get; set; }
         public virtual ContractBandwidthPool ContractBandwidthPool { get; set; }
         public virtual VlanTagRange VlanTagRange { get; set; }
+        public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
     }
 }

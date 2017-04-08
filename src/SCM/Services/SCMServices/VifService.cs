@@ -10,6 +10,7 @@ using SCM.Models.NetModels.AttachmentNetModels;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Net.Http;
 
 namespace SCM.Services.SCMServices
 {
@@ -32,8 +33,9 @@ namespace SCM.Services.SCMServices
             if (attachmentIsMultiPort.GetValueOrDefault())
             {
                 var dbResult = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortVlanID == id, includeProperties:
-                    "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth," +
-                    "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant",
+                    "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth,"
+                    + "MultiPort.Ports.Interface.InterfaceVlans.Vrf,MultiPort.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                    + "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant",
                     AsTrackable: false);
 
                 return Mapper.Map<Vif>(dbResult.SingleOrDefault());
@@ -41,12 +43,11 @@ namespace SCM.Services.SCMServices
             else
             {
                 var dbResult = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceVlanID == id, includeProperties:
-                    "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,Interface.InterfaceBandwidth,Interface.Device.Plane," +
-                    "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
+                    "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,Interface.InterfaceBandwidth,Interface.Device.Plane,"
+                    + "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
                     AsTrackable: false);
 
                 return Mapper.Map<Vif>(dbResult.SingleOrDefault());
-
             }
         }
 
@@ -129,11 +130,11 @@ namespace SCM.Services.SCMServices
 
             if (request.AttachmentIsMultiPort)
             {
-                await AddVifToMultiPortAttachment(request, result);
+                await AddVifToMultiPortAttachmentAsync(request, result);
             }
             else
             {
-                await AddVifToAttachment(request, result);
+                await AddVifToAttachmentAsync(request, result);
             }
 
             return result;
@@ -141,106 +142,26 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif)
         {
-
-            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
-            if (ifaceVlan == null)
+            if (vif.Attachment.IsMultiPort)
             {
-                var result = new NetworkCheckSyncServiceResult();
-                result.NetworkSyncServiceResult.Add("The VIF was not found.");
-
-                return result;
-            }
-
-            var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
-
-            // Check VRF is in sync, if the vif is layer 3
-
-            if (vif.IsLayer3)
-            {
-                var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(vif);
-                var vrfCheckSyncResult = await NetSync.CheckNetworkSyncAsync(vrfServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
-
-                if (!vrfCheckSyncResult.InSync)
-                {
-                    await UpdateRequiresSyncAsync(ifaceVlan, true);
-
-                    return vrfCheckSyncResult;
-                }
-            }
-
-            // Check the vif is in sync
-
-            if (attachment.IsBundle)
-            {
-                var bundleVifServiceModelData = Mapper.Map<VifServiceNetModel>(vif);
-                var checkSyncResult = await NetSync.CheckNetworkSyncAsync(bundleVifServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{attachment.BundleID}/vif/{vif.VlanTag}");
-
-                await UpdateRequiresSyncAsync(ifaceVlan, !checkSyncResult.InSync);
-
-                return checkSyncResult;
+                return await CheckNetworkSyncMultiPortVifAsync(vif);
             }
             else
             {
-                var attachmentVifServiceModelData = Mapper.Map<VifServiceNetModel>(vif);
-                var checkSyncResult = await NetSync.CheckNetworkSyncAsync(attachmentVifServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{attachment.InterfaceType},"
-                    + $"{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
-
-                await UpdateRequiresSyncAsync(ifaceVlan, !checkSyncResult.InSync);
-
-                return checkSyncResult;
-            }
+                return await CheckNetworkSyncAttachmentVifAsync(vif);
+            };
         }
 
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif)
         {
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
+            var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(vif);
 
-            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
-            if (ifaceVlan == null)
-            {
-                var result = new NetworkSyncServiceResult();
-                result.Add("The VIF was not found.");
+            result = await NetSync.SyncNetworkAsync(serviceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}", new HttpMethod("PATCH"));
 
-                return result;
-            }
+            await UpdateRequiresSyncAsync(vif.ID, !result.IsSuccess, true, vif.Attachment.IsMultiPort);
 
-            var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
-
-            if (vif.IsLayer3)
-            {
-                var vrfServiceModelData = Mapper.Map<VrfServiceNetModel>(vif);
-                var vrfSyncResult = await NetSync.SyncNetworkAsync(vrfServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name }/vrf/{vrfServiceModelData.VrfName}");
-
-                if (!vrfSyncResult.IsSuccess)
-                {
-                    return vrfSyncResult;
-                }
-            }
-
-            if (attachment.IsBundle)
-            {
-                var bundleVifServiceModelData = Mapper.Map<VifServiceNetModel>(vif);
-                var syncResult = await NetSync.SyncNetworkAsync(bundleVifServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{attachment.BundleID}/vif/{vif.VlanTag}");
-
-                await UpdateRequiresSyncAsync(ifaceVlan, !syncResult.IsSuccess);
-
-                return syncResult;
-            }
-            else
-            {
-                var attachmentVifServiceModelData = Mapper.Map<VifServiceNetModel>(vif);
-                var syncResult = await NetSync.SyncNetworkAsync(attachmentVifServiceModelData,
-                    $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{attachment.InterfaceType},"
-                    + $"{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
-
-                await UpdateRequiresSyncAsync(ifaceVlan, !syncResult.IsSuccess);
-
-                return syncResult;
-            }
+            return result;
         }
 
         /// <summary>
@@ -286,7 +207,7 @@ namespace SCM.Services.SCMServices
                     await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
                 }
 
-                if (vif.AttachmentIsMultiPort)
+                if (vif.Attachment.IsMultiPort)
                 {
                     var interfaceVlans = await this.UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.Interface.Port.MultiPortID == vif.AttachmentID 
                         && q.VlanTag == vif.VlanTag);
@@ -326,17 +247,7 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(vif.ID);
-
-            if (ifaceVlan == null)
-            {
-                syncResult.Add("The VIF was not found.");
-
-                return syncResult;
-            }
-
-            var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
 
             // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
             // is to be deleted, and one or more VPNs are bound to the VRF, 
@@ -344,38 +255,68 @@ namespace SCM.Services.SCMServices
 
             if (vif.VrfID != null)
             {
-                var validateVrfDelete = await VrfService.ValidateDeleteAsync(vif.Vrf.VrfID);
-                if (validateVrfDelete.IsSuccess)
+                var validationResult = await VrfService.ValidateDeleteAsync(vif.Vrf.VrfID);
+                if (!validationResult.IsSuccess)
                 {
-                    // OK to delete the VRF from the network
+                    result.AddRange(validationResult.GetMessageList());
+                    result.IsSuccess = false;
 
-                    var vrfSyncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name }/vrf/{vif.Vrf.Name}");
-
-                    if (!vrfSyncResult.IsSuccess)
-                    {
-                        return vrfSyncResult;
-                    }
+                    return result;
                 }
             }
 
-            if (attachment.IsBundle)
+            var tasks = new List<Task<NetworkSyncServiceResult>>();
+
+            if (vif.Attachment.IsBundle)
             {
-                syncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/"
-                    + $"{attachment.BundleID}/vif/{vif.VlanTag}");
+                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-bundle-interface/"
+                    + $"{vif.Attachment.BundleID}/vif/{vif.VlanTag}"));
 
-                await UpdateRequiresSyncAsync(ifaceVlan, true);
+            }
+            else if (vif.Attachment.IsMultiPort)
+            {
+                foreach (var port in vif.Attachment.MultiPortMembers)
+                {
+                    // Delete vif from each member port
 
-                return syncResult;
+                    tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-multiport/{vif.Attachment.Name}"
+                        + $"/multiport-member/{port.Type},{port.Name.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+                }
             }
             else
             {
-                syncResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/"
-                    + $"{attachment.InterfaceType},{attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
+                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/"
+                    + $"{vif.Attachment.InterfaceType},{vif.Attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
 
-                await UpdateRequiresSyncAsync(ifaceVlan, true);
-
-                return syncResult;
             }
+
+            // Execute network updates in parallel
+
+            await Task.WhenAll(tasks);
+
+            // Delete VRF from network
+
+            var vrfResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name }/vrf/{vif.Vrf.Name}");
+
+            // Check the results 
+
+            foreach (Task<NetworkSyncServiceResult> t in tasks)
+            {
+                var r = t.Result;
+                if (!r.IsSuccess)
+                {
+                    result.AddRange(r.GetMessageList());
+                    result.IsSuccess = false;
+                }
+            }
+
+            if (!vrfResult.IsSuccess)
+            {
+                result.AddRange(vrfResult.GetMessageList());
+                result.IsSuccess = false;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -385,18 +326,75 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<ServiceResult> ValidateAsync(VifRequest request)
         {
-            var result = new ServiceResult { IsSuccess = true };
-
             if (request.AttachmentIsMultiPort)
             {
-                await ValidateMultiPortVifRequest(request, result);
+                return await ValidateMultiPortVifRequestAsync(request);
             }
             else
             {
-                await ValidateAttachmentVifRequest(request, result);
+                return await ValidateAttachmentVifRequestAsync(request);
+            }
+        }
+
+        /// <summary>
+        /// Update the RequiresSync property of an interfaceVlan record.
+        /// </summary>
+        /// <param name="ifaceVlan"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true)
+        {
+            ifaceVlan.RequiresSync = requiresSync;
+            UnitOfWork.InterfaceVlanRepository.Update(ifaceVlan);
+
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
             }
 
-            return result;
+            return;
+        }
+
+        /// Update the RequiresSync property of a multi-port vlan record.
+        /// </summary>
+        /// <param name="multiPortVlan"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(MultiPortVlan multiPortVlan, bool requiresSync, bool saveChanges = true)
+        {
+            multiPortVlan.RequiresSync = requiresSync;
+            UnitOfWork.MultiPortVlanRepository.Update(multiPortVlan);
+
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
+            }
+
+            return;
+        }
+
+        /// <summary>
+        /// Update the RequiresSync property of an interfaceVlan record.
+        /// </summary>
+        /// <param name="ifaceVlan"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? attachmentIsMultiPort = false)
+        {
+            if (attachmentIsMultiPort.GetValueOrDefault())
+            {
+
+                var multiPortVlan = await UnitOfWork.MultiPortVlanRepository.GetByIDAsync(id);
+                await UpdateRequiresSyncAsync(multiPortVlan, requiresSync, saveChanges);
+            }
+            else
+            {
+
+                var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(id);
+                await UpdateRequiresSyncAsync(ifaceVlan, requiresSync, saveChanges);
+            }
+
+            return;
         }
 
         /// <summary>
@@ -405,8 +403,11 @@ namespace SCM.Services.SCMServices
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task ValidateAttachmentVifRequest(VifRequest request, ServiceResult result)
+        private async Task<ServiceResult> ValidateAttachmentVifRequestAsync(VifRequest request)
         {
+
+            var result = new ServiceResult { IsSuccess = true };
+
             var dbInterfaceResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == request.AttachmentID,
                     includeProperties: "InterfaceBandwidth,Port");
             var iface = dbInterfaceResult.SingleOrDefault();
@@ -416,7 +417,7 @@ namespace SCM.Services.SCMServices
                 result.Add("The attachment interface was not found.");
                 result.IsSuccess = false;
 
-                return;
+                return result;
             }
 
             if (!iface.IsTagged)
@@ -424,7 +425,7 @@ namespace SCM.Services.SCMServices
                 result.Add("A vif cannot be created for an untagged attachment interface.");
                 result.IsSuccess = false;
 
-                return;
+                return result;
             }
 
             // Validate the requested Contract Bandwidth Pool
@@ -435,7 +436,7 @@ namespace SCM.Services.SCMServices
                 result.IsSuccess = false;
                 result.AddRange(validateContractBandwidthPoolResult.GetMessageList());
 
-                return; 
+                return result;
             }
 
             var vifs = await GetAllByAttachmentIDAsync(iface.InterfaceID);
@@ -452,6 +453,8 @@ namespace SCM.Services.SCMServices
 
                 result.IsSuccess = false;
             }
+
+            return result;
         }
 
         /// <summary>
@@ -460,8 +463,10 @@ namespace SCM.Services.SCMServices
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task ValidateMultiPortVifRequest(VifRequest request, ServiceResult result)
+        private async Task<ServiceResult> ValidateMultiPortVifRequestAsync(VifRequest request)
         {
+            var result = new ServiceResult { IsSuccess = true };
+
             var dbMultiPortResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == request.AttachmentID, includeProperties: "InterfaceBandwidth");
             var multiPort = dbMultiPortResult.SingleOrDefault();
 
@@ -470,7 +475,7 @@ namespace SCM.Services.SCMServices
                 result.Add("The multi-port was not found.");
                 result.IsSuccess = false;
 
-                return;
+                return result;
             }
 
             if (!multiPort.IsTagged)
@@ -478,7 +483,7 @@ namespace SCM.Services.SCMServices
                 result.Add("A vif cannot be created for an untagged multiport.");
                 result.IsSuccess = false;
 
-                return;
+                return result;
             }
 
             // Validate the requested Contract Bandwidth Pool
@@ -489,7 +494,7 @@ namespace SCM.Services.SCMServices
                 result.IsSuccess = false;
                 result.AddRange(validateContractBandwidthPoolResult.GetMessageList());
 
-                return;
+                return result;
             }
 
             var vifs = await GetAllByAttachmentIDAsync(multiPort.MultiPortID, true);
@@ -506,7 +511,7 @@ namespace SCM.Services.SCMServices
 
                 result.IsSuccess = false;
 
-                return;
+                return result;
             }
 
             if (request.IsLayer3)
@@ -540,6 +545,8 @@ namespace SCM.Services.SCMServices
                     }
                 }
             }
+
+            return result;
         }
 
 
@@ -549,9 +556,9 @@ namespace SCM.Services.SCMServices
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddVifToAttachment(VifRequest request, ServiceResult result)
+        private async Task AddVifToAttachmentAsync(VifRequest request, ServiceResult result)
         {
-            await AllocateVlanTag(request, result);
+            await AllocateVlanTagAsync(request, result);
 
             if (!result.IsSuccess)
             {
@@ -606,9 +613,9 @@ namespace SCM.Services.SCMServices
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddVifToMultiPortAttachment(VifRequest request, ServiceResult result)
+        private async Task AddVifToMultiPortAttachmentAsync(VifRequest request, ServiceResult result)
         {
-            await AllocateVlanTag(request, result);
+            await AllocateVlanTagAsync(request, result);
 
             if (!result.IsSuccess)
             {
@@ -697,12 +704,85 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
+        /// Check network sync for an VIF associated with an Attachment.
+        /// </summary>
+        /// <param name="vif"></param>
+        /// <returns></returns>
+        private  async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAttachmentVifAsync(Vif vif)
+        {
+            var result = new NetworkCheckSyncServiceResult { InSync = true };
+
+            if (vif.Attachment.IsBundle)
+            {
+                var serviceModelData = Mapper.Map<VifServiceNetModel>(vif);
+                result = await NetSync.CheckNetworkSyncAsync(serviceModelData,
+                    $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-bundle-interface/{vif.Attachment.BundleID}/vif/{vif.VlanTag}");
+            }
+
+            else
+            {
+                var serviceModelData = Mapper.Map<VifServiceNetModel>(vif);
+                result = await NetSync.CheckNetworkSyncAsync(serviceModelData,
+                    $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/{vif.Attachment.InterfaceType},"
+                    + $"{vif.Attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
+
+            }
+    
+            await UpdateRequiresSyncAsync(vif.ID, !result.InSync, true, false);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Check network sync for an VIF associated with a Multi-Port Attachment.
+        /// </summary>
+        /// <param name="vif"></param>
+        /// <returns></returns>
+        private async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncMultiPortVifAsync(Vif vif)
+        {
+            var result = new NetworkCheckSyncServiceResult { InSync = true };
+            var tasks = new List<Task<NetworkCheckSyncServiceResult>>();
+
+            foreach (var port in vif.Attachment.MultiPortMembers)
+            {
+                // Create task to check the vif for each member port
+
+                var ifaceVlan = port.Interface.InterfaceVlans.Where(q => q.VlanTag == vif.VlanTag).Single();
+                var vifServiceModelData = Mapper.Map<VifServiceNetModel>(ifaceVlan);
+
+                tasks.Add(NetSync.CheckNetworkSyncAsync(vifServiceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}" 
+                    + $"/tagged-attachment-multiport/{vif.Attachment.Name}"
+                    + $"/multiport-member/{port.Type},{port.Name.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+            }
+
+            // Execute network checks in parallel
+
+            await Task.WhenAll(tasks);
+
+            // Check the results 
+
+            foreach (Task<NetworkCheckSyncServiceResult> t in tasks)
+            {
+                var r = t.Result;
+                if (!r.InSync)
+                {
+                    result.NetworkSyncServiceResult.AddRange(r.NetworkSyncServiceResult.GetMessageList());
+                    result.InSync = false;
+                }
+            }
+
+            await UpdateRequiresSyncAsync(vif.ID, !result.InSync, true, true);
+
+            return result;
+        }
+     
+        /// <summary>
         /// Allocate a vlan tag for a new VIF.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AllocateVlanTag(VifRequest request, ServiceResult result)
+        private async Task AllocateVlanTagAsync(VifRequest request, ServiceResult result)
         {
             if (request.AutoAllocateVlanTag)
             {
@@ -781,39 +861,6 @@ namespace SCM.Services.SCMServices
                     return;
                 }
             }
-        }
-
-        /// <summary>
-        /// Update the RequiresSync property of an interfaceVlan record.
-        /// </summary>
-        /// <param name="ifaceVlan"></param>
-        /// <param name="requiresSync"></param>
-        /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true)
-        {
-            ifaceVlan.RequiresSync = requiresSync;
-            UnitOfWork.InterfaceVlanRepository.Update(ifaceVlan);
-
-            if (saveChanges)
-            {
-                await UnitOfWork.SaveAsync();
-            }
-
-            return;
-        }
-
-        /// <summary>
-        /// Update the RequiresSync property of an interfaceVlan record.
-        /// </summary>
-        /// <param name="ifaceVlan"></param>
-        /// <param name="requiresSync"></param>
-        /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(int interfaceVlanID, bool requiresSync, bool saveChanges = true)
-        {
-            var ifaceVlan = await UnitOfWork.InterfaceVlanRepository.GetByIDAsync(interfaceVlanID);
-            await UpdateRequiresSyncAsync(ifaceVlan, requiresSync, saveChanges);
-
-            return;
         }
     }
 }

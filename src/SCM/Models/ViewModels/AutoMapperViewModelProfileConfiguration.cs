@@ -39,8 +39,10 @@ namespace SCM.Models.ViewModels
             CreateMap<TenantCommunity, TenantCommunityViewModel>().ReverseMap();
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
             CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
-            CreateMap<Attachment, AttachmentViewModel>().ReverseMap();
-            CreateMap<Vif, VifViewModel>().ReverseMap();
+            CreateMap<AttachmentAndVifs, AttachmentViewModel>().ReverseMap();
+            CreateMap<Vif, VifViewModel>()
+                .ForMember(dest => dest.AttachmentIsMultiPort, conf => conf.MapFrom(src => src.Attachment.IsMultiPort))
+                .ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
             CreateMap<VifRequestViewModel, VifRequest>();
             CreateMap<AttachmentSetVrfRequestViewModel, AttachmentSetVrfRequest>();

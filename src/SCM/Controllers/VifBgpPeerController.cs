@@ -17,9 +17,9 @@ namespace SCM.Controllers
     {
         public VifBgpPeerController(IBgpPeerService bgpPeerService, IVifService vifService, IMapper mapper)
         {
-           BgpPeerService = bgpPeerService;
-           VifService = vifService;
-           Mapper = mapper;
+            BgpPeerService = bgpPeerService;
+            VifService = vifService;
+            Mapper = mapper;
         }
 
         private IBgpPeerService BgpPeerService { get; set; }
@@ -76,10 +76,18 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
         {
+
+            var vif = await VifService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (vif == null)
+            {
+                return NotFound();
+            }
+
             try
             {
                 if (ModelState.IsValid)
                 {
+                    await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                     return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -93,7 +101,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            ViewBag.Vif = await VifService.GetByVrfIDAsync(bgpPeer.VrfID);
+            ViewBag.Vif = vif;
 
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
@@ -127,6 +135,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            var vif = await VifService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (vif == null)
+            {
+                return NotFound();
+            }
+
             var dbResult = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(filter: d => d.BgpPeerID == id,
                 AsTrackable: false);
             var currentBgpPeer = dbResult.SingleOrDefault();
@@ -141,6 +155,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
+                        await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
                         await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                         return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -176,7 +191,7 @@ namespace SCM.Controllers
 
             }
 
-            ViewBag.Vif = await VifService.GetByVrfIDAsync(bgpPeer.VrfID);
+            ViewBag.Vif = vif;
 
             return View(Mapper.Map<BgpPeerViewModel>(bgpPeer));
         }
@@ -220,6 +235,13 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(BgpPeerViewModel bgpPeer)
         {
+
+            var vif = await VifService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (vif == null)
+            {
+                return NotFound();
+            }
+
             try
             {
                 var dbResult = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(filter: d => d.BgpPeerID == bgpPeer.BgpPeerID, AsTrackable: false);
@@ -227,6 +249,7 @@ namespace SCM.Controllers
 
                 if (currentBgpPeer != null)
                 {
+                    await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
 

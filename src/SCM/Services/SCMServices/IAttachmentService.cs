@@ -12,15 +12,15 @@ namespace SCM.Services.SCMServices
     public interface IAttachmentService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<Attachment> GetByIDAsync(int id, bool? multiPort = false);
-        Task<Attachment> GetByVrfIDAsync(int vrfID);
-        Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
-        Task<List<Attachment>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false);
+        Task<AttachmentAndVifs> GetByIDAsync(int id, bool? multiPort = false);
+        Task<AttachmentAndVifs> GetByVrfIDAsync(int vrfID);
+        Task<List<AttachmentAndVifs>> GetAllByTenantAsync(Tenant tenant);
+        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
-        Task<ServiceResult> DeleteAsync(Attachment attachment);
-        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Attachment attachment);
-        Task<NetworkSyncServiceResult> SyncToNetworkAsync(Attachment attachment);
-        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Attachment attachment);
+        Task<ServiceResult> DeleteAsync(AttachmentAndVifs attachment);
+        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment);
+        Task<NetworkSyncServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment);
+        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment);
         Task<ServiceResult> ValidateAsync(AttachmentRequest request);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false);
         Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true);

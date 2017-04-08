@@ -91,7 +91,7 @@ namespace SCM.Controllers
                     return NotFound();
                 }
 
-                checkSyncResult = await AttachmentService.CheckNetworkSyncAsync((Attachment)item);
+                checkSyncResult = await AttachmentService.CheckNetworkSyncAsync((AttachmentAndVifs)item);
             }
 
             if (checkSyncResult.InSync)
@@ -140,7 +140,7 @@ namespace SCM.Controllers
                     return NotFound();
                 }
 
-                syncResult = await AttachmentService.SyncToNetworkAsync((Attachment)item);
+                syncResult = await AttachmentService.SyncToNetworkAsync((AttachmentAndVifs)item);
             }
 
             if (syncResult.IsSuccess)
@@ -188,7 +188,7 @@ namespace SCM.Controllers
                     return View("AttachmentDeleted", new { VpnID = Request.Query["VpnID"] });
                 }
 
-                syncResult = await AttachmentService.DeleteFromNetworkAsync((Attachment)item);
+                syncResult = await AttachmentService.DeleteFromNetworkAsync((AttachmentAndVifs)item);
             }
 
             if (syncResult.IsSuccess)

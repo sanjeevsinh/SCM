@@ -12,7 +12,6 @@ namespace SCM.Models.ServiceModels
         public int ID { get; set; }
         public int VlanTag { get; set; }
         public int AttachmentID { get; set; }
-        public bool AttachmentIsMultiPort { get; set; }
         public string Name { get; set; }
         public bool IsLayer3 { get; set; }
         public string IpAddress { get; set; }
@@ -24,5 +23,17 @@ namespace SCM.Models.ServiceModels
         public Vrf Vrf { get; set; }
         public Tenant Tenant { get; set; }
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
+        public Attachment Attachment { get; set; }
+        public ICollection<MultiPortVif> MultiPortVifs { get; set; }
+    }
+    public class MultiPortVif
+    {
+        public Attachment Attachment { get; set; }
+        public int VlanTag { get; set; }
+        public bool IsLayer3 { get; set; }
+        public string IpAddress { get; set; }
+        public string SubnetMask { get; set; }
+        public int? VrfID { get; set; }
+        public Vrf Vrf { get; set; }
     }
 }

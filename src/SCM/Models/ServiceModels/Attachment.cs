@@ -42,6 +42,9 @@ namespace SCM.Models.ServiceModels
         public ContractBandwidthPool ContractBandwidthPool { get; set; }
         public ICollection<BundleInterfacePort> BundleInterfacePorts { get; set; }
         public ICollection<Port> MultiPortMembers { get; set; }
+    }
+    public class AttachmentAndVifs: Attachment 
+    {
         public ICollection<Vif> Vifs { get; set; }
     }
 }

@@ -24,6 +24,9 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.SubRegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegionID))
                 .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
+                .Include<Interface, AttachmentAndVifs>();
+
+            CreateMap<Interface, AttachmentAndVifs>()
                 .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.InterfaceVlans));
 
             CreateMap<MultiPort, Attachment>()
@@ -40,8 +43,12 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
                 .ForMember(dest => dest.RegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegion.RegionID))
                 .ForMember(dest => dest.SubRegion, conf => conf.MapFrom(src => src.Device.Location.SubRegion))
-                .ForMember(dest => dest.SubRegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegionID));
-                
+                .ForMember(dest => dest.SubRegionID, conf => conf.MapFrom(src => src.Device.Location.SubRegionID))
+                .Include<MultiPort, AttachmentAndVifs>();
+
+            CreateMap<MultiPort, AttachmentAndVifs>()
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.MultiPortVlans));
+
             CreateMap<AttachmentRequest, Interface>()
                 .ForMember(dest => dest.IsBundle, conf => conf.MapFrom(src => src.BundleRequired))
                 .ForMember(dest => dest.IsMultiPort, conf => conf.MapFrom(src => src.MultiPortRequired));
@@ -59,7 +66,8 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new InterfaceVlanVifNameResolver()))
                 .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
-                .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.InterfaceID));
+                .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.InterfaceID))
+                .ForMember(dest => dest.Attachment, conf => conf.MapFrom(src => src.Interface));
 
             CreateMap<VifRequest, MultiPortVlan>()
                 .ForMember(dest => dest.MultiPortID, conf => conf.MapFrom(src => src.AttachmentID))
@@ -71,7 +79,11 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.Tenant, conf => conf.MapFrom(src => src.Tenant))
                 .ForMember(dest => dest.TenantID, conf => conf.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.AttachmentID, conf => conf.MapFrom(src => src.MultiPortID))
-                .ForMember(dest => dest.AttachmentIsMultiPort, conf => conf.UseValue(true));
+                .ForMember(dest => dest.Attachment, conf => conf.MapFrom(src => src.MultiPort))
+                .ForMember(dest => dest.MultiPortVifs, conf => conf.MapFrom(src => src.InterfaceVlans));
+
+            CreateMap<InterfaceVlan, MultiPortVif>()
+                .ForMember(dest => dest.Attachment, conf => conf.MapFrom(src => src.Interface));
 
             CreateMap<VifRequest, Vrf>();
 

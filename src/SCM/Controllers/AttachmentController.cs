@@ -283,7 +283,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFromNetwork(Attachment attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID);
+            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
 
             if (item == null)
             {

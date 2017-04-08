@@ -37,6 +37,10 @@ namespace SCM.Models.NetModels.IpVpnNetModels
         public string PEName { get; set; }
         [XmlElement(ElementName = "vrf")]
         public List<VrfNetModel> Vrfs { get; set; }
+        public PENetModel()
+        {
+            Vrfs = new List<VrfNetModel>();
+        }
     }
 
     public class VrfNetModel
@@ -51,18 +55,24 @@ namespace SCM.Models.NetModels.IpVpnNetModels
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
-        [XmlElement(ElementName = "pe")]
-        public List<PENetModel> PEs { get; set; }
         [XmlElement(ElementName = "is-hub")]
         public bool? IsHub { get; set; }
         public bool ShouldSerializeIsHub()
         {
             return IsHub.HasValue;
         }
+        [XmlElement(ElementName = "pe")]
+        public List<PENetModel> PEs { get; set; }
         [XmlElement(ElementName = "tenant-ipv4-prefix")]
         public List<TenantPrefixNetModel> TenantPrefixes { get; set; }
         [XmlElement(ElementName = "tenant-community")]
         public List<TenantCommunityNetModel> TenantCommunities { get; set; }
+        public VpnAttachmentSetNetModel()
+        {
+            PEs = new List<PENetModel>();
+            TenantPrefixes = new List<TenantPrefixNetModel>();
+            TenantCommunities = new List<TenantCommunityNetModel>();
+        }
     }
 
     [XmlRoot(ElementName = "vpn", Namespace = "urn:thomsonreuters:ip-vpn")]
@@ -84,5 +94,9 @@ namespace SCM.Models.NetModels.IpVpnNetModels
         }
         [XmlElement(ElementName = "vpn-attachment-set")]
         public List<VpnAttachmentSetNetModel> VpnAttachmentSets { get; set; }
+        public IpVpnServiceNetModel()
+        {
+            VpnAttachmentSets = new List<VpnAttachmentSetNetModel>();
+        }
     }
 }

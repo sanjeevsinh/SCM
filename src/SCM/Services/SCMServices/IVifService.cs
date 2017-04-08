@@ -23,7 +23,7 @@ namespace SCM.Services.SCMServices
         Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif);
         Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateAsync(VifRequest request);
-        Task UpdateRequiresSyncAsync(int interfaceVlanID, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? attachmentIsMultiPort = false);
         Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true);
     }
 }

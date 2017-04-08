@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SCM.Models;
 using SCM.Data;
 using SCM.Models.NetModels.AttachmentNetModels;
@@ -67,18 +68,26 @@ namespace SCM.Services.SCMServices
         public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(int deviceID)
         {
             var checkSyncResult = new NetworkCheckSyncServiceResult();
-
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
-                           includeProperties: "Vrfs,Interfaces.Port,Interfaces.InterfaceBandwidth,"
+                includeProperties: "Vrfs,"
+                               + "Interfaces.Port,"
+                               + "Interfaces.InterfaceBandwidth,"
                                + "Interfaces.Vrf.BgpPeers,"
                                + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
-                               + "Interfaces.BundleInterfacePorts.Port," 
-                               + "MultiPorts.Ports.Interface");
+                               + "Interfaces.BundleInterfacePorts.Port,"
+                               + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
+                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                               + "MultiPorts.Ports.Interface.Vrf.BgpPeers,"
+                               + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
+                               + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
+                               + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
+                               + "MultiPorts.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
+
             if (device == null)
             {
-                checkSyncResult.NetworkSyncServiceResult.Add("The Device was not found.");
+                checkSyncResult.NetworkSyncServiceResult.Add("The device was not found.");
             }
             else
             {
@@ -93,22 +102,28 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(int deviceID)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
+            var syncResult = new NetworkSyncServiceResult { IsSuccess = true };
 
-            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, 
-                includeProperties: "Vrfs,Interfaces.Port,Interfaces.InterfaceBandwidth,"
+            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
+                includeProperties: "Vrfs," 
+                               + "Interfaces.Port,"
+                               + "Interfaces.InterfaceBandwidth,"
                                + "Interfaces.Vrf.BgpPeers,"
                                + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
                                + "Interfaces.BundleInterfacePorts.Port,"
                                + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
                                + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.Ports.Interface");
+                               + "MultiPorts.Ports.Interface.Vrf.BgpPeers,"
+                               + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
+                               + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
+                               + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
+                               + "MultiPorts.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
+
             if (device == null)
             {
-                syncResult.Add("The Device was not found.");
+                syncResult.Add("The device was not found.");
                 syncResult.IsSuccess = false;
             }
             else
@@ -121,6 +136,7 @@ namespace SCM.Services.SCMServices
 
             return syncResult;
         }
+
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int deviceID)
         {
             var syncResult = new NetworkSyncServiceResult();

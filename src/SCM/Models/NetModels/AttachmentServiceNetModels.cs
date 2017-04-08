@@ -7,8 +7,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 {
     public class Layer3NetModel
     {
-        [XmlElement(ElementName = "vrf-name")]
-        public string VrfName { get; set; }
         [XmlElement(ElementName = "ipv4-address")]
         public string IpAddress { get; set; }
         [XmlElement(ElementName = "ipv4-subnet-mask")]
@@ -17,6 +15,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public bool EnableBgp { get; set; }
         [XmlElement(ElementName = "bgp-peer")]
         public List<BgpPeerNetModel> BgpPeers { get; set; }
+        public Layer3NetModel()
+        {
+            BgpPeers = new List<BgpPeerNetModel>();
+        }
     }
 
     public class VrfNetModel
@@ -55,6 +57,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
+        [XmlElement(ElementName = "vrf-name")]
+        public string VrfName { get; set; }
     }
 
     public class TaggedAttachmentInterfaceNetModel
@@ -67,6 +71,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "vif")]
         public List<VifNetModel> Vifs { get; set; } 
+        public TaggedAttachmentInterfaceNetModel()
+        {
+            Vifs = new List<VifNetModel>();
+        }
     }
 
     public class BundleInterfaceMemberNetModel
@@ -91,8 +99,14 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
+        [XmlElement(ElementName = "vrf-name")]
+        public string VrfName { get; set; }
         [XmlElement(ElementName = "bundle-interface-member")]
         public List<BundleInterfaceMemberNetModel> BundleInterfaceMembers { get; set; }
+        public UntaggedAttachmentBundleInterfaceNetModel ()
+        {
+            BundleInterfaceMembers = new List<BundleInterfaceMemberNetModel>();
+        }
     }
 
     public class TaggedAttachmentBundleInterfaceNetModel
@@ -105,9 +119,13 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public List<BundleInterfaceMemberNetModel> BundleInterfaceMembers { get; set; }
         [XmlElement(ElementName = "vif")]
         public List<VifNetModel> Vifs { get; set; }
+        public TaggedAttachmentBundleInterfaceNetModel()
+        {
+            Vifs = new List<VifNetModel>();
+        }
     }
 
-    public class MultiPortMemberNetModel
+    public class UntaggedMultiPortMemberNetModel
     {
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
@@ -117,20 +135,38 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
+        [XmlElement(ElementName = "vrf-name")]
+        public string VrfName { get; set; }
     }
 
     public class UntaggedAttachmentMultiPortNetModel
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
-        [XmlElement(ElementName = "contract-bandwidth")]
-        public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
-        public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "multiport-member")]
-        public List<MultiPortMemberNetModel> MultiPortMembers { get; set; }
+        public List<UntaggedMultiPortMemberNetModel> MultiPortMembers { get; set; }
+        public UntaggedAttachmentMultiPortNetModel()
+        {
+            MultiPortMembers = new List<UntaggedMultiPortMemberNetModel>();
+        }
+    }
+
+    public class TaggedMultiPortMemberNetModel
+    {
+        [XmlElement(ElementName = "interface-type")]
+        public string InterfaceType { get; set; }
+        [XmlElement(ElementName = "interface-id")]
+        public string InterfaceID { get; set; }
+        [XmlElement(ElementName = "interface-bandwidth")]
+        public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "vif")]
+        public List<VifNetModel> Vifs { get; set; }
+        public TaggedMultiPortMemberNetModel()
+        {
+            Vifs = new List<VifNetModel>();
+        }
     }
 
     public class TaggedAttachmentMultiPortNetModel
@@ -138,9 +174,11 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
         [XmlElement(ElementName = "multiport-member")]
-        public List<MultiPortMemberNetModel> MultiPortMembers { get; set; }
-        [XmlElement(ElementName = "vif")]
-        public List<VifNetModel> Vifs { get; set; }
+        public List<TaggedMultiPortMemberNetModel> MultiPortMembers { get; set; }
+        public TaggedAttachmentMultiPortNetModel()
+        {
+            MultiPortMembers = new List<TaggedMultiPortMemberNetModel>();
+        }
     }
 
     public class VifNetModel
@@ -155,6 +193,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
+        [XmlElement(ElementName = "vrf-name")]
+        public string VrfName { get; set; }
     }
 
     [XmlRoot(ElementName = "pe", Namespace = "urn:thomsonreuters:attachment")]
@@ -183,6 +223,17 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
         [XmlElement(ElementName = "tagged-attachment-multiport")]
         public List<TaggedAttachmentMultiPortNetModel> TaggedAttachmentMultiPorts { get; set; }
+
+        public AttachmentServiceNetModel ()
+        {
+            Vrfs = new List<VrfNetModel>();
+            UntaggedAttachmentInterfaces = new List<UntaggedAttachmentInterfaceNetModel>();
+            TaggedAttachmentInterfaces = new List<TaggedAttachmentInterfaceNetModel>();
+            UntaggedAttachmentBundleInterfaces = new List<UntaggedAttachmentBundleInterfaceNetModel>();
+            TaggedAttachmentBundleInterfaces = new List<TaggedAttachmentBundleInterfaceNetModel>();
+            UntaggedAttachmentMultiPorts = new List<UntaggedAttachmentMultiPortNetModel>();
+            TaggedAttachmentMultiPorts = new List<TaggedAttachmentMultiPortNetModel>();
+        }
     }
 
     [XmlRoot(ElementName = "vrf", Namespace = "urn:thomsonreuters:attachment")]
@@ -190,7 +241,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     { 
     }
 
-    [XmlRoot(ElementName = "untagged-attachment-interface", Namespace = "urn:thomsonreuters:attachment")]
     public class UntaggedAttachmentInterfaceServiceNetModel : UntaggedAttachmentInterfaceNetModel
     {
     }
