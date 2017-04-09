@@ -31,10 +31,18 @@ namespace SCM.Services.SCMServices
             if (multiPort.GetValueOrDefault())
             {
                 var dbResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == id,
-                              includeProperties: "Device.Location.SubRegion.Region,Device.Plane,"
-                              + "Vrf.Device,InterfaceBandwidth,ContractBandwidthPool,Ports.Interface.InterfaceBandwidth,"
-                              + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers," 
-                              + "Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
+                              includeProperties: "Device.Location.SubRegion.Region,"
+                              + "Device.Plane,"
+                              + "Tenant,"
+                              + "Vrf.BgpPeers,"
+                              + "InterfaceBandwidth,"
+                              + "ContractBandwidthPool.ContractBandwidth,"
+                              + "Ports.Interface.InterfaceBandwidth,"
+                              + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
+                              + "Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                              + "MultiPortVlans.Vrf.BgpPeers,"
+                              + "MultiPortVlans.InterfaceVlans.Vrf.BgpPeers,"
+                              + "MultiPortVlans.InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                               AsTrackable: false);
 
                 return Mapper.Map<AttachmentAndVifs>(dbResult.SingleOrDefault());
@@ -43,8 +51,15 @@ namespace SCM.Services.SCMServices
             else
             {
                 var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id && q.IsMultiPort == false,
-                    includeProperties: "Device.Location,Device.Plane,Vrf.BgpPeers,InterfaceBandwidth,ContractBandwidthPool.ContractBandwidth,"
-                    + "Tenant,Port.MultiPort,BundleInterfacePorts.Port,InterfaceVlans.Vrf.BgpPeers,"
+                    includeProperties: "Device.Location.SubRegion.Region,"
+                    + "Device.Plane,"
+                    + "Vrf.BgpPeers,"
+                    + "InterfaceBandwidth,"
+                    + "ContractBandwidthPool.ContractBandwidth,"
+                    + "Tenant,"
+                    + "Port.MultiPort,"
+                    + "BundleInterfacePorts.Port,"
+                    + "InterfaceVlans.Vrf.BgpPeers,"
                     + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
                     AsTrackable: false);
 
@@ -157,9 +172,9 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment)
+        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment)
         {
-            var result = new NetworkCheckSyncServiceResult { InSync = true };
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
 
             if (attachment.IsTagged)
             {
@@ -208,7 +223,7 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            await UpdateRequiresSyncAsync(attachment.ID, !result.InSync, true, attachment.IsMultiPort);
+            await UpdateRequiresSyncAsync(attachment.ID, !result.IsSuccess, true, attachment.IsMultiPort);
 
             return result;
         }
@@ -246,12 +261,12 @@ namespace SCM.Services.SCMServices
 
             if (!syncResult.IsSuccess)
             {
-                if (syncResult.NetworkHttpResponse == null || syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+                foreach (var r in syncResult.NetworkSyncServiceResults)
                 {
-                    var result = new ServiceResult();
-                    result.AddRange(syncResult.GetMessageList());
-
-                    return result;
+                    if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                    {
+                        return syncResult;
+                    }
                 }
             }
 
@@ -269,9 +284,10 @@ namespace SCM.Services.SCMServices
             }
         }
 
-        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment)
+        public async Task<ServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment)
         {
-            var result = new NetworkSyncServiceResult { IsSuccess = true };
+            var networkSyncServiceResults = new List<NetworkSyncServiceResult>();
+            var result = new ServiceResult { IsSuccess = true };
 
             // Validate the attachment can be deleted - if not quit 
 
@@ -320,6 +336,12 @@ namespace SCM.Services.SCMServices
                     + $"/untagged-attachment-multiport/{attachment.Name}"));
             }
 
+            // Remove attachments first, then when complete remove vrfs.
+            // This is important because the server will throw an error if an attempt is made
+            // to delete a vrf which is referenced by an attachment.
+
+            await Task.WhenAll(tasks);
+
             var vrfTasks = new List<Task<NetworkSyncServiceResult>>();
             if (serviceModelData.Vrfs.Count > 0)
             {
@@ -330,11 +352,6 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            // Remove attachments first, then when complete remove vrfs.
-            // This is important because the server will throw an error if an attempt is made
-            // to delete a vrf which is referenced by an attachment.
-
-            await Task.WhenAll(tasks);
             await Task.WhenAll(vrfTasks);
 
             // Check results
@@ -342,9 +359,10 @@ namespace SCM.Services.SCMServices
             foreach (var t in tasks.Concat(vrfTasks))
             {
                 var r = t.Result;
+                result.NetworkSyncServiceResults.Add(r);
+
                 if (!r.IsSuccess)
                 {
-                    result.AddRange(r.GetMessageList());
                     result.IsSuccess = false;
                 }
             }

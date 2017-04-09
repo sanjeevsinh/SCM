@@ -70,7 +70,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> CheckSync(AttachmentOrVifViewModel attachmentOrVif)
         {
 
-            NetworkCheckSyncServiceResult checkSyncResult;
+            NetworkSyncServiceResult checkSyncResult;
             Object item;
 
             if (attachmentOrVif.IsVif)
@@ -94,20 +94,19 @@ namespace SCM.Controllers
                 checkSyncResult = await AttachmentService.CheckNetworkSyncAsync((AttachmentAndVifs)item);
             }
 
-            if (checkSyncResult.InSync)
+            if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The resource is synchronised with the network.";
             }
             else
             {
-                if (checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                if (checkSyncResult.IsSuccess)
                 {
                     ViewData["ErrorMessage"] = "The resource is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
                 else
                 {
-                    var message = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
-                    ViewData["ErrorMessage"] = message;
+                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
                 }
             }
 
@@ -149,7 +148,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
             }
 
             var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif);
@@ -161,7 +160,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> DeleteFromNetwork(AttachmentOrVifViewModel attachmentOrVif)
         {
 
-            NetworkSyncServiceResult syncResult;
+            ServiceResult syncResult;
             Object item;
 
             if (attachmentOrVif.IsVif)
@@ -197,18 +196,7 @@ namespace SCM.Controllers
             }
             else
             {
-                var message = "There was a problem deleting the resource from the network. ";
-
-                if (syncResult.NetworkHttpResponse != null)
-                {
-                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
-                    {
-                        message += "The resource is not present in the network. ";
-                    }
-                }
-
-                message += syncResult.GetHtmlListMessage();
-                ViewData["ErrorMessage"] = message;
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif);

@@ -49,10 +49,10 @@ namespace SCM.Services.SCMServices
 
             var syncResult = await DeleteFromNetworkAsync(device.ID);
 
-            if (!syncResult.IsSuccess && syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+            if (syncResult.HttpStatusCode != HttpStatusCode.NotFound)
             {
                 serviceResult.IsSuccess = false;
-                serviceResult.Add(syncResult.GetAllMessages());
+                serviceResult.AddRange(syncResult.Messages);
                 return serviceResult;
             }
 
@@ -65,9 +65,9 @@ namespace SCM.Services.SCMServices
             return serviceResult;
         }
 
-        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(int deviceID)
+        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(int deviceID)
         {
-            var checkSyncResult = new NetworkCheckSyncServiceResult();
+            var checkSyncResult = new NetworkSyncServiceResult();
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
                 includeProperties: "Vrfs,"
                                + "Interfaces.Port,"
@@ -87,7 +87,7 @@ namespace SCM.Services.SCMServices
 
             if (device == null)
             {
-                checkSyncResult.NetworkSyncServiceResult.Add("The device was not found.");
+                checkSyncResult.Messages.Add("The device was not found.");
             }
             else
             {
@@ -95,7 +95,7 @@ namespace SCM.Services.SCMServices
                 checkSyncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
             }
 
-            await UpdateDeviceRequiresSyncAsync(device, !checkSyncResult.InSync);
+            await UpdateDeviceRequiresSyncAsync(device, !checkSyncResult.IsSuccess);
 
             return checkSyncResult;
         }
@@ -123,7 +123,7 @@ namespace SCM.Services.SCMServices
 
             if (device == null)
             {
-                syncResult.Add("The device was not found.");
+                syncResult.Messages.Add("The device was not found.");
                 syncResult.IsSuccess = false;
             }
             else
@@ -147,7 +147,7 @@ namespace SCM.Services.SCMServices
 
             if (device == null)
             {
-                syncResult.Add("The Device was not found.");
+                syncResult.Messages.Add("The Device was not found.");
                 syncResult.IsSuccess = false;
             }
             else

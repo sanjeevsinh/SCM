@@ -140,7 +140,7 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif)
+        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Vif vif)
         {
             if (vif.Attachment.IsMultiPort)
             {
@@ -191,12 +191,14 @@ namespace SCM.Services.SCMServices
 
             if (!syncResult.IsSuccess)
             {
-                if (syncResult.NetworkHttpResponse == null || syncResult.NetworkHttpResponse.HttpStatusCode != HttpStatusCode.NotFound)
+                foreach (var r in syncResult.NetworkSyncServiceResults)
                 {
-                    result.IsSuccess = false;
-                    result.AddRange(syncResult.GetMessageList());
+                    if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                    {
+                        result.IsSuccess = false;
 
-                    return result;
+                        return result;
+                    }
                 }
             }
 
@@ -245,9 +247,9 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vif"></param>
         /// <returns></returns>
-        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif)
+        public async Task<ServiceResult> DeleteFromNetworkAsync(Vif vif)
         {
-            var result = new NetworkSyncServiceResult { IsSuccess = true };
+            var result = new ServiceResult { IsSuccess = true };
 
             // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
             // is to be deleted, and one or more VPNs are bound to the VRF, 
@@ -303,18 +305,21 @@ namespace SCM.Services.SCMServices
             foreach (Task<NetworkSyncServiceResult> t in tasks)
             {
                 var r = t.Result;
+                result.NetworkSyncServiceResults.Add(r);
+
                 if (!r.IsSuccess)
                 {
-                    result.AddRange(r.GetMessageList());
                     result.IsSuccess = false;
                 }
             }
 
+            result.NetworkSyncServiceResults.Add(vrfResult);
             if (!vrfResult.IsSuccess)
             {
-                result.AddRange(vrfResult.GetMessageList());
                 result.IsSuccess = false;
             }
+
+            await UpdateRequiresSyncAsync(vif.ID, true, true, vif.Attachment.IsMultiPort);
 
             return result;
         }
@@ -652,6 +657,9 @@ namespace SCM.Services.SCMServices
                     multiPortVlan.VrfID = vrf.VrfID;
                 }
 
+                this.UnitOfWork.MultiPortVlanRepository.Insert(multiPortVlan);
+                await this.UnitOfWork.SaveAsync();
+
                 var ports = multiPort.Ports.ToList();
                 var portsCount = ports.Count;
 
@@ -659,6 +667,7 @@ namespace SCM.Services.SCMServices
                 {
                     var ifaceVlan = Mapper.Map<InterfaceVlan>(request);
                     ifaceVlan.InterfaceID = ports[i - 1].Interface.InterfaceID;
+                    ifaceVlan.MultiPortVlanID = multiPortVlan.MultiPortVlanID;
 
                     if (request.IsLayer3)
                     {
@@ -688,8 +697,6 @@ namespace SCM.Services.SCMServices
 
                     this.UnitOfWork.InterfaceVlanRepository.Insert(ifaceVlan);
                 }
-
-                this.UnitOfWork.MultiPortVlanRepository.Insert(multiPortVlan);
                
                 await this.UnitOfWork.SaveAsync();
             }
@@ -708,9 +715,9 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vif"></param>
         /// <returns></returns>
-        private  async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAttachmentVifAsync(Vif vif)
+        private  async Task<NetworkSyncServiceResult> CheckNetworkSyncAttachmentVifAsync(Vif vif)
         {
-            var result = new NetworkCheckSyncServiceResult { InSync = true };
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
 
             if (vif.Attachment.IsBundle)
             {
@@ -728,7 +735,7 @@ namespace SCM.Services.SCMServices
 
             }
     
-            await UpdateRequiresSyncAsync(vif.ID, !result.InSync, true, false);
+            await UpdateRequiresSyncAsync(vif.ID, !result.IsSuccess, true, false);
 
             return result;
         }
@@ -738,10 +745,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vif"></param>
         /// <returns></returns>
-        private async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncMultiPortVifAsync(Vif vif)
+        private async Task<NetworkSyncServiceResult> CheckNetworkSyncMultiPortVifAsync(Vif vif)
         {
-            var result = new NetworkCheckSyncServiceResult { InSync = true };
-            var tasks = new List<Task<NetworkCheckSyncServiceResult>>();
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
+            var tasks = new List<Task<NetworkSyncServiceResult>>();
 
             foreach (var port in vif.Attachment.MultiPortMembers)
             {
@@ -761,17 +768,17 @@ namespace SCM.Services.SCMServices
 
             // Check the results 
 
-            foreach (Task<NetworkCheckSyncServiceResult> t in tasks)
+            foreach (Task<NetworkSyncServiceResult> t in tasks)
             {
                 var r = t.Result;
-                if (!r.InSync)
+                if (!r.IsSuccess)
                 {
-                    result.NetworkSyncServiceResult.AddRange(r.NetworkSyncServiceResult.GetMessageList());
-                    result.InSync = false;
+                    result.Messages.AddRange(r.Messages);
+                    result.IsSuccess = false;
                 }
             }
 
-            await UpdateRequiresSyncAsync(vif.ID, !result.InSync, true, true);
+            await UpdateRequiresSyncAsync(vif.ID, !result.IsSuccess, true, true);
 
             return result;
         }

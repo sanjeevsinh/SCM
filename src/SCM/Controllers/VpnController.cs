@@ -99,7 +99,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
             }
 
             var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
@@ -118,20 +118,19 @@ namespace SCM.Controllers
             }
 
             var checkSyncResult = await VpnService.CheckNetworkSyncAsync(id.Value);
-            if (checkSyncResult.InSync)
+            if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The VPN is synchronised with the network.";
             }
             else
             {
-                if (checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                if (checkSyncResult.IsSuccess)
                 {
                     ViewData["ErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
                 else
                 {
-                    var message = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
-                    ViewData["ErrorMessage"] = message;
+                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
                 }
             }
 
@@ -420,18 +419,7 @@ namespace SCM.Controllers
             }
             else
             {
-                var message = "There was a problem deleting the VPN from the network. ";
-
-                if (syncResult.NetworkHttpResponse != null)
-                {
-                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
-                    {
-                        message += "The VPN resource is not present in the network. ";
-                    }
-                }
-
-                message += syncResult.GetAllMessages();
-                ViewData["ErrorMessage"] = message;
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
             }
 
             vpn.RequiresSync = true;

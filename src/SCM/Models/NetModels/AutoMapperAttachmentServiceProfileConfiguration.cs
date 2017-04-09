@@ -173,6 +173,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
+               .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.ContractBandwidthPool.TrustReceivedCosDscp))
                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
                .Include<Vif, VifServiceNetModel>();
@@ -320,8 +321,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(source.Attachment);
-                        data.Vifs.Clear();
-                        data.Vifs.Add(mapper.Map<VifNetModel>(source));
+                        var vif = mapper.Map<VifNetModel>(source);
+                        data.Vifs.Add(vif);
                         result.TaggedAttachmentBundleInterfaces.Add(data);
                         result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
                     }
@@ -331,11 +332,9 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentMultiPortNetModel>(source.Attachment);
-                        var vif = mapper.Map<VifNetModel>(source);
                         foreach (var member in data.MultiPortMembers)
                         {
-                            member.Vifs.Clear();
-                            member.Vifs.Add(vif);
+                            member.Vifs = member.Vifs.Where(q => q.VlanID == source.VlanTag).ToList();
                         }
                         result.TaggedAttachmentMultiPorts.Add(data);
                         result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
@@ -346,8 +345,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentInterfaceNetModel>(source.Attachment);
-                        data.Vifs.Clear();
-                        data.Vifs.Add(mapper.Map<VifNetModel>(source));
+                        var vif = mapper.Map<VifNetModel>(source);
+                        data.Vifs.Add(vif);
                         result.TaggedAttachmentInterfaces.Add(data);
                         result.Vrfs.Add(mapper.Map<VrfNetModel>(source.Vrf));
                     }

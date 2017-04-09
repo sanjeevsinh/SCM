@@ -22,12 +22,12 @@ else
 
 @if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 }
 
 @if (@ViewData["SuccessMessage"] != null)
 {
-    <p class="alert alert-success">@ViewData["SuccessMessage"]</p>
+    <p class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</p>
 }
 
 <div>

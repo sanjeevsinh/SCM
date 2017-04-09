@@ -40,18 +40,36 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetRepository.Delete(attachmentSet);
             return await this.UnitOfWork.SaveAsync();
         }
+        public async Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet)
+        {
+            var validationResult = new ServiceResult { IsSuccess = true };
+
+            var attachmentRedundancy = await UnitOfWork.AttachmentRedundancyRepository.GetByIDAsync(attachmentSet.AttachmentRedundancyID);
+            if (attachmentRedundancy.Name == "Gold")
+            {
+                if (attachmentSet.SubRegionID == null)
+                {
+                    validationResult.IsSuccess = false;
+                    validationResult.Add("A sub-region must be seected for gold attachment sets.");
+                }
+            }
+
+            return validationResult;
+        }
+
         public async Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet)
         {
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
+            var validationResult = new ServiceResult { IsSuccess = true };
 
             var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID, 
                 includeProperties: "AttachmentSetVrfs", AsTrackable: false);
             var currentAttachmentSet = dbResult.SingleOrDefault();
+
             if (currentAttachmentSet == null)
             {
                 validationResult.Add("The attachment set was not found.");
                 validationResult.IsSuccess = false;
+
                 return validationResult;
             }
 
@@ -81,6 +99,16 @@ namespace SCM.Services.SCMServices
                 {
                     validationResult.Add("Layer 3 cannot be changed because VRFs are defined.");
                     validationResult.IsSuccess = false;
+                }
+            }
+
+            var attachmentRedundancy = await UnitOfWork.AttachmentRedundancyRepository.GetByIDAsync(attachmentSet.AttachmentRedundancyID);
+            if (attachmentRedundancy.Name == "Gold")
+            {
+                if (attachmentSet.SubRegionID == null)
+                {
+                    validationResult.IsSuccess = false;
+                    validationResult.Add("A sub-region must be seected for gold attachment sets.");
                 }
             }
 

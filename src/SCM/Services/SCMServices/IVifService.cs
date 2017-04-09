@@ -19,9 +19,9 @@ namespace SCM.Services.SCMServices
         Task<List<Vif>> GetAsync(Expression<Func<MultiPortVlan, bool>> filter = null);
         Task<ServiceResult> AddAsync(VifRequest request);
         Task<ServiceResult> DeleteAsync(Vif vif);
-        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Vif vif);
+        Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Vif vif);
         Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif);
-        Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(Vif vif);
+        Task<ServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateAsync(VifRequest request);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? attachmentIsMultiPort = false);
         Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true);

@@ -104,9 +104,18 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await AttachmentSetService.AddAsync(Mapper.Map<AttachmentSet>(attachmentSet));
+                    var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
+                    var validationResult = await AttachmentSetService.ValidateAsync(mappedAttachmentSet);
+                    if (!validationResult.IsSuccess)
+                    {
+                        validationResult.GetMessageList().ForEach(m => ModelState.AddModelError(string.Empty, m));
+                    }
+                    else
+                    {
+                        await AttachmentSetService.AddAsync(Mapper.Map<AttachmentSet>(attachmentSet));
 
-                    return RedirectToAction("GetAllByTenantID", new { id = attachmentSet.TenantID });
+                        return RedirectToAction("GetAllByTenantID", new { id = attachmentSet.TenantID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )

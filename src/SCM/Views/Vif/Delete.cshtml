@@ -43,7 +43,7 @@
         <input type="hidden" asp-for="AttachmentIsMultiPort" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
-            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <input type="submit"  asp-action="Delete" value="Delete" class="btn btn-default" /> |
             <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID" asp-route-attachmentIsMultiPort = "@ViewBag.Attachment.IsMultiPort" >Back to VIFs List</a>
         </div>
     </form>

@@ -49,13 +49,40 @@ namespace SCM.Services.SCMServices
 
             var dbResult = await UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q =>
                  q.ContractBandwidthPoolID == contractBandwidthPoolID,
-                 includeProperties: "ContractBandwidth,Interfaces.Port,InterfaceVlans.Interface.Port,MultiPorts,MultiPortVlans.MultiPort");
+                 includeProperties: "ContractBandwidth,"
+                                    +"Interfaces.Vrf.Device,"
+                                    + "Interfaces.Port,"
+                                    + "InterfaceVlans.Vrf.Device,"
+                                    + "InterfaceVlans.Interface.Port,"
+                                    + "MultiPorts.Ports.Interface.Vrf.Device,"
+                                    + "MultiPortVlans.MultiPort,"
+                                    + "MultiPortVlans.Vrf.Device");
 
             var contractBandwidthPool = dbResult.SingleOrDefault();
 
             if (contractBandwidthPool == null)
             {
                 result.Add("The requested contract bandwidth pool was not found.");
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            if (contractBandwidthPool.MultiPorts.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port attachments :");
+                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.MultiPorts.ToList());
+                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
+                result.IsSuccess = false;
+
+                return result;
+            }
+
+            if (contractBandwidthPool.MultiPortVlans.Count > 0)
+            {
+                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port vifs :");
+                var vifs = Mapper.Map<List<Vif>>(contractBandwidthPool.MultiPortVlans.ToList());
+                result.AddRange(vifs.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
                 result.IsSuccess = false;
 
                 return result;
@@ -79,22 +106,6 @@ namespace SCM.Services.SCMServices
                 result.IsSuccess = false;
 
                 return result;
-            }
-
-            if (contractBandwidthPool.MultiPorts.Count > 0)
-            {
-                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port attachments :");
-                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.MultiPorts.ToList());
-                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
-                result.IsSuccess = false;
-            }
-
-            if (contractBandwidthPool.MultiPortVlans.Count > 0)
-            {
-                result.Add("The requested contract bandwidth pool cannot be used because it is already in use for the following multi-port vifs :");
-                var attachments = Mapper.Map<List<Attachment>>(contractBandwidthPool.Interfaces.ToList());
-                result.AddRange(attachments.Select(q => $"{q.Vrf.Device.Name}, {q.Name}"));
-                result.IsSuccess = false;
             }
 
             return result;

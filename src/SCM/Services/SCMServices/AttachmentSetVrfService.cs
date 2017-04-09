@@ -57,19 +57,8 @@ namespace SCM.Services.SCMServices
         {
             var attachmentSet = await UnitOfWork.AttachmentSetRepository.GetByIDAsync(request.AttachmentSetID);
 
-            // Get tenant attachments matching the request
-
-            var attachments = await AttachmentService.GetAsync(q => q.Device.LocationID == request.LocationID
-                && q.TenantID == request.TenantID && q.IsLayer3 == attachmentSet.IsLayer3);
-
-            // Get tenant vifs matching the rqeuest
-
-            var vifs = await VifService.GetAsync(q => q.Interface.Device.LocationID == request.LocationID
-                && q.TenantID == request.TenantID && q.IsLayer3 == attachmentSet.IsLayer3);
-
-            // Create set union of VRFs from the vifs and attachments
-
-            var vrfs = attachments.Select(q => q.Vrf).Concat(vifs.Select(q => q.Vrf)).Where(q => q != null);
+            var vrfs = await UnitOfWork.VrfRepository.GetAsync(q => q.Device.LocationID == request.LocationID && q.TenantID == request.TenantID,
+                includeProperties:"Device");
 
             // Filter vrfs by plane if plane is specified
 
@@ -98,8 +87,37 @@ namespace SCM.Services.SCMServices
             }
 
             var attachmentSet = await UnitOfWork.AttachmentSetRepository.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
-            var vrfDbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == attachmentSetVrf.VrfID, includeProperties:"Interfaces,InterfaceVlans");
+            var vrfDbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == attachmentSetVrf.VrfID, 
+                includeProperties:"Interfaces,"
+                + "InterfaceVlans,"
+                + "MultiPorts,"
+                + "MultiPortVlans");
+
             var vrf = vrfDbResult.Single();
+
+            if (vrf.MultiPorts.Count > 0)
+            {
+                if (vrf.MultiPorts.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
+                {
+                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
+                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
+                    result.IsSuccess = false;
+
+                    return result;
+                }
+            }
+
+            if (vrf.MultiPortVlans.Count > 0)
+            {
+                if (vrf.MultiPortVlans.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
+                {
+                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
+                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
+                    result.IsSuccess = false;
+
+                    return result;
+                }
+            }
 
             if (vrf.Interfaces.Count > 0)
             {

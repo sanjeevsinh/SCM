@@ -16,13 +16,13 @@
 
 @if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 }
 
 
 @if (@ViewData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success">@ViewData["SuccessMessage"]</div>
+    <div class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
 }
 
 <h3>Are you sure you want to delete this?</h3>

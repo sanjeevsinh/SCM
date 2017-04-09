@@ -240,16 +240,16 @@ namespace SCM.Controllers
             }
 
             var checkSyncResult = await VifService.CheckNetworkSyncAsync(item);
-            if (checkSyncResult.InSync)
+            if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The vif is synchronised with the network.";
                 item.RequiresSync = false;
             }
             else
             {
-                if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
+                if (!checkSyncResult.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
                 }
                 else
                 {
@@ -288,7 +288,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
                 item.RequiresSync = true;
             }
 
@@ -321,18 +321,7 @@ namespace SCM.Controllers
             }
             else
             {
-                var message = "There was a problem deleting the vif from the network. ";
-
-                if (syncResult.NetworkHttpResponse != null)
-                {
-                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
-                    {
-                        message += "The vif resource is not present in the network. ";
-                    }
-                }
-
-                message += syncResult.GetHtmlListMessage();
-                ViewData["ErrorMessage"] = message;
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);

@@ -16,6 +16,7 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(AttachmentSet attachmentSet);
         Task<int> UpdateAsync(AttachmentSet attachmentSet);
         Task<int> DeleteAsync(AttachmentSet attachmentSet);
+        Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet);
         Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet);
     }
 }

@@ -63,22 +63,14 @@ namespace SCM.Controllers
             }
 
             var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
-            if (checkSyncResult.InSync)
+            if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The device is synchronised with the network.";
                 item.RequiresSync = false;
             }
             else
             {
-                if (!checkSyncResult.NetworkSyncServiceResult.IsSuccess)
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.NetworkSyncServiceResult.GetAllMessages();
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
-                }
-
+                ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
                 item.RequiresSync = true;
             }
 
@@ -108,7 +100,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessage();
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
             }
 
             item.RequiresSync = !syncResult.IsSuccess;
@@ -326,18 +318,7 @@ namespace SCM.Controllers
             }
             else
             {
-                var message = "There was a problem deleting the device from the network. ";
-
-                if (syncResult.NetworkHttpResponse != null)
-                {
-                    if (syncResult.NetworkHttpResponse.HttpStatusCode == HttpStatusCode.NotFound)
-                    {
-                        message += "The device resource is not present in the network. ";
-                    }
-                }
-
-                message += syncResult.GetAllMessages();
-                ViewData["ErrorMessage"] = message;
+                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
             }
 
             device.RequiresSync = !syncResult.IsSuccess;

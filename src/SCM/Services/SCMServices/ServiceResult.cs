@@ -7,6 +7,11 @@ namespace SCM.Services.SCMServices
 {
     public class ServiceResult
     {
+        public ServiceResult()
+        {
+            NetworkSyncServiceResults = new List<NetworkSyncServiceResult>();
+        }
+
         private List<string> Messages = new List<string>();
 
         public bool IsSuccess { get; set; }
@@ -24,16 +29,21 @@ namespace SCM.Services.SCMServices
         public string GetHtmlListMessage()
         {
             var message = string.Concat(Messages.Select(q => $"<li>{q}</li>"));
-            return $"<ul>{message}</ul>";
+            message += string.Concat(NetworkSyncServiceResults.SelectMany(q => q.Messages.Select(m => $"<li>{m}</li>")));
+
+           return $"<ul>{message}</ul>";
         }
 
         public void Add(string message)
         {
             Messages.Add(message);
         }
+
         public void AddRange(IEnumerable<string> messages)
         {
             Messages.AddRange(messages);
         }
+
+        public List<NetworkSyncServiceResult> NetworkSyncServiceResults { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace SCM.Services.SCMServices
 {
     public interface INetworkSyncService
     {
-        Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource);
+        Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource);
         Task<NetworkSyncServiceResult> SyncNetworkAsync(object item, string resource);
         Task<NetworkSyncServiceResult> SyncNetworkAsync(object item, string resource, HttpMethod method);
         Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(string resource);

@@ -46,15 +46,15 @@ namespace SCM.Services.SCMServices
             if (!networkResponse.IsSuccess)
             {
                 syncResult.IsSuccess = false;
-                syncResult.Add(networkResponse.GetMessage());
+                syncResult.Messages.AddRange(networkResponse.Messages);
             }
 
             return syncResult;
         }
 
-        public async Task<NetworkCheckSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource)
+        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource)
         {
-            var checkSyncResult = new NetworkCheckSyncServiceResult();
+            var checkSyncResult = new NetworkSyncServiceResult();
 
             var request = new HttpRequestMessage()
             {
@@ -62,58 +62,42 @@ namespace SCM.Services.SCMServices
                 Method = HttpMethod.Get
             };
 
-            var networkResponse = await GetNetworkHttpResponse(request);
-            checkSyncResult.NetworkSyncServiceResult.NetworkHttpResponse = networkResponse;
+            checkSyncResult =  await GetNetworkHttpResponse(request);
 
-            if (!networkResponse.IsSuccess)
+            if (!checkSyncResult.IsSuccess)
             {
-                checkSyncResult.NetworkSyncServiceResult.Add("The network request failed. ");
-
-                if (networkResponse.HttpStatusCode == HttpStatusCode.NotFound)
-                {
-                    checkSyncResult.NetworkSyncServiceResult.Add("The resource was not found. ");
-                }
-
                 return checkSyncResult;
             }
-
-            checkSyncResult.NetworkSyncServiceResult.IsSuccess = true;
 
             // Parse string response to an object then to xml to perform the deep-equals check.
             // This process normalises the data. The resulting xml trees must also be sorted 
             // in order to check equality using deep-equals.
 
-            var objectItem = XmlStringToObject(networkResponse.Content, item.GetType());
+            var objectItem = XmlStringToObject(checkSyncResult.Content, item.GetType());
             var xmlTree = XElement.Parse(ObjectToXmlString(objectItem));
             var sortedXmlTree = Sort(xmlTree);
             var xmlTreeToCompare = XElement.Parse(ObjectToXmlString(item));
             var sortedXmlTreeToCompare = Sort(xmlTreeToCompare);
 
-            checkSyncResult.InSync = XNode.DeepEquals(sortedXmlTree, sortedXmlTreeToCompare);
+            checkSyncResult.IsSuccess = XNode.DeepEquals(sortedXmlTree, sortedXmlTreeToCompare);
           
+            if (!checkSyncResult.IsSuccess)
+            {
+                checkSyncResult.Messages.Add("The resource is not synchronised with the network.");
+            }
+
             return checkSyncResult;
         }
 
         public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(string resource)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
-
             var request = new HttpRequestMessage()
             {
                 RequestUri = new Uri(NetworkBaseUri + resource),
                 Method = HttpMethod.Delete
             };
 
-            var networkResponse = await GetNetworkHttpResponse(request);
-            syncResult.NetworkHttpResponse = networkResponse;
-
-            if (!networkResponse.IsSuccess)
-            {
-                syncResult.IsSuccess = false;
-            }
-
-            return syncResult;
+            return  await GetNetworkHttpResponse(request);
         }
 
         private string ObjectToXmlString(Object objectItem)
@@ -138,11 +122,9 @@ namespace SCM.Services.SCMServices
             }
         }
 
-        private async Task<NetworkHttpResponse> GetNetworkHttpResponse(HttpRequestMessage httpRequest)
+        private async Task<NetworkSyncServiceResult> GetNetworkHttpResponse(HttpRequestMessage httpRequest)
         {
-
-            var result = new NetworkHttpResponse();
-            result.IsSuccess = true;
+            var result = new NetworkSyncServiceResult { IsSuccess = true };
 
             try
             {
@@ -151,19 +133,26 @@ namespace SCM.Services.SCMServices
 
                 var httpResponse = await client.SendAsync(httpRequest);
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    result.Add(httpResponse.ReasonPhrase);
-                    result.IsSuccess = false;
-                }
-
                 result.HttpStatusCode = httpResponse.StatusCode;
                 result.Content = await httpResponse.Content.ReadAsStringAsync();
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    result.Messages.Add("The network request failed.");
+
+                    if (httpResponse.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        result.Messages.Add("The resource was not found.");
+                    }
+
+                    result.Messages.Add(httpResponse.ReasonPhrase);
+                    result.IsSuccess = false;
+                }
             }
 
             catch (HttpRequestException /* ex */)
             {
-                result.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details. ");
+                result.Messages.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details. ");
                 result.IsSuccess = false;
             }
 
