@@ -1,0 +1,70 @@
+@model IEnumerable<SCM.Models.ViewModels.MultiPortVifViewModel>
+
+@{
+    ViewData["Title"] = "Multi-Port VIFs";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.Attachment.ID?attachmentIsMultiPort=@ViewBag.Vif.Attachment.IsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item active">Multi-Port VIFs</li>
+</ol>
+
+<h2>Multi-Port VIFs for VIF @ViewBag.Vif.Name</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.MemberAttachmentName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VlanTag)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsLayer3)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VrfName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubnetMask)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MemberAttachmentName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.VlanTag)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsLayer3)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.VrfName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IpAddress)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SubnetMask)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Vif.Attachment.ID" asp-route-attachmentIsMultiPort="@ViewBag.Vif.Attachment.IsMultiPort">Back to VIFs List</a>
+</div>

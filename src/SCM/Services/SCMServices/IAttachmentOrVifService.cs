@@ -13,8 +13,6 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<IEnumerable<AttachmentOrVif>> GetAllByVpnIDAsync(int vpnID);
-        Task<AttachmentOrVif> GetByIDAsync(int id, bool vif);
-
-
+        Task<AttachmentOrVif> GetByIDAsync(int id, bool? vif = false, bool? attachmentIsMultiPort = false);
     }
 }

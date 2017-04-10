@@ -15,11 +15,12 @@ namespace SCM.Services.SCMServices
         Task<AttachmentAndVifs> GetByIDAsync(int id, bool? multiPort = false);
         Task<AttachmentAndVifs> GetByVrfIDAsync(int vrfID);
         Task<List<AttachmentAndVifs>> GetAllByTenantAsync(Tenant tenant);
-        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<Interface, bool>> filter = null, bool? multiPort = false);
+        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<Interface, bool>> filter = null);
+        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<MultiPort, bool>> filter = null);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(AttachmentAndVifs attachment);
-        Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment);
-        Task<NetworkSyncServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment);
+        Task<ServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment);
+        Task<ServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment);
         Task<ServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment);
         Task<ServiceResult> ValidateAsync(AttachmentRequest request);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false);

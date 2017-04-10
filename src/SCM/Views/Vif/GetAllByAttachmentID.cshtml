@@ -75,7 +75,10 @@
                    attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort,
                    tenantID = item.TenantID
                })
-
+                    @if (item.AttachmentIsMultiPort)
+                    {
+                        <span>|</span> <a asp-action="GetMultiPortVifsByVifID" asp-route-id="@item.ID">Multi-Port VIFs</a>
+                    }
                     @if (item.IsLayer3)
                     {
                         <span>|</span> @Html.ActionLink("BGP Peers", "GetAllByVrfID", "VifBgpPeer", new { ID = item.Vrf.VrfID, tenantID = item.TenantID })

@@ -50,18 +50,23 @@ namespace SCM.Controllers
 
             var result = await AttachmentOrVifService.GetAllByVpnIDAsync(id.Value);
             ViewBag.Vpn = vpn;
+
             return View(Mapper.Map<List<AttachmentOrVifViewModel>>(result));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id, [FromQuery]bool vif)
+        public async Task<IActionResult> Details(int? id, bool? vif, bool? attachmentIsMultiPort)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var item = await AttachmentOrVifService.GetByIDAsync(id.Value, vif);
+            var item = await AttachmentOrVifService.GetByIDAsync(id.Value, vif, attachmentIsMultiPort);
+            if (item == null)
+            {
+                return NotFound();
+            }
 
             return View(Mapper.Map<AttachmentOrVifViewModel>(item));
         }
@@ -69,13 +74,12 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> CheckSync(AttachmentOrVifViewModel attachmentOrVif)
         {
-
-            NetworkSyncServiceResult checkSyncResult;
+            ServiceResult checkSyncResult;
             Object item;
 
             if (attachmentOrVif.IsVif)
             {
-                item = await VifService.GetByIDAsync(attachmentOrVif.ID);
+                item = await VifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
                 if (item == null)
                 {
                     return NotFound();
@@ -85,7 +89,7 @@ namespace SCM.Controllers
             }
             else
             {
-                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID);
+                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
                 if (item == null)
                 {
                     return NotFound();
@@ -100,17 +104,11 @@ namespace SCM.Controllers
             }
             else
             {
-                if (checkSyncResult.IsSuccess)
-                {
-                    ViewData["ErrorMessage"] = "The resource is not synchronised with the network. Press the 'Sync' button to update the network.";
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
-                }
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
             }
 
-            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif);
+            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif, attachmentOrVif.AttachmentIsMultiPort);
+
             return View("Details", Mapper.Map<AttachmentOrVifViewModel>(returnItem));
         }
 
@@ -118,12 +116,12 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(AttachmentOrVifViewModel attachmentOrVif)
         {
 
-            NetworkSyncServiceResult syncResult;
+            ServiceResult syncResult;
             Object item;
 
             if (attachmentOrVif.IsVif)
             {
-                item = await VifService.GetByIDAsync(attachmentOrVif.ID);
+                item = await VifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
                 if (item == null)
                 {
                     return NotFound();
@@ -133,7 +131,7 @@ namespace SCM.Controllers
             }
             else
             {
-                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID);
+                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
                 if (item == null)
                 {
                     return NotFound();
@@ -148,10 +146,10 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
-            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif);
+            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif, attachmentOrVif.AttachmentIsMultiPort);
 
             return View("Details", Mapper.Map<AttachmentOrVifViewModel>(returnItem));
         }
@@ -165,7 +163,7 @@ namespace SCM.Controllers
 
             if (attachmentOrVif.IsVif)
             {
-                item = await VifService.GetByIDAsync(attachmentOrVif.ID);
+                item = await VifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
 
                 if (item == null)
                 {
@@ -178,7 +176,7 @@ namespace SCM.Controllers
             }
             else
             {
-                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID);
+                item = await AttachmentService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.AttachmentIsMultiPort);
 
                 if (item == null)
                 {
@@ -199,7 +197,7 @@ namespace SCM.Controllers
                 ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
-            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif);
+            var returnItem = await AttachmentOrVifService.GetByIDAsync(attachmentOrVif.ID, attachmentOrVif.IsVif, attachmentOrVif.AttachmentIsMultiPort);
 
             return View("Delete", Mapper.Map<AttachmentOrVifViewModel>(returnItem));
         }

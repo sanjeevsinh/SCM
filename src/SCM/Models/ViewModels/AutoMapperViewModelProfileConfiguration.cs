@@ -43,6 +43,9 @@ namespace SCM.Models.ViewModels
             CreateMap<Vif, VifViewModel>()
                 .ForMember(dest => dest.AttachmentIsMultiPort, conf => conf.MapFrom(src => src.Attachment.IsMultiPort))
                 .ReverseMap();
+            CreateMap<MultiPortVif, MultiPortVifViewModel>()
+                .ForMember(dest => dest.MemberAttachmentName, conf => conf.MapFrom(src => src.MemberAttachment.Name))
+                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name));
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
             CreateMap<VifRequestViewModel, VifRequest>();
             CreateMap<AttachmentSetVrfRequestViewModel, AttachmentSetVrfRequest>();

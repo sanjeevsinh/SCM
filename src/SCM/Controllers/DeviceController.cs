@@ -70,7 +70,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 
@@ -100,7 +100,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             item.RequiresSync = !syncResult.IsSuccess;
@@ -318,7 +318,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             device.RequiresSync = !syncResult.IsSuccess;

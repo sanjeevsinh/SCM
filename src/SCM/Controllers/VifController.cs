@@ -60,6 +60,26 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetMultiPortVifsByVifID(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vif = await VifService.GetByIDAsync(id.Value, true);
+            if (vif == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Vif = vif;
+            var multiPortVifs = await VifService.GetMultiPortVifsByVifIDAsync(id.Value);
+
+            return View(Mapper.Map<List<MultiPortVifViewModel>>(multiPortVifs));
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Details(int? id, bool? attachmentIsMultiPort)
         {
             if (id == null)
@@ -240,6 +260,7 @@ namespace SCM.Controllers
             }
 
             var checkSyncResult = await VifService.CheckNetworkSyncAsync(item);
+
             if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The vif is synchronised with the network.";
@@ -247,15 +268,7 @@ namespace SCM.Controllers
             }
             else
             {
-                if (!checkSyncResult.IsSuccess)
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
-                }
-
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 
@@ -264,6 +277,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
+
             ViewBag.Attachment = attachment;
 
             return View("Details", Mapper.Map<VifViewModel>(item));
@@ -288,7 +302,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 

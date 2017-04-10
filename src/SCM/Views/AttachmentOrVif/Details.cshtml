@@ -49,16 +49,22 @@ else
             @Html.DisplayFor(model => model.AttachmentName)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.IsBundle)
+            @Html.DisplayNameFor(model => model.AttachmentIsBundle)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.IsBundle)
+            @Html.DisplayFor(model => model.AttachmentIsBundle)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Location)
+            @Html.DisplayNameFor(model => model.AttachmentIsMultiPort)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Location)
+            @Html.DisplayFor(model => model.AttachmentIsMultiPort)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.LocationName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.LocationName)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.DeviceName)
@@ -73,22 +79,22 @@ else
             @Html.DisplayFor(model => model.PlaneName)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.InterfaceBandwidth)
+            @Html.DisplayNameFor(model => model.InterfaceBandwidthValue)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.InterfaceBandwidth)
+            @Html.DisplayFor(model => model.InterfaceBandwidthValue)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.ContractBandwidthPool)
+            @Html.DisplayNameFor(model => model.ContractBandwidthPoolName)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.ContractBandwidthPool)
+            @Html.DisplayFor(model => model.ContractBandwidthPoolName)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.ContractBandwidth)
+            @Html.DisplayNameFor(model => model.ContractBandwidthValue)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.ContractBandwidth)
+            @Html.DisplayFor(model => model.ContractBandwidthValue)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.VrfName)
@@ -119,7 +125,8 @@ else
 <form asp-action="">
     <input type="hidden" asp-for="ID" />
     <input type="hidden" asp-for="IsVif" />
-    <input type="hidden" asp-for="IsBundle" />
+    <input type="hidden" asp-for="AttachmentIsBundle" />
+    <input type="hidden" asp-for="AttachmentIsMultiPort" />
     <div class="form-actions no-color">
         <input type="submit" asp-action="CheckSync" asp-route-vpnID ="@Context.Request.Query["vpnID"]" value="Check Sync" class="btn btn-default" /> |
         <input type="submit" asp-action="Sync" asp-route-vpnID ="@Context.Request.Query["vpnID"]" value="Sync" class="btn btn-default" /> |

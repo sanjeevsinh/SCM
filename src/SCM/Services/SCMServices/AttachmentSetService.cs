@@ -42,19 +42,7 @@ namespace SCM.Services.SCMServices
         }
         public async Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet)
         {
-            var validationResult = new ServiceResult { IsSuccess = true };
-
-            var attachmentRedundancy = await UnitOfWork.AttachmentRedundancyRepository.GetByIDAsync(attachmentSet.AttachmentRedundancyID);
-            if (attachmentRedundancy.Name == "Gold")
-            {
-                if (attachmentSet.SubRegionID == null)
-                {
-                    validationResult.IsSuccess = false;
-                    validationResult.Add("A sub-region must be seected for gold attachment sets.");
-                }
-            }
-
-            return validationResult;
+            return await ValidateAttachmentRedundancy(attachmentSet);
         }
 
         public async Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet)
@@ -101,6 +89,20 @@ namespace SCM.Services.SCMServices
                     validationResult.IsSuccess = false;
                 }
             }
+
+            var validateAttachmentRedundancyResult = await ValidateAttachmentRedundancy(attachmentSet);
+            if (!validateAttachmentRedundancyResult.IsSuccess)
+            {
+                validationResult.AddRange(validateAttachmentRedundancyResult.GetMessageList());
+                validationResult.IsSuccess = false;
+            }
+
+            return validationResult;
+        }
+
+        private async Task<ServiceResult> ValidateAttachmentRedundancy(AttachmentSet attachmentSet)
+        {
+            var validationResult = new ServiceResult { IsSuccess = true };
 
             var attachmentRedundancy = await UnitOfWork.AttachmentRedundancyRepository.GetByIDAsync(attachmentSet.AttachmentRedundancyID);
             if (attachmentRedundancy.Name == "Gold")

@@ -32,6 +32,5 @@ namespace SCM.Models.ViewModels
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
-
     }
 }

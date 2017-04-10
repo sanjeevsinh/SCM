@@ -210,9 +210,9 @@ namespace SCM.Services.SCMServices
             return validationResult;
         }
 
-        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(int vpnID)
+        public async Task<ServiceResult> CheckNetworkSyncAsync(int vpnID)
         {
-            var checkSyncResult = new NetworkSyncServiceResult();
+            var result = new ServiceResult();
 
             var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID,
                 includeProperties: "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
@@ -222,30 +222,33 @@ namespace SCM.Services.SCMServices
             var vpn = vpnDbResult.SingleOrDefault();
             if (vpn == null)
             {
-                checkSyncResult.Messages.Add("The VPN was not found.");
+                result.Add("The VPN was not found.");
             }
             else
             {
                 var validationResult = await ValidateVpn(vpn);
                 if (!validationResult.IsSuccess)
                 {
-                    checkSyncResult.Messages.Add(validationResult.GetMessage());
+                    result.Add(validationResult.GetMessage());
 
-                    return checkSyncResult;
+                    return result;
                 }
 
                 var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
-                checkSyncResult = await NetSync.CheckNetworkSyncAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+                var syncResult = await NetSync.CheckNetworkSyncAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+
+                result.AddRange(syncResult.Messages);
+                result.IsSuccess = syncResult.IsSuccess;
             }
 
-            await UpdateVpnRequiresSyncAsync(vpn, !checkSyncResult.IsSuccess);
+            await UpdateVpnRequiresSyncAsync(vpn, !result.IsSuccess);
 
-            return checkSyncResult;
+            return result;
         }
 
-        public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(int vpnID)
+        public async Task<ServiceResult> SyncToNetworkAsync(int vpnID)
         {
-            var syncResult = new NetworkSyncServiceResult { IsSuccess = true };
+            var result = new ServiceResult();
  
             var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID,
                 includeProperties: "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
@@ -255,50 +258,52 @@ namespace SCM.Services.SCMServices
             var vpn = vpnDbResult.SingleOrDefault();
             if (vpn == null)
             {
-                syncResult.Messages.Add("The VPN was not found.");
-                syncResult.IsSuccess = false;
+                result.Add("The VPN was not found.");
             }
             else
             {
                 var validationResult = await ValidateVpn(vpn);
                 if (!validationResult.IsSuccess)
                 {
-                    syncResult.Messages.Add(validationResult.GetMessage());
-                    syncResult.IsSuccess = false;
+                    result.Add(validationResult.GetMessage());
 
-                    return syncResult;
+                    return result;
                 }
 
                 var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
-                syncResult = await NetSync.SyncNetworkAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+                var syncResult = await NetSync.SyncNetworkAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+
+                result.AddRange(syncResult.Messages);
+                result.IsSuccess = syncResult.IsSuccess;
             }
 
-            await UpdateVpnRequiresSyncAsync(vpn, !syncResult.IsSuccess);
+            await UpdateVpnRequiresSyncAsync(vpn, !result.IsSuccess);
 
-            return syncResult;
+            return result;
         }
 
-        public async Task<NetworkSyncServiceResult> DeleteFromNetworkAsync(int vpnID)
+        public async Task<ServiceResult> DeleteFromNetworkAsync(int vpnID)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
+            var result = new ServiceResult();
 
             var dbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, AsTrackable: false);
             var vpn = dbResult.SingleOrDefault();
 
             if (vpn == null)
             {
-                syncResult.Messages.Add("The VPN was not found.");
-                syncResult.IsSuccess = false;
+                result.Add("The VPN was not found.");
             }
             else
             {
-                syncResult = await NetSync.DeleteFromNetworkAsync("/ip-vpn/vpn/" + vpn.Name);
+                var syncResult = await NetSync.DeleteFromNetworkAsync("/ip-vpn/vpn/" + vpn.Name);
+
+                result.AddRange(syncResult.Messages);
+                result.IsSuccess = syncResult.IsSuccess;
             }
 
             await UpdateVpnRequiresSyncAsync(vpn, true);
 
-            return syncResult;
+            return result;
         }
 
         /// <summary>

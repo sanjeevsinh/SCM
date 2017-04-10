@@ -241,7 +241,7 @@ namespace SCM.Controllers
             {
                 if (!checkSyncResult.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
+                    ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
                 }
                 else
                 {
@@ -273,7 +273,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 

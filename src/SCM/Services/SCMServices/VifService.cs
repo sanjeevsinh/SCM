@@ -33,9 +33,16 @@ namespace SCM.Services.SCMServices
             if (attachmentIsMultiPort.GetValueOrDefault())
             {
                 var dbResult = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortVlanID == id, includeProperties:
-                    "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth,"
-                    + "MultiPort.Ports.Interface.InterfaceVlans.Vrf,MultiPort.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                    + "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant",
+                    "MultiPort.Device.Location.SubRegion.Region,"
+                    + "MultiPort.Device.Plane,"
+                    + "MultiPort.InterfaceBandwidth,"
+                    + "MultiPort.Ports.Interface.InterfaceBandwidth,"
+                    + "MultiPort.Ports.Interface.InterfaceVlans.Vrf,"
+                    + "MultiPort.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                    + "Vrf.BgpPeers,"
+                    + "Vrf.Device,"
+                    + "ContractBandwidthPool.ContractBandwidth,"
+                    + "Tenant",
                     AsTrackable: false);
 
                 return Mapper.Map<Vif>(dbResult.SingleOrDefault());
@@ -43,8 +50,16 @@ namespace SCM.Services.SCMServices
             else
             {
                 var dbResult = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceVlanID == id, includeProperties:
-                    "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,Interface.InterfaceBandwidth,Interface.Device.Plane,"
-                    + "Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,Tenant,Interface.BundleInterfacePorts.Port",
+                    "Interface,"
+                    + "Interface.Port,"
+                    + "Interface.Device.Location.SubRegion.Region,"
+                    + "Interface.Tenant,Interface.InterfaceBandwidth,"
+                    + "Interface.Device.Plane,"
+                    + "Vrf.BgpPeers,"
+                    + "Vrf.Device,"
+                    + "ContractBandwidthPool.ContractBandwidth,"
+                    + "Tenant,"
+                    + "Interface.BundleInterfacePorts.Port",
                     AsTrackable: false);
 
                 return Mapper.Map<Vif>(dbResult.SingleOrDefault());
@@ -85,8 +100,12 @@ namespace SCM.Services.SCMServices
             if (attachmentIsMultiPort.GetValueOrDefault())
             {
                 var vifs = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortID == id,
-                includeProperties: "MultiPort.Device.Location.SubRegion.Region,MultiPort.Device.Plane,MultiPort.Ports.Interface.InterfaceBandwidth," +
-                    "Vrf.BgpPeers,ContractBandwidthPool.ContractBandwidth,Tenant",
+                includeProperties: "MultiPort.Device.Location.SubRegion.Region,"
+                + "MultiPort.Device.Plane,"
+                + "MultiPort.Ports.Interface.InterfaceBandwidth,"
+                + "Vrf.BgpPeers,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant",
                 AsTrackable: false);
 
                 return Mapper.Map<List<Vif>>(vifs);
@@ -94,9 +113,17 @@ namespace SCM.Services.SCMServices
             else
             {
                 var vifs = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == id,
-                includeProperties: "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,"
-                + "Interface.InterfaceBandwidth,Interface.Device.Plane,Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant,Interface.BundleInterfacePorts.Port",
+                includeProperties: "Interface,"
+                + "Interface.Port,"
+                + "Interface.Device.Location.SubRegion.Region,"
+                + "Interface.Tenant,"
+                + "Interface.InterfaceBandwidth,"
+                + "Interface.Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.Device,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,"
+                + "Interface.BundleInterfacePorts.Port",
                 AsTrackable: false);
 
                 return Mapper.Map<List<Vif>>(vifs);
@@ -106,9 +133,19 @@ namespace SCM.Services.SCMServices
         public async Task<List<Vif>> GetAsync(Expression<Func<InterfaceVlan, bool>> filter = null)
         {
             var ifaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(filter,
-                includeProperties: "Interface,Interface.Port,Interface.Device.Location.SubRegion.Region,Interface.Tenant,"
-                + "Interface.InterfaceBandwidth,Interface.Device.Plane,Vrf.BgpPeers,Vrf.Device,ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant,Interface.BundleInterfacePorts.Port",
+                includeProperties: "Interface,"
+                + "Interface.Port,"
+                + "Interface.Device.Location.SubRegion.Region,"
+                + "Interface.Tenant,"
+                + "Interface.InterfaceBandwidth,"
+                + "Interface.Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.Device,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,"
+                + "Interface.BundleInterfacePorts.Port",
+
                 AsTrackable: false);
 
             return Mapper.Map<List<Vif>>(ifaceVlans);
@@ -117,11 +154,35 @@ namespace SCM.Services.SCMServices
         public async Task<List<Vif>> GetAsync(Expression<Func<MultiPortVlan, bool>> filter = null)
         {
             var ifaceVlans = await UnitOfWork.MultiPortVlanRepository.GetAsync(filter,
-                includeProperties: "MultiPort.Device.Location.SubRegion.Region,Device.Plane,MultiPort.Ports.InterfaceInterfaceBandwidth," +
-                    "MultiPort.Vrf.BgpPeers,MultiPort.Device,ContractBandwidthPool.ContractBandwidth,Tenant",
+                includeProperties: "MultiPort.Device.Location.SubRegion.Region,"
+                + "MultiPort.Device.Plane,"
+                + "MultiPort.Ports.Interface.InterfaceBandwidth,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet," 
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant",
                 AsTrackable: false);
 
             return Mapper.Map<List<Vif>>(ifaceVlans);
+        }
+
+        public async Task<List<MultiPortVif>> GetMultiPortVifsByVifIDAsync(int id)
+        {
+            var ifaceVlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.MultiPortVlanID == id, includeProperties:
+                "Interface,"
+                + "Interface.Port,"
+                + "Interface.Device.Location.SubRegion.Region,"
+                + "Interface.Tenant,"
+                + "Interface.InterfaceBandwidth,"
+                + "Interface.Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.Device,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant,"
+                + "Interface.BundleInterfacePorts.Port",
+                AsTrackable: false);
+
+            return Mapper.Map<List<MultiPortVif>>(ifaceVlans);
         }
 
         public async Task<ServiceResult> AddAsync(VifRequest request)
@@ -140,24 +201,35 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Vif vif)
+        public async Task<ServiceResult> CheckNetworkSyncAsync(Vif vif)
         {
+            var result = new ServiceResult();
+            NetworkSyncServiceResult syncResult;
+
             if (vif.Attachment.IsMultiPort)
             {
-                return await CheckNetworkSyncMultiPortVifAsync(vif);
+                syncResult = await CheckNetworkSyncMultiPortVifAsync(vif);
             }
             else
             {
-                return await CheckNetworkSyncAttachmentVifAsync(vif);
-            };
+                syncResult = await CheckNetworkSyncAttachmentVifAsync(vif);
+            }
+
+            result.AddRange(syncResult.Messages);
+            result.IsSuccess = syncResult.IsSuccess;
+
+            return result; 
         }
 
-        public async Task<NetworkSyncServiceResult> SyncToNetworkAsync(Vif vif)
+        public async Task<ServiceResult> SyncToNetworkAsync(Vif vif)
         {
-            var result = new NetworkSyncServiceResult { IsSuccess = true };
+            var result = new ServiceResult();
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(vif);
 
-            result = await NetSync.SyncNetworkAsync(serviceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}", new HttpMethod("PATCH"));
+            var syncResult = await NetSync.SyncNetworkAsync(serviceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}", new HttpMethod("PATCH"));
+
+            result.AddRange(syncResult.Messages);
+            result.IsSuccess = syncResult.IsSuccess;
 
             await UpdateRequiresSyncAsync(vif.ID, !result.IsSuccess, true, vif.Attachment.IsMultiPort);
 

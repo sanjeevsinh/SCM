@@ -99,7 +99,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             var dbResult = await VpnService.UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == id,
@@ -130,7 +130,7 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetMessagesAsHtmlList();
+                    ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
                 }
             }
 
@@ -419,7 +419,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetMessagesAsHtmlList();
+                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
             }
 
             vpn.RequiresSync = true;

@@ -13,7 +13,9 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Attachment Name")]
         public string AttachmentName { get; set; }
         [Display(Name = "Bundle")]
-        public bool IsBundle { get; set; }
+        public bool AttachmentIsBundle { get; set; }
+        [Display(Name = "Multi-Port")]
+        public bool AttachmentIsMultiPort { get; set; }
         [Display(Name = "VIF")]
         public bool IsVif { get; set; }
         [Display(Name = "VIF Name")]
@@ -33,15 +35,15 @@ namespace SCM.Models.ViewModels
         public string Region { get; set; }
         [Display(Name = "Sub-Region")]
         public string SubRegion { get; set; }
-        public string Location { get; set; }
+        public string LocationName { get; set; }
         [Display(Name = "Interface Bandwidth (Gbps)")]
-        public int InterfaceBandwidth { get; set; }
+        public int InterfaceBandwidthValue { get; set; }
         [Display(Name = "Plane")]
         public string PlaneName { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
-        public string ContractBandwidthPool { get; set; }
+        public string ContractBandwidthPoolName { get; set; }
         [Display(Name = "Contract Bandwidth (Mbps)")]
-        public int ContractBandwidth { get; set; }
+        public int ContractBandwidthValue { get; set; }
         [Display(Name = "Requires Sync")]
         public bool RequiresSync { get; set; }
     }

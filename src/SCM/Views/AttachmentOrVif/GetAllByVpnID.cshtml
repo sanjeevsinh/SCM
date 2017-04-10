@@ -28,7 +28,10 @@
                 @Html.DisplayNameFor(model => model.DeviceName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsBundle)
+                @Html.DisplayNameFor(model => model.AttachmentIsBundle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AttachmentIsMultiPort)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.AttachmentName)
@@ -62,7 +65,10 @@
                 @Html.DisplayFor(modelItem => item.DeviceName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.IsBundle)
+                @Html.DisplayFor(modelItem => item.AttachmentIsBundle)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AttachmentIsMultiPort)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.AttachmentName)
@@ -77,7 +83,7 @@
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
-                @Html.ActionLink("Details", "Details", new { id = item.ID, vif = item.IsVif, vpnID = ViewBag.Vpn.VpnID })
+                @Html.ActionLink("Details", "Details", new { id = item.ID, vif = item.IsVif, attachmentIsMultiPort = item.AttachmentIsMultiPort, vpnID = ViewBag.Vpn.VpnID })
             </td>
         </tr>
     }
