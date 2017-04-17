@@ -11,8 +11,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string IpAddress { get; set; }
         [XmlElement(ElementName = "ipv4-subnet-mask")]
         public string SubnetMask { get; set; }
-        [XmlElement(ElementName = "enable-bgp")]
-        public bool EnableBgp { get; set; }
         [XmlElement(ElementName = "bgp-peer")]
         public List<BgpPeerNetModel> BgpPeers { get; set; }
         public Layer3NetModel()
@@ -133,6 +131,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
         [XmlElement(ElementName = "vrf-name")]

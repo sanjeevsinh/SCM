@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SCM.Models;
 using SCM.Data;
+using SCM.Models.ServiceModels;
 
 namespace SCM.Services.SCMServices
 {
@@ -11,7 +12,8 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<Vrf> GetByIDAsync(int id);
-        Task<ServiceResult> AddAsync(Vrf vrf);
+        Task<ServiceResult> AddAsync(AttachmentRequest request);
+        Task<ServiceResult> AddAsync(VifRequest request);
         Task<int> UpdateAsync(Vrf vrf);
         Task<int> DeleteAsync(Vrf vrf);
         Task<ServiceResult> ValidateDeleteAsync(int vrfID);

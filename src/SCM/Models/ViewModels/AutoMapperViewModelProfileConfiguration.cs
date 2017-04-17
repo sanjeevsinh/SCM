@@ -61,39 +61,51 @@ namespace SCM.Models.ViewModels
                 var result = new AttachmentSetVrfViewModel();
                 var vrf = source.Vrf;
 
-                if (vrf.Interfaces.Count == 1)
-                {
-                    var attachment = mapper.Map<Attachment>(vrf.Interfaces.Single());
-                    result.AttachmentOrVifName = attachment.Name;
-                    result.ContractBandwidthPoolName = attachment.ContractBandwidthPool.Name;
-                    result.DeviceName = attachment.Device.Name;
-                    result.RegionName = attachment.Location.SubRegion.Region.Name;
-                    result.SubRegionName = attachment.Location.SubRegion.Name;
-                    result.PlaneName = attachment.Device.Plane.Name;
-                    result.LocationSiteName = attachment.Location.SiteName;
-                }
-                else if (vrf.InterfaceVlans.Count == 1)
-                {
-                    var vif = mapper.Map<Vif>(vrf.InterfaceVlans.Single());
-                    result.AttachmentOrVifName = vif.Name;
-                    result.ContractBandwidthPoolName = vif.ContractBandwidthPool.Name;
-                    result.DeviceName = vrf.Device.Name;
-                    result.RegionName = vrf.Device.Location.SubRegion.Region.Name;
-                    result.SubRegionName = vrf.Device.Location.SubRegion.Name;
-                    result.PlaneName = vrf.Device.Plane.Name;
-                    result.LocationSiteName = vrf.Device.Location.SiteName;
-                }
-
+                result.DeviceName = vrf.Device.Name;
+                result.RegionName = vrf.Device.Location.SubRegion.Region.Name;
+                result.SubRegionName = vrf.Device.Location.SubRegion.Name;
+                result.PlaneName = vrf.Device.Plane.Name;
+                result.LocationSiteName = vrf.Device.Location.SiteName;
                 result.AttachmentSet = mapper.Map<AttachmentSetViewModel>(source.AttachmentSet);
                 result.AttachmentSetID = source.AttachmentSetID;
                 result.AttachmentSetVrfID = source.AttachmentSetVrfID;
                 result.Preference = source.Preference;
-                result.Vrf = mapper.Map<VrfViewModel>(source.Vrf);
-                result.VrfID = source.VrfID;
+                result.Vrf = mapper.Map<VrfViewModel>(vrf);
+                result.VrfID = vrf.VrfID;
+
+                Attachment attachment = null;
+                Vif vif = null;
+
+                if (vrf.Interfaces.Count == 1)
+                {
+                    attachment = mapper.Map<Attachment>(vrf.Interfaces.Single());
+                }
+                else if (vrf.MultiPorts.Count == 1)
+                {
+                    attachment = mapper.Map<Attachment>(vrf.MultiPorts.Single());
+                }
+                else if (vrf.MultiPortVlans.Count == 1)
+                {
+                    vif = mapper.Map<Vif>(vrf.MultiPortVlans.Single());
+                }
+                else if (vrf.InterfaceVlans.Count == 1)
+                {
+                    vif = mapper.Map<Vif>(vrf.InterfaceVlans.Single());
+                }
+
+                if (attachment != null) {
+
+                    result.AttachmentOrVifName = attachment.Name;
+                    result.ContractBandwidthPoolName = attachment.ContractBandwidthPool.Name;
+                }
+                else if (vif != null)
+                { 
+                    result.AttachmentOrVifName = vif.Name;
+                    result.ContractBandwidthPoolName = vif.ContractBandwidthPool.Name;
+                }
 
                 return result;
             }    
         }
-     
     }
 }

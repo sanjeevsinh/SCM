@@ -48,6 +48,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Type))
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.Name))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.InterfaceBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidth, conf => conf.MapFrom(src => src.Interface.ContractBandwidthPool.ContractBandwidth.BandwidthMbps))
+                .ForMember(dest => dest.TrustReceivedCosDscp, conf => conf.MapFrom(src => src.Interface.ContractBandwidthPool.TrustReceivedCosDscp))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Interface.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Interface.IsLayer3 ? src.Interface : null));
 
@@ -78,19 +80,15 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<InterfaceVlan, VifServiceNetModel>();
 
             CreateMap<Interface, Layer3NetModel>()
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<AttachmentAndVifs, Layer3NetModel>()
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<Vif, Layer3NetModel>()
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<InterfaceVlan, Layer3NetModel>()
-                .ForMember(dest => dest.EnableBgp, conf => conf.MapFrom(src => src.Vrf.BgpPeers.Count > 0))
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
 
             CreateMap<Vrf, VrfNetModel>()

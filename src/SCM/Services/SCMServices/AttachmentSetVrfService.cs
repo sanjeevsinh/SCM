@@ -25,9 +25,36 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync();
         }
 
-        public async Task<AttachmentSetVrf> GetByIDAsync(int key)
+        public async Task<IEnumerable<AttachmentSetVrf>> GetAllByAttachmentSetID(int id)
         {
-            return await UnitOfWork.AttachmentSetVrfRepository.GetByIDAsync(key);
+            return await UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id,
+               includeProperties: "Vrf.Device.Location.SubRegion.Region,"
+               + "Vrf.Device.Plane,"
+               + "Vrf.Tenant,"
+               + "Vrf.Interfaces.Port,"
+               + "Vrf.Interfaces.ContractBandwidthPool,"
+               + "Vrf.InterfaceVlans.Interface.Port,"
+               + "Vrf.InterfaceVlans.ContractBandwidthPool,"
+               + "Vrf.MultiPorts.ContractBandwidthPool,"
+               + "Vrf.MultiPortVlans.MultiPort,"
+               + "Vrf.MultiPortVlans.ContractBandwidthPool");
+        }
+
+        public async Task<AttachmentSetVrf> GetByIDAsync(int id)
+        {
+            var dbResult = await UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, includeProperties:
+               "Vrf.Device.Location.SubRegion.Region,"
+               + "Vrf.Device.Plane,"
+               + "Vrf.Tenant,"
+               + "Vrf.Interfaces.Port,"
+               + "Vrf.Interfaces.ContractBandwidthPool,"
+               + "Vrf.InterfaceVlans.Interface.Port,"
+               + "Vrf.InterfaceVlans.ContractBandwidthPool,"
+               + "Vrf.MultiPorts.ContractBandwidthPool,"
+               + "Vrf.MultiPortVlans.MultiPort,"
+               + "Vrf.MultiPortVlans.ContractBandwidthPool");
+
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<int> AddAsync(AttachmentSetVrf attachmentSetVrf)

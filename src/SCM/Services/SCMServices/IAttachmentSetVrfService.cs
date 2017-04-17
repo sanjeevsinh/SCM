@@ -14,6 +14,7 @@ namespace SCM.Services.SCMServices
 
         Task<IEnumerable<AttachmentSetVrf>> GetAllAsync();
         Task<AttachmentSetVrf> GetByIDAsync(int id);
+        Task<IEnumerable<AttachmentSetVrf>> GetAllByAttachmentSetID(int id);
         Task<int> AddAsync(AttachmentSetVrf attachmentSetVrf);
         Task<int> UpdateAsync(AttachmentSetVrf attachmentSetVrf);
         Task<int> DeleteAsync(AttachmentSetVrf attachmentSetVrf);

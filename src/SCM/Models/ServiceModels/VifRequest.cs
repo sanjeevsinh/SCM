@@ -24,7 +24,9 @@ namespace SCM.Models.ServiceModels
         public string SubnetMask4 { get; set; }
         public int TenantID { get; set; }
         public int AttachmentID { get; set; }
+        public int DeviceID { get; set; }
         public bool AttachmentIsMultiPort { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
+        public int? ContractBandwidthID { get; set; }
     }
 }

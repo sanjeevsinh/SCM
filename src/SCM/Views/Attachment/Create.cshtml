@@ -65,15 +65,6 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="ContractBandwidthPool" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="ContractBandwidthPoolID" class="form-control" asp-items="ViewBag.ContractBandwidthPoolID">
-                    <option value="">Select Contract Bandwidth Pool</option>
-                </select>
-                <span asp-validation-for="ContractBandwidthPoolID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="BundleRequired" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="BundleRequired" class="checkbox" />
@@ -95,6 +86,21 @@
             <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="IsLayer3" class="checkbox" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="ContractBandwidth" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="ContractBandwidthID" class="form-control" asp-items="ViewBag.ContractBandwidthID">
+                    <option value="">Select Contract Bandwidth</option>
+                </select>
+                <span asp-validation-for="ContractBandwidthID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="TrustReceivedCosDscp" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="TrustReceivedCosDscp" class="checkbox" />
             </div>
         </div>
         <div id="L3Components1">
@@ -194,8 +200,10 @@
             bundleRequired = $bundleRequired[0],
             $multiPortRequired = $('#MultiPortRequired'),
             multiPortRequired = $multiPortRequired[0],
-            $contractBandwidthPool = $('#ContractBandwidthPoolID'),
-            contractBandwidthPool = $contractBandwidthPool[0],
+            $contractBandwidth = $('#ContractBandwidthID'),
+            contractBandwidth = $contractBandwidth[0],
+            $trustReceivedCosAndDscp = $('#TrustReceivedCosAndDscp'),
+            trustReceivedCosAndDscp = $trustReceivedCosAndDscp[0],
             $l3Components1 = $('#L3Components1'),
             $l3Components2 = $('#L3Components2'),
             $l3Components4 = $('#L3Components4');
@@ -208,7 +216,8 @@
 
             if (isTagged.checked) {
 
-                contractBandwidthPool.disabled = true;
+                contractBandwidth.disabled = true;
+                trustReceivedCosAndDscp.disabled = true;
             }
 
             showHideL3Components();
@@ -249,7 +258,8 @@
 
                 if (isLayer3Checked) {
 
-                    contractBandwidthPool.disabled = false;
+                    contractBandwidth.disabled = false;
+                    trustReceivedCosAndDscp.disabled = false;
                     isTagged.checked = false;
                 }
             });
@@ -262,12 +272,14 @@
 
                     isLayer3.checked = false;
                     showHideL3Components();
-                    contractBandwidthPool.selectedIndex = 0;
-                    contractBandwidthPool.disabled = true;
+                    contractBandwidth.selectedIndex = 0;
+                    contractBandwidth.disabled = true;
+                    trustReceivedCosAndDscp.disabled = true;
                 }
                 else {
 
-                    contractBandwidthPool.disabled = false;
+                    contractBandwidth.disabled = false;
+                    trustReceivedCosAndDscp.disabled = false;
                 }
             });
 

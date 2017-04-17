@@ -57,6 +57,8 @@ namespace SCM.Models.ServiceModels
 
             CreateMap<AttachmentRequest, Vrf>();
 
+            CreateMap<AttachmentRequest, ContractBandwidthPool>();
+
             CreateMap<VifRequest, InterfaceVlan>()
                 .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.AttachmentID))
                 .ForMember(dest => dest.VlanTag, conf => conf.MapFrom(src => src.AllocatedVlanTag));

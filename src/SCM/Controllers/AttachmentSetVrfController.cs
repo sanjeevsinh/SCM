@@ -36,10 +36,6 @@ namespace SCM.Controllers
             var attachmentSet = await GetAttachmentSet(id.Value);
             ViewBag.AttachmentSet = attachmentSet;
 
-            var attachmentSetVrfs = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == id.Value, 
-                includeProperties: "Vrf.Device.Location.SubRegion.Region,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
-
             var checkVrfsResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
             if (!checkVrfsResult.IsSuccess)
             {
@@ -49,6 +45,8 @@ namespace SCM.Controllers
             {
                 ViewData["ValidationSuccessMessage"] = "The VRFs for this attachment set are configured correctly!";
             }
+
+            var attachmentSetVrfs = await AttachmentSetVrfService.GetAllByAttachmentSetID(id.Value);
 
             return View(Mapper.Map<List<AttachmentSetVrfViewModel>>(attachmentSetVrfs));
         }
@@ -61,10 +59,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
-            var item = dbResult.SingleOrDefault();
+            var item = await AttachmentSetVrfService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
@@ -72,6 +67,7 @@ namespace SCM.Controllers
             }
 
             ViewBag.AttachmentSet = await GetAttachmentSet(item.AttachmentSetID);
+
             return View(Mapper.Map<AttachmentSetVrfViewModel>(item));
         }
 
@@ -145,11 +141,8 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
-            var attachmentSetVrf = dbResult.SingleOrDefault();
-
+            var attachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(id.Value);
+     
             if (attachmentSetVrf == null)
             {
                 return NotFound();
@@ -176,11 +169,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool", AsTrackable: false);
-            var currentAttachmentSetVrf = dbResult.SingleOrDefault();
-
+            var currentAttachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(id);
             if (currentAttachmentSetVrf == null)
             {
                 ModelState.AddModelError(string.Empty, "Unable to save changes. The item was deleted by another user.");
@@ -241,10 +230,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id.Value, 
-                includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool");
-            var attachmentSetVrf = dbResult.SingleOrDefault();
+            var attachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(id.Value);
 
             if (attachmentSetVrf == null)
             {
@@ -276,10 +262,7 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == attachmentSetVrf.AttachmentSetVrfID,
-                    includeProperties: "AttachmentSet.Tenant,Vrf.Device.Location.SubRegion.Region,Vrf.Device.Plane,Vrf.Interfaces.Port,Vrf.Interfaces.ContractBandwidthPool,"
-                + "Vrf.InterfaceVlans.Interface.Port,Vrf.InterfaceVlans.ContractBandwidthPool,Vrf.Interfaces.ContractBandwidthPool", AsTrackable:false);
-                var currentAttachmentSetVrf = dbResult.SingleOrDefault();
+                var currentAttachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(attachmentSetVrf.AttachmentSetVrfID);
 
                 if (currentAttachmentSetVrf != null)
                 {

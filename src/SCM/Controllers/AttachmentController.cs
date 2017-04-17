@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
+using SCM.Models;
 using SCM.Models.ServiceModels;
 using SCM.Models.ViewModels;
 using SCM.Services;
@@ -74,18 +75,19 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMultiPortMemberPorts(int? id)
+        public async Task<IActionResult> GetMultiPortMemberAttachments(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var multiPortMemberPorts = await AttachmentService.UnitOfWork.PortRepository.GetAsync(q => q.MultiPortID == id.Value,
-                includeProperties: "Device", AsTrackable: false);
+            Expression<Func<Interface, bool>> ifaceEx = q => q.Port.MultiPortID == id.Value;
+            var memberAttachments = await AttachmentService.GetAsync(ifaceEx);
+
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value, multiPort: true);
 
-            return View(Mapper.Map<List<PortViewModel>>(multiPortMemberPorts));
+            return View(Mapper.Map<List<AttachmentViewModel>>(memberAttachments));
         }
 
         [HttpGet]
@@ -100,7 +102,7 @@ namespace SCM.Controllers
             await PopulatePlanesDropDownList();
             await PopulateRegionsDropDownList();
             await PopulateBandwidthsDropDownList();
-            await PopulateContractBandwidthPoolsDropDownList(id.Value);
+            await PopulateContractBandwidthsDropDownList();
 
             return View();
         }
@@ -109,7 +111,7 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TenantID,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,"
             + "IpAddress3,SubnetMask3,IpAddress4,SubnetMask4,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID," 
-            + "IsLayer3,IsTagged,BundleRequired,MultiPortRequired,ContractBandwidthPoolID")] AttachmentRequestViewModel request)
+            + "IsLayer3,IsTagged,BundleRequired,MultiPortRequired,ContractBandwidthID")] AttachmentRequestViewModel request)
         {
 
             if (ModelState.IsValid)
@@ -144,7 +146,7 @@ namespace SCM.Controllers
             await PopulateSubRegionsDropDownList(request.RegionID, request.SubRegionID);
             await PopulateLocationsDropDownList(request.SubRegionID, request.LocationID);
             await PopulateBandwidthsDropDownList();
-            await PopulateContractBandwidthPoolsDropDownList(request.TenantID);
+            await PopulateContractBandwidthsDropDownList();
             return View(request);
         }
 
@@ -339,12 +341,12 @@ namespace SCM.Controllers
         private async Task PopulateBandwidthsDropDownList(object selectedBandwidth = null)
         {
             var bandwidths = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
-            ViewBag.BandwidthID = new SelectList(bandwidths.OrderBy(f => f.BandwidthGbps), "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
+            ViewBag.BandwidthID = new SelectList(bandwidths.OrderBy(b => b.BandwidthGbps), "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
         }
-        private async Task PopulateContractBandwidthPoolsDropDownList(int tenantID, object selectedContractBandwidthPool = null)
+        private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)
         {
-            var contractBandwidthPools = await AttachmentService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == tenantID);
-            ViewBag.ContractBandwidthPoolID = new SelectList(contractBandwidthPools, "ContractBandwidthPoolID", "Name", selectedContractBandwidthPool);
+            var contractBandwidths = await AttachmentService.UnitOfWork.ContractBandwidthRepository.GetAsync();
+            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(b => b.BandwidthMbps), "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
         }
     }
 }

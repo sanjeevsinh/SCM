@@ -17,6 +17,7 @@ namespace SCM.Models.ViewModels
         public int? Preference { get; set; }
         [Display(Name = "Attachment Set")]
         public AttachmentSetViewModel AttachmentSet { get; set; }
+        [Display(Name = "VRF Name")]
         public VrfViewModel Vrf { get; set; }
         [Display(Name = "Attachment/VIF Name")]
         public string AttachmentOrVifName { get; set; }

@@ -34,11 +34,13 @@ namespace SCM.Models.ViewModels
         public PlaneViewModel Plane { get; set; }
         [Required(ErrorMessage = "A bandwidth option must be selected")]
         public int BandwidthID { get; set; }
-        [Display(Name = "Bandwidth (Gigabits/Second)")]
+        [Display(Name = "Attachment Bandwidth (Gigabits/Second)")]
         public InterfaceBandwidthViewModel Bandwidth { get; set; }
-        public int? ContractBandwidthPoolID { get; set; }
-        [Display(Name = "Contract Bandwidth Pool")]
-        public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
+        public int? ContractBandwidthID { get; set; }
+        [Display(Name = "Trust Received COS and DSCP")]
+        public bool TrustReceivedCosDscp { get; set; }
+        [Display(Name = "Contract Bandwidth (Megabits/Second)")]
+        public ContractBandwidthViewModel ContractBandwidth { get; set; }
         [RegularExpression(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
             ErrorMessage = "A valid IP address must be entered, e.g. 192.168.0.1")]
         [Display(Name = "IP Address 1")]
@@ -89,18 +91,18 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A subnet mask cannot be specified for tagged attachments.");
                 }
-                if (ContractBandwidthPoolID != null)
+                if (ContractBandwidthID != null)
                 {
                     yield return new ValidationResult(
-                        "A Contract Bandwidth Pool cannot be specified for tagged attachments.");
+                        "A Contract Bandwidth cannot be specified for tagged attachments.");
                 }
             }
             else
             {
-                if (ContractBandwidthPoolID == null)
+                if (ContractBandwidthID == null)
                 {
                     yield return new ValidationResult(
-                        "A Contract Bandwidth Pool must be specified for untagged attachments.");
+                        "A Contract Bandwidth must be specified for untagged attachments.");
                 }
             }
 

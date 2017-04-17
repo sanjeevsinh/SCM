@@ -97,7 +97,7 @@
                     }
                     @if (item.IsMultiPort)
                     {
-                        <span>|</span> @Html.ActionLink("Member Ports", "GetMultiPortMemberPorts", new { ID = item.ID, tenantID = item.TenantID })
+                        <span>|</span> @Html.ActionLink("Member Attachments", "GetMultiPortMemberAttachments", new { ID = item.ID, tenantID = item.TenantID })
                     }
                     @if (item.IsLayer3)
                     {

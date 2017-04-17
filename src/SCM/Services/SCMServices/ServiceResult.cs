@@ -45,5 +45,7 @@ namespace SCM.Services.SCMServices
         }
 
         public List<NetworkSyncServiceResult> NetworkSyncServiceResults { get; set; }
+
+        public object Item { get; set; }
     }
 }

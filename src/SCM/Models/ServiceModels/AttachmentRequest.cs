@@ -27,9 +27,11 @@ namespace SCM.Models.ServiceModels
         public int SubRegionID { get; set; }
         public int? PlaneID { get; set; }
         public int BandwidthID { get; set; }
-        public int? ContractBandwidthPoolID { get; set; }
+        public int? ContractBandwidthID { get; set; }
+        public bool TrustReceivedCosDscp { get; set; }
         public int PortBandwidthRequired { get; set; }
         public int NumPortsRequired { get; set; }
+        public int DeviceID { get; set; }
         public InterfaceBandwidth Bandwidth { get; set; }
     }
 }
