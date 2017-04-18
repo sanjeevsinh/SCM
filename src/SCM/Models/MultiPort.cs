@@ -14,6 +14,7 @@ namespace SCM.Models
         public int DeviceID { get; set; }
         public int InterfaceBandwidthID { get; set; }
         public int? VrfID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsTagged { get; set; }
         public bool RequiresSync { get; set; }
@@ -28,6 +29,7 @@ namespace SCM.Models
         public virtual Device Device { get; set; }
         public virtual Tenant Tenant { get; set; }
         public virtual InterfaceBandwidth InterfaceBandwidth {get; set; }
+        public virtual ContractBandwidthPool ContractBandwidthPool { get; set; }
         public virtual Vrf Vrf { get; set; }
         public virtual ICollection<Port> Ports { get; set; }
         public virtual ICollection<MultiPortVlan> MultiPortVlans { get; set; }

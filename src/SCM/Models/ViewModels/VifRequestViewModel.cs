@@ -53,11 +53,14 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A tenant must be selected")]
         public int TenantID { get; set; }
         public TenantViewModel Tenant { get; set; }
-        [Required(ErrorMessage = "A contract bandwidth pool must be selected")]
         public int? ContractBandwidthPoolID { get; set; }
         [Display(Name = "Contract Bandwidth Pool")]
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
-
+        public int? ContractBandwidthID { get; set; }
+        [Display(Name = "Trust Received COS and DSCP")]
+        public bool TrustReceivedCosDscp { get; set; }
+        [Display(Name = "Contract Bandwidth (Megabits/Second)")]
+        public ContractBandwidthViewModel ContractBandwidth { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -95,6 +98,11 @@ namespace SCM.Models.ViewModels
                     yield return new ValidationResult(
                         "A requested vlan tag must be specified, or select the auto-allocate vlan tag option.");
                 }
+            }
+            if (ContractBandwidthID == null && ContractBandwidthPoolID == null)
+            {
+                yield return new ValidationResult(
+                    "Either an existing Contract Bandwidth Pool or a Contract Bandwidth Value must be selected.");
             }
         }
     }

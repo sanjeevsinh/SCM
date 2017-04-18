@@ -28,5 +28,6 @@ namespace SCM.Models.ServiceModels
         public bool AttachmentIsMultiPort { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
         public int? ContractBandwidthID { get; set; }
+        public bool TrustReceivedCosDscp { get; set; }
     }
 }

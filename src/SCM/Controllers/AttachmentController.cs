@@ -19,12 +19,14 @@ namespace SCM.Controllers
 {
     public class AttachmentController : BaseViewController
     {
-        public AttachmentController(IAttachmentService attachmentService, IMapper mapper)
+        public AttachmentController(IAttachmentService attachmentService, IVrfService vrfService, IMapper mapper)
         {
             AttachmentService = attachmentService;
+            VrfService = vrfService;
             Mapper = mapper;
         }
         private IAttachmentService AttachmentService { get; set; }
+        private IVrfService VrfService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -68,9 +70,9 @@ namespace SCM.Controllers
             }
 
             var bundleInterfacePorts = await AttachmentService.UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == id.Value,
-                includeProperties:"Port.Device", AsTrackable:false);
+                includeProperties: "Port.Device", AsTrackable: false);
             ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
-           
+
             return View(Mapper.Map<List<BundleInterfacePortViewModel>>(bundleInterfacePorts));
         }
 
@@ -110,8 +112,8 @@ namespace SCM.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TenantID,IpAddress1,SubnetMask1,IpAddress2,SubnetMask2,"
-            + "IpAddress3,SubnetMask3,IpAddress4,SubnetMask4,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID," 
-            + "IsLayer3,IsTagged,BundleRequired,MultiPortRequired,ContractBandwidthID")] AttachmentRequestViewModel request)
+            + "IpAddress3,SubnetMask3,IpAddress4,SubnetMask4,BandwidthID,RegionID,SubRegionID,LocationID,PlaneID,"
+            + "IsLayer3,IsTagged,BundleRequired,MultiPortRequired,ContractBandwidthID,TrustReceivedCosDscp")] AttachmentRequestViewModel request)
         {
 
             if (ModelState.IsValid)
@@ -168,7 +170,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Delete(int? id, [FromQuery]bool isMultiPort, bool? concurrencyError = false)
         {
 
-            var item = await AttachmentService.GetByIDAsync(id.Value, multiPort:isMultiPort);
+            var item = await AttachmentService.GetByIDAsync(id.Value, multiPort: isMultiPort);
             if (item == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -199,21 +201,28 @@ namespace SCM.Controllers
         {
             try
             {
-                var item = await AttachmentService.GetByIDAsync(attachment.ID, multiPort:attachment.IsMultiPort);
+                var item = await AttachmentService.GetByIDAsync(attachment.ID, multiPort: attachment.IsMultiPort);
 
                 if (item != null)
                 {
-                    var result = await AttachmentService.DeleteAsync(item);
-                    if (!result.IsSuccess)
+                    var validationResult = await ValidateDelete(item);
+                    if (validationResult)
                     {
-                        ViewData["ErrorMessage"] = result.GetHtmlListMessage();
-                        await PopulateTenantItem(item.TenantID);
-
-                        return View(Mapper.Map<AttachmentViewModel>(item));
+                        var result = await AttachmentService.DeleteAsync(item);
+                        if (!result.IsSuccess)
+                        {
+                            ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                        }
+                        else
+                        {
+                            return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
+                        }
                     }
                 }
 
-                return RedirectToAction("GetAllByTenantID", new { id = Request.Query["TenantID"] });
+                await PopulateTenantItem(item.TenantID);
+
+                return View(Mapper.Map<AttachmentViewModel>(item));
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
@@ -294,19 +303,68 @@ namespace SCM.Controllers
                 return View("AttachmentDeleted", new { TenantID = Request.Query["TenantID"] });
             }
 
-            var syncResult = await AttachmentService.DeleteFromNetworkAsync(item);
-            if (syncResult.IsSuccess)
+            var validationResult = await ValidateDelete(item);
+            if (validationResult)
             {
-                ViewData["SuccessMessage"] = "The attachment has been deleted from the network.";
-            }
-            else
-            {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                var syncResult = await AttachmentService.DeleteFromNetworkAsync(item);
+                if (syncResult.IsSuccess)
+                {
+                    ViewData["SuccessMessage"] = "The attachment has been deleted from the network.";
+                }
+                else
+                {
+                    ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                }
             }
 
             await PopulateTenantItem(item.TenantID);
             item.RequiresSync = true;
+
             return View("Delete", Mapper.Map<AttachmentViewModel>(item));
+        }
+
+        /// <summary>
+        /// Helper to validate that an Attachment can be deleted.
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <returns></returns>
+        private async Task<bool> ValidateDelete(AttachmentAndVifs attachment)
+        {
+            var result = true;
+
+            if (!attachment.IsTagged)
+            {
+                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
+
+                if (!vrfValidationResult.IsSuccess)
+                {
+                    result = false;
+                    ViewData["ErrorMessage"] = vrfValidationResult.GetHtmlListMessage();
+
+                    return result;
+
+                }
+            }
+
+            // Check if the attachment has any vifs, then check if each vif has a vrf.
+            // If a vrf exists, check if it participates in any services
+
+            if (attachment.Vifs.Count > 0)
+            {
+                foreach (var vif in attachment.Vifs)
+                {
+                    var vifVrfValidationResult = await VrfService.ValidateDeleteAsync(vif.VrfID.Value);
+                    if (!vifVrfValidationResult.IsSuccess)
+                    {
+                        result = false;
+                        ViewData["ErrorMessage"] = vifVrfValidationResult.GetHtmlListMessage();
+
+                        return result;
+                    }
+                }
+            }
+
+            return result;
         }
 
         private async Task PopulateTenantItem(int tenantID)

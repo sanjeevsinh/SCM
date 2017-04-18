@@ -202,8 +202,8 @@
             multiPortRequired = $multiPortRequired[0],
             $contractBandwidth = $('#ContractBandwidthID'),
             contractBandwidth = $contractBandwidth[0],
-            $trustReceivedCosAndDscp = $('#TrustReceivedCosAndDscp'),
-            trustReceivedCosAndDscp = $trustReceivedCosAndDscp[0],
+            $trustReceivedCosDscp = $('#TrustReceivedCosDscp'),
+            trustReceivedCosDscp = $trustReceivedCosDscp[0],
             $l3Components1 = $('#L3Components1'),
             $l3Components2 = $('#L3Components2'),
             $l3Components4 = $('#L3Components4');
@@ -217,7 +217,7 @@
             if (isTagged.checked) {
 
                 contractBandwidth.disabled = true;
-                trustReceivedCosAndDscp.disabled = true;
+                trustReceivedCosDscp.disabled = true;
             }
 
             showHideL3Components();
@@ -259,7 +259,7 @@
                 if (isLayer3Checked) {
 
                     contractBandwidth.disabled = false;
-                    trustReceivedCosAndDscp.disabled = false;
+                    trustReceivedCosDscp.disabled = false;
                     isTagged.checked = false;
                 }
             });
@@ -274,12 +274,12 @@
                     showHideL3Components();
                     contractBandwidth.selectedIndex = 0;
                     contractBandwidth.disabled = true;
-                    trustReceivedCosAndDscp.disabled = true;
+                    trustReceivedCosDscp.disabled = true;
                 }
                 else {
 
                     contractBandwidth.disabled = false;
-                    trustReceivedCosAndDscp.disabled = false;
+                    trustReceivedCosDscp.disabled = false;
                 }
             });
 

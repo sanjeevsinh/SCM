@@ -18,7 +18,7 @@ namespace SCM.Models.ServiceModels
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }
         public int? VrfID { get; set; }
-        public int ContractBandwidthPoolID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public bool RequiresSync { get; set; }
         public Vrf Vrf { get; set; }
         public Tenant Tenant { get; set; }

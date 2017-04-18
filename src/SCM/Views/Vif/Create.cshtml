@@ -43,6 +43,15 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="ContractBandwidth" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="ContractBandwidthID" class="form-control" asp-items="ViewBag.ContractBandwidthID">
+                    <option value="">Select Contract Bandwidth</option>
+                </select>
+                <span asp-validation-for="ContractBandwidthID" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label asp-for="AutoAllocateVlanTag" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="AutoAllocateVlanTag" class="checkbox"/>
@@ -146,6 +155,8 @@
             isLayer3 = $isLayer3[0],
             $contractBandwidthPool = $('#ContractBandwidthPoolID'),
             contractBandwidthPool = $contractBandwidthPool[0],
+            $contractBandwidth = $('#ContractBandwidthID'),
+            contractBandwidth = $contractBandwidth[0],
             $tenant = $('#TenantID'),
             tenant = $tenant[0],
             $autoAllocateVlanTag = $('#AutoAllocateVlanTag'),
@@ -196,6 +207,16 @@
                 .done(function (data) {
                     $contractBandwidthPool.html(data);
                 });
+            });
+
+            $contractBandwidthPool.on('change', function (e) {
+
+                contractBandwidth.selectedIndex = 0;
+            });
+
+            $contractBandwidth.on('change', function (e) {
+
+                contractBandwidthPool.selectedIndex = 0;
             });
 
             function showHideL3Components() {

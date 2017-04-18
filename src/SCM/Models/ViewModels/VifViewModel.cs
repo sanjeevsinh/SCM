@@ -24,7 +24,7 @@ namespace SCM.Models.ViewModels
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }
         public int? VrfID { get; set; }
-        public int ContractBandwidthPoolID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         [Display(Name = "Requires Sync")]
         public bool RequiresSync { get; set; }
         public TenantViewModel Tenant { get; set; }

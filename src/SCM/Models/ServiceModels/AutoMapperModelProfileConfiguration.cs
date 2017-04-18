@@ -89,6 +89,8 @@ namespace SCM.Models.ServiceModels
 
             CreateMap<VifRequest, Vrf>();
 
+            CreateMap<VifRequest, ContractBandwidthPool>();
+
             CreateMap<RouteTargetRequest, RouteTarget>()
                 .ForMember(dest => dest.AssignedNumberSubField, conf => conf.MapFrom(src => src.AllocatedAssignedNumberSubField));
 

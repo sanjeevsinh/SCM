@@ -245,18 +245,6 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            if (vif.VrfID != null)
-            {
-                var validateVrfDelete = await VrfService.ValidateDeleteAsync(vif.VrfID.Value);
-                if (!validateVrfDelete.IsSuccess)
-                {
-                    result.AddRange(validateVrfDelete.GetMessageList());
-                    result.IsSuccess = false;
-
-                    return result;
-                }
-            }
-
             var syncResult = await DeleteFromNetworkAsync(vif);
 
             // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
@@ -330,22 +318,6 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> DeleteFromNetworkAsync(Vif vif)
         {
             var result = new ServiceResult { IsSuccess = true };
-
-            // Check for VPN Attachment Sets - if a VRF for the Attachment exists, which 
-            // is to be deleted, and one or more VPNs are bound to the VRF, 
-            // then quit and warn the user
-
-            if (vif.VrfID != null)
-            {
-                var validationResult = await VrfService.ValidateDeleteAsync(vif.Vrf.VrfID);
-                if (!validationResult.IsSuccess)
-                {
-                    result.AddRange(validationResult.GetMessageList());
-                    result.IsSuccess = false;
-
-                    return result;
-                }
-            }
 
             var tasks = new List<Task<NetworkSyncServiceResult>>();
 
@@ -642,6 +614,23 @@ namespace SCM.Services.SCMServices
                 var vrf = (Vrf)vrfResult.Item;
                 ifaceVlan.VrfID = vrf.VrfID;
 
+                if (request.ContractBandwidthID != null)
+                {
+                    // Create contract bandwidth pool for the vif
+
+                    var contractBandwidthPoolResult = await ContractBandwidthPoolService.AddAsync(request);
+                    if (!contractBandwidthPoolResult.IsSuccess)
+                    {
+                        result.AddRange(contractBandwidthPoolResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return;
+                    }
+
+                    var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
+                    ifaceVlan.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
+                }
+
                 this.UnitOfWork.InterfaceVlanRepository.Insert(ifaceVlan);
                 await this.UnitOfWork.SaveAsync();
             }
@@ -691,6 +680,23 @@ namespace SCM.Services.SCMServices
 
                 var vrf = (Vrf)vrfResult.Item;
                 multiPortVlan.VrfID = vrf.VrfID;
+
+                if (request.ContractBandwidthID != null)
+                {
+                    // Create contract bandwidth pool for the vif
+
+                    var contractBandwidthPoolResult = await ContractBandwidthPoolService.AddAsync(request);
+                    if (!contractBandwidthPoolResult.IsSuccess)
+                    {
+                        result.AddRange(contractBandwidthPoolResult.GetMessageList());
+                        result.IsSuccess = false;
+
+                        return;
+                    }
+
+                    var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
+                    multiPortVlan.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
+                }
 
                 this.UnitOfWork.MultiPortVlanRepository.Insert(multiPortVlan);
                 await this.UnitOfWork.SaveAsync();
