@@ -58,21 +58,9 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnTenantNetwork"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateVpnTenantNetworkAsync (VpnTenantNetwork vpnTenantNetwork)
+        public async Task<ServiceResult> ValidateNewAsync (VpnTenantNetwork vpnTenantNetwork, VpnAttachmentSet vpnAttachmentSet)
         {
-
-            var validationResult = new ServiceResult();
-            validationResult.IsSuccess = true;
-                  
-            var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantNetwork.VpnAttachmentSetID,
-                includeProperties:"Vpn", AsTrackable:false);
-            var vpnAttachmentSet = dbResult.SingleOrDefault();
-
-            if (vpnAttachmentSet == null)
-            {
-                validationResult.Add("The Attachment Set was not found.");
-                validationResult.IsSuccess = false;
-            }
+            var validationResult = new ServiceResult { IsSuccess = true };
 
             var vpn = vpnAttachmentSet.Vpn;
 
@@ -87,14 +75,14 @@ namespace SCM.Services.SCMServices
             }
             else
             {
-
-                var existingVpnTenantNetworkResult = await UnitOfWork.VpnTenantNetworkRepository.GetAsync(q => q.TenantNetworkID == vpnTenantNetwork.TenantNetworkID,
+                var existingVpnTenantNetworkResult = await UnitOfWork.VpnTenantNetworkRepository.GetAsync(q => 
+                    q.TenantNetworkID == vpnTenantNetwork.TenantNetworkID,
                     includeProperties: "TenantNetwork,VpnAttachmentSet.Vpn", AsTrackable: false);
+
                 var existingVpnTenantNetwork = existingVpnTenantNetworkResult.SingleOrDefault();
 
                 if (existingVpnTenantNetwork != null)
                 {
-
                     validationResult.Add("Tenant Network " + existingVpnTenantNetwork.TenantNetwork.IpPrefix
                         + "/" + existingVpnTenantNetwork.TenantNetwork.Length
                         + " is already bound to VPN " + existingVpnTenantNetwork.VpnAttachmentSet.Vpn.Name + ".");

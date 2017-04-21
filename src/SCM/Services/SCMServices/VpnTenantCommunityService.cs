@@ -58,21 +58,10 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="vpnTenantCommunity"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateAsync (VpnTenantCommunity vpnTenantCommunity)
+        public async Task<ServiceResult> ValidateNewAsync (VpnTenantCommunity vpnTenantCommunity, VpnAttachmentSet vpnAttachmentSet)
         {
-
             var validationResult = new ServiceResult { IsSuccess = true };
-                  
-            var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnTenantCommunity.VpnAttachmentSetID,
-                includeProperties:"Vpn", AsTrackable:false);
-            var vpnAttachmentSet = dbResult.SingleOrDefault();
-
-            if (vpnAttachmentSet == null)
-            {
-                validationResult.Add("The attachment set was not found.");
-                validationResult.IsSuccess = false;
-            }
-
+          
             var vpn = vpnAttachmentSet.Vpn;
 
             if (vpn.IsExtranet)
@@ -80,21 +69,26 @@ namespace SCM.Services.SCMServices
                 var tenantCommunity = await UnitOfWork.TenantCommunityRepository.GetByIDAsync(vpnTenantCommunity.TenantCommunityID);
                 if (!tenantCommunity.AllowExtranet)
                 {
-                    validationResult.Add($"Tenant Community {tenantCommunity.AutonomousSystemNumber} : {tenantCommunity.Number} is not enabled for Extranet.");
+                    validationResult.Add($"Tenant Community {tenantCommunity.AutonomousSystemNumber} : "
+                        + $"{tenantCommunity.Number} is not enabled for Extranet.");
+
                     validationResult.IsSuccess = false;
                 }
             }
             else
             {
-
-                var existingVpnTenantCommunityResult = await UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.TenantCommunityID == vpnTenantCommunity.TenantCommunityID,
+                var existingVpnTenantCommunityResult = await UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => 
+                    q.TenantCommunityID == vpnTenantCommunity.TenantCommunityID,
                     includeProperties: "TenantCommunity,VpnAttachmentSet.Vpn", AsTrackable: false);
+
                 var existingVpnTenantCommunity = existingVpnTenantCommunityResult.SingleOrDefault();
 
                 if (existingVpnTenantCommunity != null)
                 {
                     validationResult.Add($"Tenant Community {existingVpnTenantCommunity.TenantCommunity.AutonomousSystemNumber} : "
-                        + $"{existingVpnTenantCommunity.TenantCommunity.Number} is already bound to VPN {existingVpnTenantCommunity.VpnAttachmentSet.Vpn.Name}.");
+                        + $"{existingVpnTenantCommunity.TenantCommunity.Number} is already bound " 
+                        + $"to VPN {existingVpnTenantCommunity.VpnAttachmentSet.Vpn.Name}.");
+
                     validationResult.IsSuccess = false;
                 }
             }

@@ -16,11 +16,12 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> AddAsync(Vpn vpn);
         Task<int> UpdateAsync(Vpn vpn);
         Task<ServiceResult> DeleteAsync(Vpn vpn);
+        Task<ServiceResult> ValidateNewAsync(Vpn vpn);
         Task<ServiceResult> ValidateAsync(Vpn vpn);
         Task<ServiceResult> ValidateChangesAsync(Vpn vpn, Vpn currentVpn);
-        Task<ServiceResult> CheckNetworkSyncAsync(int vpnID);
-        Task<ServiceResult> SyncToNetworkAsync(int vpnID);
-        Task<ServiceResult> DeleteFromNetworkAsync(int vpnID);
+        Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn);
+        Task<ServiceResult> SyncToNetworkAsync(Vpn vpn);
+        Task<ServiceResult> DeleteFromNetworkAsync(Vpn vpn);
         Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
         Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);
     }

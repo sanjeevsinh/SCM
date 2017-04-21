@@ -106,7 +106,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSetVrf = Mapper.Map<AttachmentSetVrf>(attachmentSetVrf);
-                    var validationResult = await AttachmentSetVrfService.ValidateAsync(mappedAttachmentSetVrf);
+                    var validationResult = await AttachmentSetVrfService.ValidateNewAsync(mappedAttachmentSetVrf);
 
                     if (!validationResult.IsSuccess)
                     {

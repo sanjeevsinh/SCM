@@ -18,13 +18,23 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<RouteTarget>> GetAllAsync()
         {
-            return await this.UnitOfWork.RouteTargetRepository.GetAsync(includeProperties: "Plane,RouteTargetTenancyType,RouteTargetTopologyType.RouteTargetProtocolType,"
-                + "Tenant,Region");
+            return await this.UnitOfWork.RouteTargetRepository.GetAsync(includeProperties: 
+                "Plane,"
+                + "RouteTargetTenancyType,"
+                + "RouteTargetTopologyType.RouteTargetProtocolType,"
+                + "Tenant,"
+                + "Region");
         }
 
-        public async Task<RouteTarget> GetByIDAsync(int key)
+        public async Task<RouteTarget> GetByIDAsync(int id)
         {
-            return await UnitOfWork.RouteTargetRepository.GetByIDAsync(key);
+            var dbResult = await UnitOfWork.RouteTargetRepository.GetAsync(q => q.RouteTargetID == id, includeProperties: "Vpn", AsTrackable: false);
+            return dbResult.SingleOrDefault();
+        }
+   
+        public async Task<IEnumerable<RouteTarget>> GetAllByVpnIDAsync(int id)
+        {
+            return await UnitOfWork.RouteTargetRepository.GetAsync(q => q.VpnID == id, includeProperties: "Vpn", AsTrackable: false);
         }
 
         public async Task<ServiceResult> AddAsync(RouteTargetRequest request)
@@ -59,6 +69,64 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
+        /// <summary>
+        /// Validate an existing VPN
+        /// </summary>
+        /// <param name="vpn"></param>
+        /// <returns></returns>
+        public ServiceResult Validate(Vpn vpn)
+        {
+            var validationResult = new ServiceResult { IsSuccess = true };
+
+            var protocolType = vpn.VpnTopologyType.VpnProtocolType.ProtocolType;
+            var topologyType = vpn.VpnTopologyType.TopologyType;
+            var countOfRouteTargets = vpn.RouteTargets.Count();
+            var countOfExportRouteTarget = vpn.RouteTargets.Where(r => r.IsHubExport == true).Count();
+
+            if (protocolType == "Ethernet")
+            {
+                if (countOfExportRouteTarget > 0)
+                {
+                    validationResult.Add("A hub export route target cannot be defined for Ethernet VPN types.");
+                    validationResult.IsSuccess = false;
+                }
+            }
+            else
+            {
+                if (topologyType == "Any-to-Any")
+                {
+                    if (countOfRouteTargets != 1)
+                    {
+                        validationResult.Add("Any-to-Any IP VPNs require one route target.");
+                        validationResult.IsSuccess = false;
+                    }
+
+                    if (countOfExportRouteTarget > 0)
+                    {
+                        validationResult.Add("Hub Export cannot be set for Any-to-Any IP VPN types.");
+                        validationResult.IsSuccess = false;
+                    }
+                }
+                else if (topologyType == "Hub-and-Spoke")
+                {
+                    if (countOfRouteTargets != 2)
+                    {
+                        validationResult.Add("Hub-and-Spoke IP VPNs require two route targets, one of which must be an export route target.");
+                        validationResult.IsSuccess = false;
+                    }
+
+
+                    if (countOfExportRouteTarget != 1)
+                    {
+                        validationResult.Add("Hub-and-Spoke IP VPNs require one export route target.");
+                        validationResult.IsSuccess = false;
+                    }
+                }
+            }
+
+            return validationResult;
+        }
+
         public async Task<ServiceResult> CheckVpnOkToAddOrRemoveRouteTargetAsync(int vpnID)
         {
             var validationResult = new ServiceResult();
@@ -75,76 +143,6 @@ namespace SCM.Services.SCMServices
             }
 
             return validationResult;
-        }
-
-        /// <summary>
-        /// Validate route targets are correctly defined for the current vpn.
-        /// </summary>
-        /// <param name="vpnID"></param>
-        /// <returns></returns>
-        public async Task<ServiceResult> ValidateAsync(int vpnID)
-        {
-            var dbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnID, includeProperties: "VpnTopologyType.VpnProtocolType,RouteTargets");
-            var vpn = dbResult.SingleOrDefault();
-            var serviceValidationData = new ServiceResult();
-
-            if (vpn == null)
-            {
-                serviceValidationData.Add("The VPN was not found.");
-                return serviceValidationData;
-            }
-            else
-            {
-                var protocolType = vpn.VpnTopologyType.VpnProtocolType.ProtocolType;
-                var topologyType = vpn.VpnTopologyType.TopologyType;
-                var countOfRouteTargets = vpn.RouteTargets.Count();
-                var countOfExportRouteTarget = vpn.RouteTargets.Where(r => r.IsHubExport == true).Count();
-
-                serviceValidationData.IsSuccess = true;
-
-                if (protocolType == "Ethernet")
-                {
-                    if (countOfExportRouteTarget > 0)
-                    {
-                        serviceValidationData.Add("A hub export route target cannot be defined for Ethernet VPN types.");
-                        serviceValidationData.IsSuccess = false;
-                    }
-                }
-                else
-                {
-                    if (topologyType == "Any-to-Any")
-                    {
-                        if (countOfRouteTargets != 1)
-                        {
-                            serviceValidationData.Add("Any-to-Any IP VPNs require one route target.");
-                            serviceValidationData.IsSuccess = false;
-                        }
-
-                        if (countOfExportRouteTarget > 0)
-                        {
-                            serviceValidationData.Add("Hub Export cannot be set for Any-to-Any IP VPN types.");
-                            serviceValidationData.IsSuccess = false;
-                        }
-                    }
-                    else if (topologyType == "Hub-and-Spoke")
-                    {
-                        if (countOfRouteTargets != 2)
-                        {
-                            serviceValidationData.Add("Hub-and-Spoke IP VPNs require two route targets, one of which must be an export route target.");
-                            serviceValidationData.IsSuccess = false;
-                        }
-
-
-                        if (countOfExportRouteTarget != 1)
-                        {
-                            serviceValidationData.Add("Hub-and-Spoke IP VPNs require one export route target.");
-                            serviceValidationData.IsSuccess = false;
-                        }
-                    }
-                }
-            }
-
-            return serviceValidationData;
         }
 
         public async Task<IEnumerable<RouteTarget>> AllocateAllVpnRouteTargetsAsync(string vpnTopologyType, ServiceResult result)

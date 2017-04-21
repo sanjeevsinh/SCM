@@ -28,9 +28,12 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.VpnAttachmentSetRepository.GetAsync();
         }
 
-        public async Task<VpnAttachmentSet> GetByIDAsync(int key)
+        public async Task<VpnAttachmentSet> GetByIDAsync(int id)
         {
-            return await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(key);
+            var dbResult = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id, 
+                includeProperties: "AttachmentSet.Tenant,Vpn");
+
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<int> AddAsync(VpnAttachmentSet attachmentSetVpn)
@@ -54,57 +57,14 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceResult> ValidateAsync(VpnAttachmentSet vpnAttachmentSet)
+        /// <summary>
+        /// Validate a new VPN Attachment Set request.
+        /// </summary>
+        /// <param name="vpnAttachmentSet"></param>
+        /// <returns></returns>
+        public ServiceResult ValidateNew(VpnAttachmentSet vpnAttachmentSet, Vpn vpn, AttachmentSet attachmentSet)
         {
             var validationResult = new ServiceResult { IsSuccess = true };
-
-            var vpnDbResult = await UnitOfWork.VpnRepository.GetAsync(q => q.VpnID == vpnAttachmentSet.VpnID, 
-                includeProperties:"Plane", AsTrackable:false);
-            var vpn = vpnDbResult.SingleOrDefault();
-
-            var attachmentSetResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == vpnAttachmentSet.AttachmentSetID, 
-                includeProperties: "AttachmentSetVrfs.Vrf.Device.Plane,AttachmentRedundancy");
-            var attachmentSet = attachmentSetResult.SingleOrDefault();
-
-            if (vpn == null)
-            {
-                validationResult.Add("The VPN was not found.");
-                validationResult.IsSuccess = false;
-                return validationResult;
-            }
-
-            if (attachmentSet == null)
-            {
-                validationResult.Add("The attachment set was not found");
-                validationResult.IsSuccess = false;
-                return validationResult;
-            }
-
-            // First check that the vrfs in the attachment set are correctly configured
-
-            var attachmentSetVrfValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
-            if (!attachmentSetVrfValidationResult.IsSuccess)
-            {
-                validationResult.Add($"The VRFs in attachment set '{attachmentSet.Name}' are not configured correctly. "
-                    + "Resolve this issue and try again. ");
-                validationResult.Add(attachmentSetVrfValidationResult.GetMessage());
-                validationResult.IsSuccess = false;
-
-                return validationResult;
-            }
-
-            // Validate the VPN route targets
-
-            var routeTargetsValidationResult = await RouteTargetService.ValidateAsync(vpn.VpnID);
-            if (!routeTargetsValidationResult.IsSuccess)
-            {
-                validationResult.Add($"The route targets for VPN '{vpn.Name}' are not configured correctly. "
-                    + "Resolve this issue and try again. ");
-                validationResult.Add(routeTargetsValidationResult.GetMessage());
-                validationResult.IsSuccess = false;
-
-                return validationResult;
-            }
 
             // Validate the attachment set with the vpn binding
 

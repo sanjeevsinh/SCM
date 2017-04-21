@@ -22,7 +22,7 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment);
         Task<ServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment);
         Task<ServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment);
-        Task<ServiceResult> ValidateAsync(AttachmentRequest request);
+        Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false);
         Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true);
         Task UpdateRequiresSyncAsync(MultiPort multiPort, bool requiresSync, bool saveChanges = true);

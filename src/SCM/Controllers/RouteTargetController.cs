@@ -17,12 +17,14 @@ namespace SCM.Controllers
 {
     public class RouteTargetController : BaseViewController
     {
-        public RouteTargetController(IRouteTargetService routeTargetService, IMapper mapper)
+        public RouteTargetController(IRouteTargetService routeTargetService, IVpnService vpnService, IMapper mapper)
         {
             RouteTargetService = routeTargetService;
+            VpnService = vpnService;
             Mapper = mapper;
         }
         private IRouteTargetService RouteTargetService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -33,9 +35,14 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var routeTargets = await RouteTargetService.UnitOfWork.RouteTargetRepository.GetAsync(q => q.VpnID == id);
-            await PopulateVpnItem(id.Value);
-            var validateResult = await RouteTargetService.ValidateAsync(id.Value);
+            var vpn = await VpnService.GetByIDAsync(id.Value);
+            if (vpn == null)
+            {
+                return NotFound();
+            }
+
+            var validateResult = RouteTargetService.Validate(vpn);
+
             if (!validateResult.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty,validateResult.GetMessage());
@@ -44,6 +51,9 @@ namespace SCM.Controllers
             {
                 ViewData["ValidationSuccessMessage"] = "The Route Targets for this VPN are configured correctly!";
             }
+
+            var routeTargets = await RouteTargetService.GetAllByVpnIDAsync(id.Value);
+            ViewBag.Vpn = vpn;
 
             return View(Mapper.Map<List<RouteTargetViewModel>>(routeTargets));
         }

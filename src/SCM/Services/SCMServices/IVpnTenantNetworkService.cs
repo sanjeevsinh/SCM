@@ -16,6 +16,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(VpnTenantNetwork vpnTenantNetwork);
         Task<int> UpdateAsync(VpnTenantNetwork vpnTenantNetwork);
         Task<int> DeleteAsync(VpnTenantNetwork vpnTenantNetwork);
-        Task<ServiceResult> ValidateVpnTenantNetworkAsync(VpnTenantNetwork vpnTenantNetwork);
+        Task<ServiceResult> ValidateNewAsync(VpnTenantNetwork vpnTenantNetwork, VpnAttachmentSet vpnAttachmentSet);
     }
 }

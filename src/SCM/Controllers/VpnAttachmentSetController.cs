@@ -16,12 +16,19 @@ namespace SCM.Controllers
 {
     public class VpnAttachmentSetController : BaseViewController
     {
-        public VpnAttachmentSetController(IVpnAttachmentSetService vpnAttachmentSetService, IMapper mapper)
+        public VpnAttachmentSetController(IVpnAttachmentSetService vpnAttachmentSetService, IVpnService vpnService, 
+            IAttachmentSetService attachmentSetService, IAttachmentSetVrfService attachmentSetVrfService, IMapper mapper)
         {
            VpnAttachmentSetService = vpnAttachmentSetService;
+           VpnService = vpnService;
+           AttachmentSetService = attachmentSetService;
+           AttachmentSetVrfService = attachmentSetVrfService;
            Mapper = mapper;
         }
         private IVpnAttachmentSetService VpnAttachmentSetService { get; set; }
+        private IVpnService VpnService { get; set; }
+        private IAttachmentSetService AttachmentSetService { get; set; }
+        private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -95,16 +102,38 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var mappedAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
-                    var validationResult = await VpnAttachmentSetService.ValidateAsync(mappedAttachmentSet);
+                    var vpn = await VpnService.GetByIDAsync(vpnAttachmentSet.VpnID);
+                    var attachmentSet = await AttachmentSetService.GetByIDAsync(vpnAttachmentSet.AttachmentSetID);
 
+                    if (vpn == null || attachmentSet == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var mappedAttachmentSet = Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet);
+
+                    var validationOk = true;
+                    var validationResult = VpnAttachmentSetService.ValidateNew(mappedAttachmentSet, vpn, attachmentSet);
                     if (!validationResult.IsSuccess)
                     {
                         validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        validationOk = false;
                     }
-                    else
+
+                    // Check that the vrfs in the attachment set are correctly configured
+
+                    var attachmentSetVrfValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
+                    if (!attachmentSetVrfValidationResult.IsSuccess)
                     {
-                        await VpnAttachmentSetService.AddAsync(Mapper.Map<VpnAttachmentSet>(mappedAttachmentSet));
+                        ModelState.AddModelError(string.Empty, "There is a problem with the VRFs for this Attachment Set. Resolve this issue first.");
+                        attachmentSetVrfValidationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                        validationOk = false;
+                    }
+
+                    if (validationOk)
+                    {
+                        await VpnAttachmentSetService.AddAsync(mappedAttachmentSet);
+
                         return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
                     }
                 }

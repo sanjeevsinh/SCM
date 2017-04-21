@@ -16,6 +16,6 @@ namespace SCM.Services.SCMServices
         Task<int> AddAsync(VpnAttachmentSet attachmentSetVpn);
         Task<int> UpdateAsync(VpnAttachmentSet attachmentSetVpn);
         Task<int> DeleteAsync(VpnAttachmentSet attachmentSetVpn);
-        Task<ServiceResult> ValidateAsync(VpnAttachmentSet vpnAttachmentSet);
+        ServiceResult ValidateNew(VpnAttachmentSet vpnAttachmentSet, Vpn vpn, AttachmentSet attachmentSet);
     }
 }

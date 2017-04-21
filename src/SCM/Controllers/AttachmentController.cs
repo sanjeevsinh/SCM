@@ -122,7 +122,7 @@ namespace SCM.Controllers
                 var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
                 mappedRequest.Bandwidth = bandwidth;
 
-                var validationResult = await AttachmentService.ValidateAsync(mappedRequest);
+                var validationResult = await AttachmentService.ValidateNewAsync(mappedRequest);
 
                 if (!validationResult.IsSuccess)
                 {
@@ -202,11 +202,38 @@ namespace SCM.Controllers
             try
             {
                 var item = await AttachmentService.GetByIDAsync(attachment.ID, multiPort: attachment.IsMultiPort);
-
-                if (item != null)
+                if (item == null)
                 {
-                    var validationResult = await ValidateDelete(item);
-                    if (validationResult)
+                    return NotFound();
+                }
+
+                var validationResult = await ValidateDelete(item);
+                if (validationResult)
+                {
+                    // Delete resource from the network first
+
+                    var syncResult = await AttachmentService.DeleteFromNetworkAsync(item);
+
+                    // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
+                    // because it probably means the resource was either previously deleted from the network or it was 
+                    // never syncd to the network
+
+                    var inSync = true;
+                    if (!syncResult.IsSuccess)
+                    {
+                        foreach (var r in syncResult.NetworkSyncServiceResults)
+                        {
+                            if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                            {
+                                // Something went wrong, so flag for exit
+
+                                inSync = false;
+                                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                            }
+                        }
+                    }
+
+                    if (inSync)
                     {
                         var result = await AttachmentService.DeleteAsync(item);
                         if (!result.IsSuccess)

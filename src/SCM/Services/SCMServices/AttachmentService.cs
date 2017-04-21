@@ -183,30 +183,40 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult { IsSuccess = true };
             IEnumerable<Port> ports = Enumerable.Empty<Port>();
 
+            // Work out the number of ports we need to allocate and 
+            // the port bandwidth required
+
             if (request.BundleRequired || request.MultiPortRequired)
             {
+                // For bundles and multiport requests we need at least 2 ports. Work out the number of ports required from 
+                // the request data based upon the required bandwidth of the attachment (e.g. 20Gbp/s) and the 
+                // per port bandwidth needed to satisfy the required bandwidth (e.g. 10Gb/s)
+
                 request.NumPortsRequired = request.Bandwidth.BandwidthGbps / request.Bandwidth.BundleOrMultiPortMemberBandwidthGbps.Value;
                 request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps / request.NumPortsRequired;
-
-                ports = await FindPortsAsync(request, result);
-                if (ports.Count() == 0)
-                {
-                    return result;
-                }
             }
             else
             {
+                // The request is not for a bundle or multiport so the number of ports required must be 1
+
                 request.NumPortsRequired = 1;
                 request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps;
+            }
 
-                ports = await FindPortsAsync(request, result);
-                if (ports.Count() == 0)
-                {
-                    return result;
-                }
+            // Try and find some ports which satisfy the request
+
+            ports = await FindPortsAsync(request, result);
+
+            // Do we have some ports? If not quit. 
+
+            if (ports.Count() == 0)
+            {
+                return result;
             }
 
             request.DeviceID = ports.First().DeviceID;
+
+            // Hand off to method to generate the attachment from the allocated ports
 
             if (request.BundleRequired)
             {
@@ -245,7 +255,6 @@ namespace SCM.Services.SCMServices
                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-multiport/{attachment.Name}");
                 }
                 else
-
                 {
                     var data = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
@@ -294,7 +303,7 @@ namespace SCM.Services.SCMServices
             result.AddRange(syncResult.Messages);
             result.IsSuccess = syncResult.IsSuccess;
 
-            await UpdateRequiresSyncAsync(attachment.ID, !result.IsSuccess,true, attachment.IsMultiPort);
+            await UpdateRequiresSyncAsync(attachment.ID, !result.IsSuccess, true, attachment.IsMultiPort);
 
             return result;
         }
@@ -306,22 +315,6 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<ServiceResult> DeleteAsync(AttachmentAndVifs attachment)
         {
-
-            var syncResult = await DeleteFromNetworkAsync(attachment);
-
-            // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
-
-            if (!syncResult.IsSuccess)
-            {
-                foreach (var r in syncResult.NetworkSyncServiceResults)
-                {
-                    if (r.HttpStatusCode != HttpStatusCode.NotFound)
-                    {
-                        return syncResult;
-                    }
-                }
-            }
-
             if (attachment.IsBundle)
             {
                 return await DeleteBundleAttachmentAsync(attachment);
@@ -377,7 +370,7 @@ namespace SCM.Services.SCMServices
             }
 
             // Remove attachments first, then when complete remove vrfs.
-            // This is important because the server will throw an error if an attempt is made
+            // This order is important because the server will throw an error if an attempt is made
             // to delete a vrf which is referenced by an attachment.
 
             await Task.WhenAll(tasks);
@@ -388,7 +381,7 @@ namespace SCM.Services.SCMServices
                 foreach (var vrf in serviceModelData.Vrfs)
                 {
                     vrfTasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                        + $"/vrf/{vrf.VrfName}"));
+                        + $"/vrf/{vrf.VrfName},{vrf.EnableLayer3.ToString().ToLower()}"));
                 }
             }
 
@@ -417,7 +410,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateAsync(AttachmentRequest request)
+        public async Task<ServiceResult> ValidateNewAsync(AttachmentRequest request)
         {
             var result = new ServiceResult { IsSuccess = true };
 
@@ -520,7 +513,7 @@ namespace SCM.Services.SCMServices
             {
                 // Validate the requested Contract Bandwidth Pool
 
-                var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateAsync(request);
+                var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateNewAsync(request);
                 if (!validateContractBandwidthPoolResult.IsSuccess)
                 {
                     result.IsSuccess = false;

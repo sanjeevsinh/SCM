@@ -141,7 +141,7 @@ namespace SCM.Controllers
             {
                 var mappedRequest = Mapper.Map<VifRequest>(request);
 
-                var validationResult = await VifService.ValidateAsync(mappedRequest);
+                var validationResult = await VifService.ValidateNewAsync(mappedRequest);
 
                 if (!validationResult.IsSuccess)
                 {
@@ -234,14 +234,41 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    var result = await VifService.DeleteAsync(item);
-                    if (!result.IsSuccess)
+
+                    // Delete resource from the network first
+
+                    var syncResult = await VifService.DeleteFromNetworkAsync(item);
+
+                    // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
+                    // because it probably means the resource was either previously deleted from the network or it was 
+                    // never syncd to the network
+
+                    var inSync = true;
+                    if (!syncResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                        foreach (var r in syncResult.NetworkSyncServiceResults)
+                        {
+                            if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                            {
+                                // Something went wrong, so flag for exit
+
+                                inSync = false;
+                                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                            }
+                        }
                     }
-                    else
+
+                    if (inSync)
                     {
-                        return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID, attachmentIsMultiPort = vif.AttachmentIsMultiPort });
+                        var result = await VifService.DeleteAsync(item);
+                        if (!result.IsSuccess)
+                        {
+                            ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                        }
+                        else
+                        {
+                            return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID, attachmentIsMultiPort = vif.AttachmentIsMultiPort });
+                        }
                     }
                 }
 

@@ -14,5 +14,6 @@ namespace SCM.Models.ServiceModels
         public string SubnetMask { get; set; }
         public int? VrfID { get; set; }
         public Vrf Vrf { get; set; }
+        public ContractBandwidthPool ContractBandwidthPool { get; set; }
     }
 }

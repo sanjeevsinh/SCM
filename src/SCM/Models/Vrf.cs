@@ -19,6 +19,7 @@ namespace SCM.Models
         public int DeviceID { get; set; }
         public int TenantID { get; set; }
         public int RouteDistinguisherRangeID { get; set; }
+        public bool IsLayer3 { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Device Device { get; set; }

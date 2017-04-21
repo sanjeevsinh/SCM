@@ -105,7 +105,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedAttachmentSet = Mapper.Map<AttachmentSet>(attachmentSet);
-                    var validationResult = await AttachmentSetService.ValidateAsync(mappedAttachmentSet);
+                    var validationResult = await AttachmentSetService.ValidateNewAsync(mappedAttachmentSet);
                     if (!validationResult.IsSuccess)
                     {
                         validationResult.GetMessageList().ForEach(m => ModelState.AddModelError(string.Empty, m));
@@ -126,8 +126,11 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
+            ViewBag.Tenant = GetTenant(attachmentSet.TenantID);
+            ViewBag.Region = GetRegion(attachmentSet.RegionID);
             await PopulateDropDownLists(attachmentSet.RegionID);
-            return View(attachmentSet);
+
+            return View("CreateStep2", attachmentSet);
         }
 
         [HttpGet]
@@ -345,6 +348,10 @@ namespace SCM.Controllers
         private async Task GetTenant(int tenantID)
         {
             ViewBag.Tenant = await AttachmentSetService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
+        }
+        private async Task GetRegion(int regionID)
+        {
+            ViewBag.Region = await AttachmentSetService.UnitOfWork.RegionRepository.GetByIDAsync(regionID);
         }
     }
 }

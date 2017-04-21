@@ -17,8 +17,8 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> AddAsync(VifRequest requqest);
         Task<int> UpdateAsync(ContractBandwidthPool contractBandwidthPool);
         Task<int> DeleteAsync(ContractBandwidthPool contractBandwidthPool);
-        Task<ServiceResult> ValidateAsync(AttachmentRequest request);
-        Task<ServiceResult> ValidateAsync(VifRequest request);
+        Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);
+        Task<ServiceResult> ValidateNewAsync(VifRequest request);
         Task<ServiceResult> ValidateDeleteAsync(Vif vif);
     }
 }

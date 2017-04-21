@@ -16,12 +16,15 @@ namespace SCM.Controllers
 {
     public class VpnTenantNetworkController : BaseViewController
     {
-        public VpnTenantNetworkController(IVpnTenantNetworkService vpnTenantNetworkService, IMapper mapper)
+        public VpnTenantNetworkController(IVpnTenantNetworkService vpnTenantNetworkService, 
+            IVpnAttachmentSetService vpnAttachmentSetService, IMapper mapper)
         {
-           VpnTenantNetworkService = vpnTenantNetworkService;
-           Mapper = mapper;
+            VpnTenantNetworkService = vpnTenantNetworkService;
+            VpnAttachmentSetService = vpnAttachmentSetService;
+            Mapper = mapper;
         }
         private IVpnTenantNetworkService VpnTenantNetworkService { get; set; }
+        private IVpnAttachmentSetService VpnAttachmentSetService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -86,7 +89,7 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TenantNetworkID,VpnAttachmentSetID")] VpnTenantNetworkViewModel vpnTenantNetwork)
         {
-            var vpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantNetwork.VpnAttachmentSetID);
+            var vpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(vpnTenantNetwork.VpnAttachmentSetID);
             if (vpnAttachmentSet == null)
             {
                 return NotFound();
@@ -97,19 +100,18 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedVpnTenantNetwork = Mapper.Map<VpnTenantNetwork>(vpnTenantNetwork);
-                    var validationResult = await VpnTenantNetworkService.ValidateVpnTenantNetworkAsync(mappedVpnTenantNetwork);
+                    var validationResult = await VpnTenantNetworkService.ValidateNewAsync(mappedVpnTenantNetwork, vpnAttachmentSet);
 
                     if (!validationResult.IsSuccess)
                     {
-                        ModelState.AddModelError(string.Empty, validationResult.GetMessage());
-                        ViewBag.VpnAttachmentSet = vpnAttachmentSet;
-                        await PopulateTenantNetworksDropDownList(vpnTenantNetwork.VpnAttachmentSetID);
-
-                        return View(vpnTenantNetwork);
+                        validationResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
                     }
+                    else
+                    {
+                        await VpnTenantNetworkService.AddAsync(mappedVpnTenantNetwork);
 
-                    await VpnTenantNetworkService.AddAsync(mappedVpnTenantNetwork);
-                    return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantNetwork.VpnAttachmentSetID });
+                        return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantNetwork.VpnAttachmentSetID });
+                    }
                 }
             }
             catch (DbUpdateException /** ex **/ )
@@ -122,6 +124,7 @@ namespace SCM.Controllers
 
             ViewBag.VpnAttachmentSet = vpnAttachmentSet;
             await PopulateTenantNetworksDropDownList(vpnTenantNetwork.VpnAttachmentSetID);
+
             return View(vpnTenantNetwork);
         }
 

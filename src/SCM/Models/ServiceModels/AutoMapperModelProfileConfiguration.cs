@@ -85,7 +85,8 @@ namespace SCM.Models.ServiceModels
                 .ForMember(dest => dest.MultiPortVifs, conf => conf.MapFrom(src => src.InterfaceVlans));
 
             CreateMap<InterfaceVlan, MultiPortVif>()
-                .ForMember(dest => dest.MemberAttachment, conf => conf.MapFrom(src => src.Interface));
+                .ForMember(dest => dest.MemberAttachment, conf => conf.MapFrom(src => src.Interface))
+                .ForMember(dest => dest.ContractBandwidthPool, conf => conf.MapFrom(src => src.MultiPortVlan.ContractBandwidthPool));
 
             CreateMap<VifRequest, Vrf>();
 

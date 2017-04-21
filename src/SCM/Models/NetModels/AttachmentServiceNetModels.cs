@@ -23,6 +23,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "vrf-name")]
         public string VrfName { get; set; }
+        [XmlElement(ElementName = "enable-layer-3")]
+        public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "administrator-subfield")]
         public string AdministratorSubField { get; set; }
         [XmlElement(ElementName = "assigned-number-subfield")]
@@ -39,18 +41,66 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public bool IsBfdEnabled { get; set; }
     }
 
+    public class ContractBandwidthPoolNetModel
+    {
+        [XmlElement(ElementName = "name")]
+        public string Name { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth")]
+        public int ContractBandwidth { get; set; }
+        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
+        public bool TrustReceivedCosDscp { get; set; }
+    }
+
+    public class PolicyBandwidthNetModel
+    {
+        [XmlElement(ElementName = "name")]
+        public string Name { get; set; }
+        [XmlElement(ElementName = "bandwidth")]
+        public int Bandwidth { get; set; }
+    }
+
+    public class TaggedMultiPortPolicyBandwidthNetModel : PolicyBandwidthNetModel
+    {
+        [XmlElement(ElementName = "contract-bandwidth-pool-name")]
+        public string ContractBandwidthPoolName { get; set; }
+    }
+
+    public class VifNetModel
+    {
+        [XmlElement(ElementName = "vlan-id")]
+        public int VlanID { get; set; }
+        [XmlElement(ElementName = "enable-layer-3")]
+        public bool EnableLayer3 { get; set; }
+        [XmlElement(ElementName = "layer-3")]
+        public Layer3NetModel Layer3 { get; set; }
+        [XmlElement(ElementName = "vrf-name")]
+        public string VrfName { get; set; }
+    }
+
+    public class AttachmentVifNetModel : VifNetModel
+    {
+        [XmlElement(ElementName = "contract-bandwidth-pool-name")]
+        public string ContractBandwidthPoolName { get; set; }
+    }
+
+    public class MultiPortVifNetModel : VifNetModel
+    {
+        [XmlElement(ElementName = "policy-bandwidth-name")]
+        public string PolicyBandwidthName { get; set; }
+    }
+
     public class UntaggedAttachmentInterfaceNetModel
     {
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceID { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
-        [XmlElement(ElementName = "contract-bandwidth")]
-        public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
-        public bool TrustReceivedCosDscp { get; set; }
+        [XmlElement(ElementName = "policy-bandwidth")]
+        public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -67,11 +117,14 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "vif")]
-        public List<VifNetModel> Vifs { get; set; } 
+        public List<AttachmentVifNetModel> Vifs { get; set; } 
         public TaggedAttachmentInterfaceNetModel()
         {
-            Vifs = new List<VifNetModel>();
+            ContractBandwidthPools = new List<ContractBandwidthPoolNetModel>();
+            Vifs = new List<AttachmentVifNetModel>();
         }
     }
 
@@ -87,12 +140,12 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "bundle-interface-id")]
         public int BundleID { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
-        [XmlElement(ElementName = "contract-bandwidth")]
-        public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
-        public bool TrustReceivedCosDscp { get; set; }
+        [XmlElement(ElementName = "policy-bandwidth")]
+        public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -113,13 +166,17 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public int BundleID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "bundle-interface-member")]
         public List<BundleInterfaceMemberNetModel> BundleInterfaceMembers { get; set; }
         [XmlElement(ElementName = "vif")]
-        public List<VifNetModel> Vifs { get; set; }
+        public List<AttachmentVifNetModel> Vifs { get; set; }
         public TaggedAttachmentBundleInterfaceNetModel()
         {
-            Vifs = new List<VifNetModel>();
+            BundleInterfaceMembers = new List<BundleInterfaceMemberNetModel>();
+            Vifs = new List<AttachmentVifNetModel>();
+            ContractBandwidthPools = new List<ContractBandwidthPoolNetModel>();
         }
     }
 
@@ -131,10 +188,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
-        [XmlElement(ElementName = "contract-bandwidth")]
-        public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
-        public bool TrustReceivedCosDscp { get; set; }
+        [XmlElement(ElementName = "policy-bandwidth")]
+        public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "layer-3")]
         public Layer3NetModel Layer3 { get; set; }
         [XmlElement(ElementName = "vrf-name")]
@@ -145,6 +200,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "multiport-member")]
@@ -163,11 +220,14 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceID { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "policy-bandwidth")]
+        public List<TaggedMultiPortPolicyBandwidthNetModel> PolicyBandwidths { get; set; }
         [XmlElement(ElementName = "vif")]
-        public List<VifNetModel> Vifs { get; set; }
+        public List<MultiPortVifNetModel> Vifs { get; set; }
         public TaggedMultiPortMemberNetModel()
         {
-            Vifs = new List<VifNetModel>();
+            Vifs = new List<MultiPortVifNetModel>();
+            PolicyBandwidths = new List<TaggedMultiPortPolicyBandwidthNetModel>();
         }
     }
 
@@ -175,28 +235,15 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
+        [XmlElement(ElementName = "contract-bandwidth-pool")]
+        public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "multiport-member")]
         public List<TaggedMultiPortMemberNetModel> MultiPortMembers { get; set; }
         public TaggedAttachmentMultiPortNetModel()
         {
+            ContractBandwidthPools = new List<ContractBandwidthPoolNetModel>();
             MultiPortMembers = new List<TaggedMultiPortMemberNetModel>();
         }
-    }
-
-    public class VifNetModel
-    {
-        [XmlElement(ElementName = "vlan-id")]
-        public int VlanID { get; set; }
-        [XmlElement(ElementName = "contract-bandwidth")]
-        public int ContractBandwidth { get; set; }
-        [XmlElement(ElementName = "trust-received-cos-and-dscp")]
-        public bool TrustReceivedCosDscp { get; set; }
-        [XmlElement(ElementName = "enable-layer-3")]
-        public bool EnableLayer3 { get; set; }
-        [XmlElement(ElementName = "layer-3")]
-        public Layer3NetModel Layer3 { get; set; }
-        [XmlElement(ElementName = "vrf-name")]
-        public string VrfName { get; set; }
     }
 
     [XmlRoot(ElementName = "pe", Namespace = "urn:thomsonreuters:attachment")]
@@ -243,6 +290,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     { 
     }
 
+    [XmlRoot(ElementName = "untagged-attachment-interface", Namespace = "urn:thomsonreuters:attachment")]
     public class UntaggedAttachmentInterfaceServiceNetModel : UntaggedAttachmentInterfaceNetModel
     {
     }
@@ -273,7 +321,12 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     }
 
     [XmlRoot(ElementName = "vif", Namespace = "urn:thomsonreuters:attachment")]
-    public class VifServiceNetModel : VifNetModel
+    public class AttachmentVifServiceNetModel : AttachmentVifNetModel
+    {
+    }
+
+    [XmlRoot(ElementName = "vif", Namespace = "urn:thomsonreuters:attachment")]
+    public class MultiPortVifServiceNetModel : MultiPortVifNetModel
     {
     }
 }

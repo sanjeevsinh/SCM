@@ -16,12 +16,15 @@ namespace SCM.Controllers
 {
     public class VpnTenantCommunityController : BaseViewController
     {
-        public VpnTenantCommunityController(IVpnTenantCommunityService vpnTenantCommunityService, IMapper mapper)
+        public VpnTenantCommunityController(IVpnTenantCommunityService vpnTenantCommunityService, 
+            IVpnAttachmentSetService vpnAttachmentSetService, IMapper mapper)
         {
            VpnTenantCommunityService = vpnTenantCommunityService;
+           VpnAttachmentSetService = vpnAttachmentSetService;
            Mapper = mapper;
         }
         private IVpnTenantCommunityService VpnTenantCommunityService { get; set; }
+        private IVpnAttachmentSetService VpnAttachmentSetService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -31,16 +34,17 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
+            var vpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(id.Value);
 
-            var vpnTenantCommunitys = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnAttachmentSetID == id,
-                includeProperties:"TenantCommunity");
-            var vpnAttachmentSet = await GetVpnAttachmentSetItem(id.Value);
             if (vpnAttachmentSet == null)
             {
                 return NotFound();
             }
 
+            var vpnTenantCommunitys = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnAttachmentSetID == id,
+                includeProperties: "TenantCommunity");
             ViewBag.VpnAttachmentSet = vpnAttachmentSet;
+
             return View(Mapper.Map<List<VpnTenantCommunityViewModel>>(vpnTenantCommunitys));
         }
 
@@ -71,7 +75,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var vpnAttachmentSet = await GetVpnAttachmentSetItem(id.Value);
+            var vpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(id.Value);
             if (vpnAttachmentSet == null)
             {
                 return NotFound();
@@ -79,6 +83,7 @@ namespace SCM.Controllers
 
             ViewBag.VpnAttachmentSet = vpnAttachmentSet;
             await PopulateTenantCommunitysDropDownList(id.Value);
+
             return View();
         }
 
@@ -86,7 +91,7 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TenantCommunityID,VpnAttachmentSetID")] VpnTenantCommunityViewModel vpnTenantCommunity)
         {
-            var vpnAttachmentSet = await GetVpnAttachmentSetItem(vpnTenantCommunity.VpnAttachmentSetID);
+            var vpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
             if (vpnAttachmentSet == null)
             {
                 return NotFound();
@@ -97,7 +102,7 @@ namespace SCM.Controllers
                 if (ModelState.IsValid)
                 {
                     var mappedVpnTenantCommunity = Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity);
-                    var validationResult = await VpnTenantCommunityService.ValidateAsync(mappedVpnTenantCommunity);
+                    var validationResult = await VpnTenantCommunityService.ValidateNewAsync(mappedVpnTenantCommunity, vpnAttachmentSet);
 
                     if (!validationResult.IsSuccess)
                     {
@@ -120,6 +125,7 @@ namespace SCM.Controllers
 
             ViewBag.VpnAttachmentSet = vpnAttachmentSet;
             await PopulateTenantCommunitysDropDownList(vpnTenantCommunity.VpnAttachmentSetID);
+
             return View(vpnTenantCommunity);
         }
   
@@ -196,13 +202,6 @@ namespace SCM.Controllers
 
                 ViewBag.TenantCommunityID = new SelectList(tenantCommunitys, "TenantCommunityID", "TenantCommunity", selectedTenantCommunity);
             }
-        }
-        private async Task<VpnAttachmentSet> GetVpnAttachmentSetItem(int vpnAttachmentSetID)
-        {
-            var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnAttachmentSetID,
-                includeProperties: "AttachmentSet.Tenant,Vpn");
-
-           return dbResult.SingleOrDefault();
         }
     }
 }

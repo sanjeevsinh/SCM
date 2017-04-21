@@ -83,11 +83,12 @@ namespace SCM.Services.SCMServices
                                + "Interfaces.BundleInterfacePorts.Port,"
                                + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
                                + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
+                               + "MultiPorts.ContractBandwidthPool.ContractBandwidth,"
                                + "MultiPorts.Ports.Interface.Vrf.BgpPeers,"
                                + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
                                + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
                                + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth");
+                               + "MultiPorts.Ports.MultiPort.MultiPortVlans.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
 
@@ -126,7 +127,7 @@ namespace SCM.Services.SCMServices
                                + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
                                + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
                                + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth");
+                               + "MultiPorts.Ports.MultiPort.MultiPortVlans.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
 

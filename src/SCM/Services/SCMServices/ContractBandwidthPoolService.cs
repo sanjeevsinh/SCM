@@ -50,7 +50,13 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.SaveAsync();
         }
 
-        public async Task<ServiceResult> ValidateAsync(AttachmentRequest request)
+        /// <summary>
+        /// Validate a request for a new Contract Bandwidth Pool to be associated
+        /// with an Attachment.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ServiceResult> ValidateNewAsync(AttachmentRequest request)
         {
             var result = new ServiceResult { IsSuccess = true };
 
@@ -67,7 +73,13 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<ServiceResult> ValidateAsync(VifRequest request)
+        /// <summary>
+        /// Validate a request for a new Contract Bandwidth Pool to be associated with 
+        /// a VIF.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ServiceResult> ValidateNewAsync(VifRequest request)
         {
             var result = new ServiceResult { IsSuccess = true };
 

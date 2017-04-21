@@ -97,7 +97,12 @@ namespace SCM.Services.SCMServices
             return vrfs;
         }
 
-        public async Task<ServiceResult> ValidateAsync(AttachmentSetVrf attachmentSetVrf)
+        /// <summary>
+        /// Validate a new Attachment Set VRF request
+        /// </summary>
+        /// <param name="attachmentSetVrf"></param>
+        /// <returns></returns>
+        public async Task<ServiceResult> ValidateNewAsync(AttachmentSetVrf attachmentSetVrf)
         {
             var result = new ServiceResult { IsSuccess = true };
 
@@ -191,7 +196,6 @@ namespace SCM.Services.SCMServices
 
         public async Task<ServiceResult> CheckVrfsConfiguredCorrectlyAsync(AttachmentSet attachmentSet)
         {
-
             var validationResult = new ServiceResult { IsSuccess = true };
 
             var attachmentSetVrfs = await this.UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,

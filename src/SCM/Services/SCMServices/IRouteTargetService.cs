@@ -13,11 +13,12 @@ namespace SCM.Services.SCMServices
         IUnitOfWork UnitOfWork { get; }
 
         Task<IEnumerable<RouteTarget>> GetAllAsync();
+        Task<IEnumerable<RouteTarget>> GetAllByVpnIDAsync(int id);
         Task<RouteTarget> GetByIDAsync(int id);
         Task<ServiceResult> AddAsync(RouteTargetRequest request);
         Task<int> DeleteAsync(RouteTarget routeTarget);
+        ServiceResult Validate(Vpn vpn);
         Task<ServiceResult> CheckVpnOkToAddOrRemoveRouteTargetAsync(int vpnID);
-        Task<ServiceResult> ValidateAsync(int vpnID);
         Task<IEnumerable<RouteTarget>> AllocateAllVpnRouteTargetsAsync(string vpnTopologyType, ServiceResult result);
     }
 }

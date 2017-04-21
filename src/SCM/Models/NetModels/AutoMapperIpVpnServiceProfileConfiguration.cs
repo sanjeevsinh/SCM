@@ -70,9 +70,9 @@ namespace SCM.Models.NetModels.IpVpnNetModels
                 var devices = source.AttachmentSet.AttachmentSetVrfs.Select(s => s.Vrf.Device).ToList();
 
                 var PEs = Mapper.Map<List<PENetModel>>(devices);
-                foreach (PENetModel PE in PEs)
+                foreach (PENetModel pe in PEs)
                 {
-                    PE.Vrfs = Mapper.Map<List<VrfNetModel>>(source.AttachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Name == PE.PEName));
+                    pe.Vrfs = Mapper.Map<List<VrfNetModel>>(source.AttachmentSet.AttachmentSetVrfs.Where(v => v.Vrf.Device.Name == pe.PEName));
                 }
 
                 result.PEs = PEs;

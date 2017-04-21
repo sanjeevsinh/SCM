@@ -18,9 +18,12 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.AttachmentSetRepository.GetAsync(includeProperties: "Tenant,SubRegion,Region,AttachmentRedundancy");
         }
 
-        public async Task<AttachmentSet> GetByIDAsync(int key)
+        public async Task<AttachmentSet> GetByIDAsync(int id)
         {
-            return await UnitOfWork.AttachmentSetRepository.GetByIDAsync(key);
+            var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, 
+                includeProperties: "Tenant,SubRegion,Region,AttachmentRedundancy");
+
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<int> AddAsync(AttachmentSet attachmentSet)
@@ -40,7 +43,7 @@ namespace SCM.Services.SCMServices
             this.UnitOfWork.AttachmentSetRepository.Delete(attachmentSet);
             return await this.UnitOfWork.SaveAsync();
         }
-        public async Task<ServiceResult> ValidateAsync(AttachmentSet attachmentSet)
+        public async Task<ServiceResult> ValidateNewAsync(AttachmentSet attachmentSet)
         {
             return await ValidateAttachmentRedundancy(attachmentSet);
         }
@@ -110,7 +113,7 @@ namespace SCM.Services.SCMServices
                 if (attachmentSet.SubRegionID == null)
                 {
                     validationResult.IsSuccess = false;
-                    validationResult.Add("A sub-region must be seected for gold attachment sets.");
+                    validationResult.Add("A sub-region must be selected for gold attachment sets.");
                 }
             }
 

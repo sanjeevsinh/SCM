@@ -38,9 +38,9 @@ namespace SCM.Services.SCMServices
                     + "MultiPort.InterfaceBandwidth,"
                     + "MultiPort.Ports.Interface.InterfaceBandwidth,"
                     + "MultiPort.Ports.Interface.InterfaceVlans.Vrf,"
-                    + "MultiPort.Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
                     + "Vrf.BgpPeers,"
                     + "Vrf.Device,"
+                    + "InterfaceVlans.Vrf,"
                     + "ContractBandwidthPool.ContractBandwidth,"
                     + "Tenant",
                     AsTrackable: false);
@@ -245,23 +245,6 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var syncResult = await DeleteFromNetworkAsync(vif);
-
-            // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
-
-            if (!syncResult.IsSuccess)
-            {
-                foreach (var r in syncResult.NetworkSyncServiceResults)
-                {
-                    if (r.HttpStatusCode != HttpStatusCode.NotFound)
-                    {
-                        result.IsSuccess = false;
-
-                        return result;
-                    }
-                }
-            }
-
             try
             {
                 if (vif.VrfID != null)
@@ -317,61 +300,142 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<ServiceResult> DeleteFromNetworkAsync(Vif vif)
         {
-            var result = new ServiceResult { IsSuccess = true };
+            var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID, vif.Attachment.IsMultiPort);
+            var attachmentServiceData = Mapper.Map<AttachmentServiceNetModel>(attachment);
 
             var tasks = new List<Task<NetworkSyncServiceResult>>();
 
-            if (vif.Attachment.IsBundle)
-            {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-bundle-interface/"
-                    + $"{vif.Attachment.BundleID}/vif/{vif.VlanTag}"));
+            var result = new ServiceResult { IsSuccess = true };
 
-            }
-            else if (vif.Attachment.IsMultiPort)
+            try
             {
-                foreach (var port in vif.Attachment.MultiPortMembers)
+                if (vif.Attachment.IsBundle)
                 {
-                    // Delete vif from each member port
 
-                    tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-multiport/{vif.Attachment.Name}"
-                        + $"/multiport-member/{port.Type},{port.Name.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+                    var vifResource = $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-bundle-interface/"
+                        + $"{vif.Attachment.BundleID}";
+
+                    tasks.Add(NetSync.DeleteFromNetworkAsync($"{vifResource}/vif/{vif.VlanTag}"));
+
+                    if (attachmentServiceData.TaggedAttachmentBundleInterfaces
+                        .Single()
+                        .Vifs
+                        .Where(q => q.ContractBandwidthPoolName == vif.ContractBandwidthPool.Name)
+                        .Count() == 1)
+                    {
+                        // Delete the Contract Bandwidth Pool resource
+
+                        tasks.Add(NetSync.DeleteFromNetworkAsync($"{vifResource}/contract-bandwidth-pool/{vif.ContractBandwidthPool.Name}"));
+                    }
                 }
-            }
-            else
-            {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/"
-                    + $"{vif.Attachment.InterfaceType},{vif.Attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+                else if (vif.Attachment.IsMultiPort)
+                {
+                    var deleteContractBandwidthPool = false;
 
-            }
+                    if (attachmentServiceData.TaggedAttachmentMultiPorts
+                        .Single()
+                        .MultiPortMembers
+                        .SelectMany(q => q.PolicyBandwidths)
+                        .Where(q => q.ContractBandwidthPoolName == vif.ContractBandwidthPool.Name)
+                        .Count() == vif.Attachment.MultiPortMembers.Count())
+                    {
+                        // Flag for delete of the Contract Bandwidth Pool resource and the policy bandwidth resource for
+                        // each member interface
 
-            // Execute network updates in parallel
+                        deleteContractBandwidthPool = true;
+                    }
 
-            await Task.WhenAll(tasks);
+                    var attachmentResource = $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-multiport/{vif.Attachment.Name}";
+                    var vifServiceData = Mapper.Map<AttachmentServiceNetModel>(vif);
 
-            // Delete VRF from network
+                    foreach (var multiPortVif in vif.MultiPortVifs)
+                    {
+                        var vifResource = $"{attachmentResource}/multiport-member/{multiPortVif.MemberAttachment.InterfaceType},"
+                            + $"{multiPortVif.MemberAttachment.InterfaceName.Replace("/", "%2F")}";
 
-            var vrfResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name }/vrf/{vif.Vrf.Name}");
+                        // Delete vif from each member port
 
-            // Check the results 
+                        tasks.Add(NetSync.DeleteFromNetworkAsync($"{vifResource}/vif/{vif.VlanTag}"));
 
-            foreach (Task<NetworkSyncServiceResult> t in tasks)
-            {
-                var r = t.Result;
-                result.NetworkSyncServiceResults.Add(r);
+                        if (deleteContractBandwidthPool)
+                        {
+                       
+                            var policyBandwidthName = vifServiceData.TaggedAttachmentMultiPorts
+                                .Single().MultiPortMembers
+                                .Single(q => q.InterfaceType == multiPortVif.MemberAttachment.InterfaceType && q.InterfaceID == multiPortVif.MemberAttachment.InterfaceName)
+                                .PolicyBandwidths
+                                .Single()
+                                .Name;
 
-                if (!r.IsSuccess)
+                            tasks.Add(NetSync.DeleteFromNetworkAsync($"{vifResource}/policy-bandwidth/{policyBandwidthName}"));
+                        }
+                    }
+
+                    if (deleteContractBandwidthPool)
+                    {
+                        // Delete the Contract Bandwidth Pool resource
+
+                        tasks.Add(NetSync.DeleteFromNetworkAsync($"{attachmentResource}/contract-bandwidth-pool/{vif.ContractBandwidthPool.Name}"));
+                    }
+                }
+                else
+                {
+                    var resource = $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/"
+                          + $"{vif.Attachment.InterfaceType},{vif.Attachment.InterfaceName.Replace("/", "%2F")}";
+
+                    tasks.Add(NetSync.DeleteFromNetworkAsync($"{resource}/vif/{vif.VlanTag}"));
+
+                    if (attachmentServiceData.TaggedAttachmentInterfaces
+                        .Single()
+                        .Vifs
+                        .Where(q => q.ContractBandwidthPoolName == vif.ContractBandwidthPool.Name)
+                        .Count() == 1)
+                    {
+                        // Delete the Contract Bandwidth Pool resource
+
+                        tasks.Add(NetSync.DeleteFromNetworkAsync($"{resource}/contract-bandwidth-pool/{vif.ContractBandwidthPool.Name}"));
+                    }
+                }
+
+                // Execute network updates in parallel
+
+                await Task.WhenAll(tasks);
+
+                // Delete VRF from network
+
+                var vrfResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{vif.Attachment.Device.Name }/vrf/{vif.Vrf.Name},{vif.Vrf.IsLayer3.ToString().ToLower()}");
+
+                // Check the results 
+
+                foreach (Task<NetworkSyncServiceResult> t in tasks)
+                {
+                    var r = t.Result;
+                    result.NetworkSyncServiceResults.Add(r);
+
+                    if (!r.IsSuccess)
+                    {
+                        result.IsSuccess = false;
+                    }
+                }
+
+                result.NetworkSyncServiceResults.Add(vrfResult);
+                if (!vrfResult.IsSuccess)
                 {
                     result.IsSuccess = false;
                 }
+
+                await UpdateRequiresSyncAsync(vif.ID, true, true, vif.Attachment.IsMultiPort);
+
             }
 
-            result.NetworkSyncServiceResults.Add(vrfResult);
-            if (!vrfResult.IsSuccess)
+            catch ( Exception /** ex **/  )
             {
+                // Add logging for the exception here
+                result.Add("Something went wrong during the network update. The issue has been logged."
+                   + "Please try again, and contact your system admin if the problem persists.");
+
                 result.IsSuccess = false;
             }
-
-            await UpdateRequiresSyncAsync(vif.ID, true, true, vif.Attachment.IsMultiPort);
 
             return result;
         }
@@ -381,7 +445,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> ValidateAsync(VifRequest request)
+        public async Task<ServiceResult> ValidateNewAsync(VifRequest request)
         {
             if (request.AttachmentIsMultiPort)
             {
@@ -487,7 +551,7 @@ namespace SCM.Services.SCMServices
 
             // Validate the requested Contract Bandwidth Pool
 
-            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateAsync(request);
+            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateNewAsync(request);
             if (!validateContractBandwidthPoolResult.IsSuccess)
             {
                 result.IsSuccess = false;
@@ -530,7 +594,7 @@ namespace SCM.Services.SCMServices
 
             // Validate the requested Contract Bandwidth Pool
 
-            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateAsync(request);
+            var validateContractBandwidthPoolResult = await ContractBandwidthPoolService.ValidateNewAsync(request);
             if (!validateContractBandwidthPoolResult.IsSuccess)
             {
                 result.IsSuccess = false;
@@ -761,14 +825,14 @@ namespace SCM.Services.SCMServices
 
             if (vif.Attachment.IsBundle)
             {
-                var serviceModelData = Mapper.Map<VifServiceNetModel>(vif);
+                var serviceModelData = Mapper.Map<AttachmentVifServiceNetModel>(vif);
                 result = await NetSync.CheckNetworkSyncAsync(serviceModelData,
                     $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-bundle-interface/{vif.Attachment.BundleID}/vif/{vif.VlanTag}");
             }
 
             else
             {
-                var serviceModelData = Mapper.Map<VifServiceNetModel>(vif);
+                var serviceModelData = Mapper.Map<AttachmentVifServiceNetModel>(vif);
                 result = await NetSync.CheckNetworkSyncAsync(serviceModelData,
                     $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/{vif.Attachment.InterfaceType},"
                     + $"{vif.Attachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
@@ -790,16 +854,16 @@ namespace SCM.Services.SCMServices
             var result = new NetworkSyncServiceResult { IsSuccess = true };
             var tasks = new List<Task<NetworkSyncServiceResult>>();
 
-            foreach (var port in vif.Attachment.MultiPortMembers)
+            foreach (var multiPortVif in vif.MultiPortVifs)
             {
-                // Create task to check the vif for each member port
+                // Create task to check each vif 
 
-                var ifaceVlan = port.Interface.InterfaceVlans.Where(q => q.VlanTag == vif.VlanTag).Single();
-                var vifServiceModelData = Mapper.Map<VifServiceNetModel>(ifaceVlan);
+                var vifServiceModelData = Mapper.Map<MultiPortVifServiceNetModel>(multiPortVif);
 
                 tasks.Add(NetSync.CheckNetworkSyncAsync(vifServiceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}" 
                     + $"/tagged-attachment-multiport/{vif.Attachment.Name}"
-                    + $"/multiport-member/{port.Type},{port.Name.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+                    + $"/multiport-member/{multiPortVif.MemberAttachment.InterfaceType},"
+                    + $"{multiPortVif.MemberAttachment.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
             }
 
             // Execute network checks in parallel
