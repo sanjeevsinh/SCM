@@ -12,19 +12,18 @@ namespace SCM.Services.SCMServices
     public interface IAttachmentService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<AttachmentAndVifs> GetByIDAsync(int id, bool? multiPort = false);
-        Task<AttachmentAndVifs> GetByVrfIDAsync(int vrfID);
-        Task<List<AttachmentAndVifs>> GetAllByTenantAsync(Tenant tenant);
-        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<Interface, bool>> filter = null);
-        Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<MultiPort, bool>> filter = null);
+        Task<Attachment> GetByIDAsync(int id);
+        Task<Attachment> GetByVrfIDAsync(int vrfID);
+        Task<List<Attachment>> GetAllByVpnIDAsync(int vpnID);
+        Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
+        Task<List<Attachment>> GetAsync(Expression<Func<Attachment, bool>> filter = null);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
-        Task<ServiceResult> DeleteAsync(AttachmentAndVifs attachment);
-        Task<ServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment);
-        Task<ServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment);
-        Task<ServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment);
+        Task<ServiceResult> DeleteAsync(Attachment attachment);
+        Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment);
+        Task<ServiceResult> SyncToNetworkAsync(Attachment attachment);
+        Task<ServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);
-        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false);
-        Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true);
-        Task UpdateRequiresSyncAsync(MultiPort multiPort, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(Attachment attachment, bool requiresSync, bool saveChanges = true);
     }
 }

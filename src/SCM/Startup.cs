@@ -46,7 +46,7 @@ namespace SCM
             MapperConfiguration = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile(new AutoMapperServiceModelProfileConfiguration());
-                cfg.AddProfile(new AutoMapperViewModelProfileConfiguration());
+                cfg.AddProfile(new AutoMapperViewModelProfileConfiguration());;
                 cfg.AddProfile(new AutoMapperAttachmentServiceProfileConfiguration());
                 cfg.AddProfile(new AutoMapperIpVpnServiceProfileConfiguration());
             });
@@ -93,7 +93,6 @@ namespace SCM
             services.AddScoped<IVpnTenantCommunityService, VpnTenantCommunityService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<IVifService, VifService>();
-            services.AddScoped<IAttachmentOrVifService,AttachmentOrVifService>();
             services.AddScoped<INetworkSyncService, NetworkSyncService>();
 
             services.AddSingleton<IMapper>(sp => MapperConfiguration.CreateMapper());

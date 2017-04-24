@@ -10,9 +10,8 @@ namespace SCM.Models.ViewModels
 {
     public class VifViewModel
     {
-        public int ID { get; set; }
+        public int VifID { get; set; }
         public int AttachmentID { get; set; }
-        public bool AttachmentIsMultiPort { get; set; }
         public string Name { get; set; }
         [Display(Name = "Vlan Tag")]
         public int VlanTag { get; set; }
@@ -23,8 +22,8 @@ namespace SCM.Models.ViewModels
         [Display(Name = "Subnet Mask")]
         public string SubnetMask { get; set; }
         public int TenantID { get; set; }
-        public int? VrfID { get; set; }
-        public int? ContractBandwidthPoolID { get; set; }
+        public int VrfID { get; set; }
+        public int ContractBandwidthPoolID { get; set; }
         [Display(Name = "Requires Sync")]
         public bool RequiresSync { get; set; }
         public TenantViewModel Tenant { get; set; }

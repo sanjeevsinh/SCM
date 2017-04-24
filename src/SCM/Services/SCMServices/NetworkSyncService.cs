@@ -16,11 +16,11 @@ namespace SCM.Services.SCMServices
     public class NetworkSyncService : INetworkSyncService
     {
 
+        /// <summary>
+        /// URI for access to the NSO server. This is for testing only. Do NOT do this in production.
+        /// Instead, store the URL in the appsettings.json file.
+        /// </summary>
         private string NetworkBaseUri { get; } = "http://10.65.127.30:8088/api/running/services";
-
-        public NetworkSyncService()
-        {
-        }
 
         public async Task<NetworkSyncServiceResult> SyncNetworkAsync(Object item, string resource)
         {
@@ -129,6 +129,10 @@ namespace SCM.Services.SCMServices
             try
             {
                 var client = new HttpClient();
+
+                // Authorisation header here is statically set. Do NOT do this in production! Authentication 
+                // settings must be read from a secure location.
+
                 client.DefaultRequestHeaders.Add("Authorization", "Basic YWRtaW46YWRtaW4=");
 
                 var httpResponse = await client.SendAsync(httpRequest);

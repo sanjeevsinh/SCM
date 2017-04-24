@@ -35,7 +35,7 @@ namespace SCM.Models.ViewModels
         [Required(ErrorMessage = "A bandwidth option must be selected")]
         public int BandwidthID { get; set; }
         [Display(Name = "Attachment Bandwidth (Gigabits/Second)")]
-        public InterfaceBandwidthViewModel Bandwidth { get; set; }
+        public AttachmentBandwidthViewModel Bandwidth { get; set; }
         public int? ContractBandwidthID { get; set; }
         [Display(Name = "Trust Received COS and DSCP")]
         public bool TrustReceivedCosDscp { get; set; }

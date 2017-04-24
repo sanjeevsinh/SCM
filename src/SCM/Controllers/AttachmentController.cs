@@ -52,7 +52,7 @@ namespace SCM.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
+            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
             if (item == null)
             {
                 return NotFound();
@@ -69,11 +69,11 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var bundleInterfacePorts = await AttachmentService.UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == id.Value,
-                includeProperties: "Port.Device", AsTrackable: false);
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
+            ViewBag.Attachment = attachment;
+            var ports = attachment.Interfaces.Select(q => q.Ports);
 
-            return View(Mapper.Map<List<BundleInterfacePortViewModel>>(bundleInterfacePorts));
+            return View(Mapper.Map<List<BundleInterfacePortViewModel>>(ports));
         }
 
         [HttpGet]
@@ -84,12 +84,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            Expression<Func<Interface, bool>> ifaceEx = q => q.Port.MultiPortID == id.Value;
-            var memberAttachments = await AttachmentService.GetAsync(ifaceEx);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
+            ViewBag.Attachment = attachment;
 
-            ViewBag.Attachment = await AttachmentService.GetByIDAsync(id.Value, multiPort: true);
+            var ifaces = attachment.Interfaces;
 
-            return View(Mapper.Map<List<AttachmentViewModel>>(memberAttachments));
+            return View(Mapper.Map<List<AttachmentViewModel>>(ifaces));
         }
 
         [HttpGet]
@@ -119,7 +119,7 @@ namespace SCM.Controllers
             if (ModelState.IsValid)
             {
                 var mappedRequest = Mapper.Map<AttachmentRequest>(request);
-                var bandwidth = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetByIDAsync(request.BandwidthID);
+                var bandwidth = await AttachmentService.UnitOfWork.AttachmentBandwidthRepository.GetByIDAsync(request.BandwidthID);
                 mappedRequest.Bandwidth = bandwidth;
 
                 var validationResult = await AttachmentService.ValidateNewAsync(mappedRequest);
@@ -167,10 +167,10 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, [FromQuery]bool isMultiPort, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
         {
 
-            var item = await AttachmentService.GetByIDAsync(id.Value, multiPort: isMultiPort);
+            var item = await AttachmentService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -201,7 +201,7 @@ namespace SCM.Controllers
         {
             try
             {
-                var item = await AttachmentService.GetByIDAsync(attachment.ID, multiPort: attachment.IsMultiPort);
+                var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
                 if (item == null)
                 {
                     return NotFound();
@@ -262,7 +262,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> CheckSync(AttachmentViewModel attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
+            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
 
             if (item == null)
             {
@@ -296,7 +296,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(AttachmentViewModel attachment)
         {
 
-            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
+            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
             if (item == null)
             {
                 return NotFound();
@@ -321,7 +321,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFromNetwork(Attachment attachment)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.ID, attachment.IsMultiPort);
+            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
 
             if (item == null)
             {
@@ -355,13 +355,13 @@ namespace SCM.Controllers
         /// </summary>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        private async Task<bool> ValidateDelete(AttachmentAndVifs attachment)
+        private async Task<bool> ValidateDelete(Attachment attachment)
         {
             var result = true;
 
             if (!attachment.IsTagged)
             {
-                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
+                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID);
 
                 if (!vrfValidationResult.IsSuccess)
                 {
@@ -380,7 +380,7 @@ namespace SCM.Controllers
             {
                 foreach (var vif in attachment.Vifs)
                 {
-                    var vifVrfValidationResult = await VrfService.ValidateDeleteAsync(vif.VrfID.Value);
+                    var vifVrfValidationResult = await VrfService.ValidateDeleteAsync(vif.VrfID);
                     if (!vifVrfValidationResult.IsSuccess)
                     {
                         result = false;
@@ -425,8 +425,8 @@ namespace SCM.Controllers
         }
         private async Task PopulateBandwidthsDropDownList(object selectedBandwidth = null)
         {
-            var bandwidths = await AttachmentService.UnitOfWork.InterfaceBandwidthRepository.GetAsync();
-            ViewBag.BandwidthID = new SelectList(bandwidths.OrderBy(b => b.BandwidthGbps), "InterfaceBandwidthID", "BandwidthGbps", selectedBandwidth);
+            var bandwidths = await AttachmentService.UnitOfWork.AttachmentBandwidthRepository.GetAsync();
+            ViewBag.BandwidthID = new SelectList(bandwidths.OrderBy(b => b.BandwidthGbps), "AttachmentBandwidthID", "BandwidthGbps", selectedBandwidth);
         }
         private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)
         {

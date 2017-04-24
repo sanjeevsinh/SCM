@@ -17,13 +17,12 @@ namespace SCM.Models
         public int PortBandwidthID { get; set; }
         public int DeviceID { get; set; }
         public int? TenantID { get; set; }
-        public int? MultiPortID { get; set; }
+        public int? InterfaceID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Device Device { get; set; }
         public virtual Interface Interface { get; set; }
         public virtual Tenant Tenant { get; set; }
         public virtual PortBandwidth PortBandwidth { get; set; }
-        public virtual MultiPort MultiPort { get; set; }
     }
 }

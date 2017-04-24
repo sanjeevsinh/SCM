@@ -8,14 +8,99 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    [Migration("20170318102037_Update9")]
-    partial class Update9
+    [Migration("20170424213057_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("SCM.Models.Attachment", b =>
+                {
+                    b.Property<int>("AttachmentID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("AttachmentBandwidthID");
+
+                    b.Property<int>("ContractBandwidthPoolID");
+
+                    b.Property<int?>("ContractBandwidthPoolID1");
+
+                    b.Property<int>("DeviceID");
+
+                    b.Property<int?>("ID");
+
+                    b.Property<bool>("IsBundle");
+
+                    b.Property<bool>("IsLayer3");
+
+                    b.Property<bool>("IsMultiPort");
+
+                    b.Property<bool>("IsTagged");
+
+                    b.Property<bool>("RequiresSync");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<int>("TenantID");
+
+                    b.Property<int?>("TenantID1");
+
+                    b.Property<int>("VrfID");
+
+                    b.Property<int?>("VrfID1");
+
+                    b.HasKey("AttachmentID");
+
+                    b.HasIndex("AttachmentBandwidthID");
+
+                    b.HasIndex("ContractBandwidthPoolID");
+
+                    b.HasIndex("ContractBandwidthPoolID1");
+
+                    b.HasIndex("DeviceID");
+
+                    b.HasIndex("TenantID");
+
+                    b.HasIndex("TenantID1");
+
+                    b.HasIndex("VrfID");
+
+                    b.HasIndex("VrfID1");
+
+                    b.ToTable("Attachment");
+                });
+
+            modelBuilder.Entity("SCM.Models.AttachmentBandwidth", b =>
+                {
+                    b.Property<int>("AttachmentBandwidthID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("BandwidthGbps");
+
+                    b.Property<int?>("BundleOrMultiPortMemberBandwidthGbps");
+
+                    b.Property<bool>("MustBeBundleOrMultiPort");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<bool>("SupportedByBundle");
+
+                    b.Property<bool>("SupportedByMultiPort");
+
+                    b.HasKey("AttachmentBandwidthID");
+
+                    b.HasIndex("BandwidthGbps")
+                        .IsUnique();
+
+                    b.ToTable("AttachmentBandwidth");
+                });
 
             modelBuilder.Entity("SCM.Models.AttachmentRedundancy", b =>
                 {
@@ -133,29 +218,6 @@ namespace SCM.Migrations
                     b.ToTable("BgpPeer");
                 });
 
-            modelBuilder.Entity("SCM.Models.BundleInterfacePort", b =>
-                {
-                    b.Property<int>("BundleInterfacePortID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("InterfaceID");
-
-                    b.Property<int>("PortID");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.HasKey("BundleInterfacePortID");
-
-                    b.HasIndex("InterfaceID");
-
-                    b.HasIndex("PortID")
-                        .IsUnique();
-
-                    b.ToTable("BundleInterfacePort");
-                });
-
             modelBuilder.Entity("SCM.Models.ContractBandwidth", b =>
                 {
                     b.Property<int>("ContractBandwidthID")
@@ -222,6 +284,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("PlaneID");
 
+                    b.Property<bool>("RequiresSync");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
@@ -243,24 +307,14 @@ namespace SCM.Migrations
                     b.Property<int>("InterfaceID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("BundleID");
-
-                    b.Property<int?>("ContractBandwidthPoolID");
+                    b.Property<int>("AttachmentID");
 
                     b.Property<int>("DeviceID");
 
-                    b.Property<int>("InterfaceBandwidthID");
+                    b.Property<int?>("DeviceID1");
 
                     b.Property<string>("IpAddress")
                         .HasMaxLength(15);
-
-                    b.Property<bool>("IsBundle");
-
-                    b.Property<bool>("IsLayer3");
-
-                    b.Property<bool>("IsTagged");
-
-                    b.Property<int?>("PortID");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -268,99 +322,16 @@ namespace SCM.Migrations
 
                     b.Property<string>("SubnetMask")
                         .HasMaxLength(15);
-
-                    b.Property<int>("TenantID");
-
-                    b.Property<int?>("VrfID");
 
                     b.HasKey("InterfaceID");
 
-                    b.HasIndex("ContractBandwidthPoolID");
+                    b.HasIndex("AttachmentID");
 
                     b.HasIndex("DeviceID");
 
-                    b.HasIndex("InterfaceBandwidthID");
-
-                    b.HasIndex("PortID")
-                        .IsUnique();
-
-                    b.HasIndex("TenantID");
-
-                    b.HasIndex("VrfID");
+                    b.HasIndex("DeviceID1");
 
                     b.ToTable("Interface");
-                });
-
-            modelBuilder.Entity("SCM.Models.InterfaceBandwidth", b =>
-                {
-                    b.Property<int>("InterfaceBandwidthID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("BandwidthGbps");
-
-                    b.Property<int?>("BundleOrMultiPortMemberBandwidthGbps");
-
-                    b.Property<bool>("MustBeBundleOrMultiPort");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<bool>("SupportedByBundle");
-
-                    b.Property<bool>("SupportedByMultiPort");
-
-                    b.HasKey("InterfaceBandwidthID");
-
-                    b.HasIndex("BandwidthGbps")
-                        .IsUnique();
-
-                    b.ToTable("InterfaceBandwidth");
-                });
-
-            modelBuilder.Entity("SCM.Models.InterfaceVlan", b =>
-                {
-                    b.Property<int>("InterfaceVlanID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int?>("ContractBandwidthPoolID");
-
-                    b.Property<int>("InterfaceID");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(15);
-
-                    b.Property<bool>("IsLayer3");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<string>("SubnetMask")
-                        .HasMaxLength(15);
-
-                    b.Property<int>("TenantID");
-
-                    b.Property<int>("VlanTag");
-
-                    b.Property<int?>("VlanTagRangeID");
-
-                    b.Property<int?>("VrfID");
-
-                    b.HasKey("InterfaceVlanID");
-
-                    b.HasIndex("ContractBandwidthPoolID");
-
-                    b.HasIndex("TenantID");
-
-                    b.HasIndex("VlanTagRangeID");
-
-                    b.HasIndex("VrfID");
-
-                    b.HasIndex("InterfaceID", "VlanTag")
-                        .IsUnique();
-
-                    b.ToTable("InterfaceVlan");
                 });
 
             modelBuilder.Entity("SCM.Models.Location", b =>
@@ -394,44 +365,6 @@ namespace SCM.Migrations
                     b.ToTable("Location");
                 });
 
-            modelBuilder.Entity("SCM.Models.MultiPort", b =>
-                {
-                    b.Property<int>("MultiPortID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("BgpPeerSourceIpAddress");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.HasKey("MultiPortID");
-
-                    b.ToTable("MultiPort");
-                });
-
-            modelBuilder.Entity("SCM.Models.MultiPortPort", b =>
-                {
-                    b.Property<int>("MultiPortPortID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("MultiPortID");
-
-                    b.Property<int>("PortID");
-
-                    b.HasKey("MultiPortPortID");
-
-                    b.HasIndex("MultiPortID");
-
-                    b.HasIndex("PortID");
-
-                    b.ToTable("MultiPortPort");
-                });
-
             modelBuilder.Entity("SCM.Models.Plane", b =>
                 {
                     b.Property<int>("PlaneID")
@@ -456,6 +389,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
+                    b.Property<int?>("InterfaceID");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50);
@@ -475,6 +410,8 @@ namespace SCM.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("DeviceID");
+
+                    b.HasIndex("InterfaceID");
 
                     b.HasIndex("PortBandwidthID");
 
@@ -560,7 +497,7 @@ namespace SCM.Migrations
 
                     b.Property<bool>("IsHubExport");
 
-                    b.Property<int>("RouteTargetRangeID");
+                    b.Property<int?>("RouteTargetRangeID");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -704,6 +641,91 @@ namespace SCM.Migrations
                     b.ToTable("TenantNetwork");
                 });
 
+            modelBuilder.Entity("SCM.Models.Vif", b =>
+                {
+                    b.Property<int>("VifID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("AttachmentID");
+
+                    b.Property<int>("ContractBandwidthPoolID");
+
+                    b.Property<int?>("ContractBandwidthPoolID1");
+
+                    b.Property<bool>("IsLayer3");
+
+                    b.Property<bool>("RequiresSync");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<int>("TenantID");
+
+                    b.Property<int?>("TenantID1");
+
+                    b.Property<int>("VlanTag");
+
+                    b.Property<int?>("VlanTagRangeID");
+
+                    b.Property<int>("VrfID");
+
+                    b.Property<int?>("VrfID1");
+
+                    b.HasKey("VifID");
+
+                    b.HasIndex("ContractBandwidthPoolID");
+
+                    b.HasIndex("ContractBandwidthPoolID1");
+
+                    b.HasIndex("TenantID");
+
+                    b.HasIndex("TenantID1");
+
+                    b.HasIndex("VlanTagRangeID");
+
+                    b.HasIndex("VrfID");
+
+                    b.HasIndex("VrfID1");
+
+                    b.HasIndex("AttachmentID", "VlanTag")
+                        .IsUnique();
+
+                    b.ToTable("Vif");
+                });
+
+            modelBuilder.Entity("SCM.Models.Vlan", b =>
+                {
+                    b.Property<int>("VlanID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("InterfaceID");
+
+                    b.Property<int?>("InterfaceID1");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(15);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<string>("SubnetMask")
+                        .HasMaxLength(15);
+
+                    b.Property<int>("VifID");
+
+                    b.HasKey("VlanID");
+
+                    b.HasIndex("InterfaceID");
+
+                    b.HasIndex("InterfaceID1");
+
+                    b.HasIndex("VifID");
+
+                    b.ToTable("Vlan");
+                });
+
             modelBuilder.Entity("SCM.Models.VlanTagRange", b =>
                 {
                     b.Property<int>("VlanTagRangeID")
@@ -742,6 +764,8 @@ namespace SCM.Migrations
                     b.Property<int?>("PlaneID");
 
                     b.Property<int?>("RegionID");
+
+                    b.Property<bool>("RequiresSync");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -931,6 +955,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
+                    b.Property<bool>("IsLayer3");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50);
@@ -958,6 +984,42 @@ namespace SCM.Migrations
                         .IsUnique();
 
                     b.ToTable("Vrf");
+                });
+
+            modelBuilder.Entity("SCM.Models.Attachment", b =>
+                {
+                    b.HasOne("SCM.Models.AttachmentBandwidth", "AttachmentBandwidth")
+                        .WithMany()
+                        .HasForeignKey("AttachmentBandwidthID");
+
+                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
+                        .WithMany()
+                        .HasForeignKey("ContractBandwidthPoolID");
+
+                    b.HasOne("SCM.Models.ContractBandwidthPool")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ContractBandwidthPoolID1");
+
+                    b.HasOne("SCM.Models.Device", "Device")
+                        .WithMany("Attachments")
+                        .HasForeignKey("DeviceID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SCM.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantID");
+
+                    b.HasOne("SCM.Models.Tenant")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TenantID1");
+
+                    b.HasOne("SCM.Models.Vrf", "Vrf")
+                        .WithMany()
+                        .HasForeignKey("VrfID");
+
+                    b.HasOne("SCM.Models.Vrf")
+                        .WithMany("Attachments")
+                        .HasForeignKey("VrfID1");
                 });
 
             modelBuilder.Entity("SCM.Models.AttachmentSet", b =>
@@ -1000,18 +1062,6 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("SCM.Models.BundleInterfacePort", b =>
-                {
-                    b.HasOne("SCM.Models.Interface", "Interface")
-                        .WithMany("BundleInterfacePorts")
-                        .HasForeignKey("InterfaceID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Port", "Port")
-                        .WithMany()
-                        .HasForeignKey("PortID");
-                });
-
             modelBuilder.Entity("SCM.Models.ContractBandwidthPool", b =>
                 {
                     b.HasOne("SCM.Models.ContractBandwidth", "ContractBandwidth")
@@ -1037,55 +1087,18 @@ namespace SCM.Migrations
 
             modelBuilder.Entity("SCM.Models.Interface", b =>
                 {
-                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
+                    b.HasOne("SCM.Models.Attachment", "Attachment")
                         .WithMany("Interfaces")
-                        .HasForeignKey("ContractBandwidthPoolID");
+                        .HasForeignKey("AttachmentID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Device", "Device")
-                        .WithMany("Interfaces")
-                        .HasForeignKey("DeviceID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.InterfaceBandwidth", "InterfaceBandwidth")
                         .WithMany()
-                        .HasForeignKey("InterfaceBandwidthID");
+                        .HasForeignKey("DeviceID");
 
-                    b.HasOne("SCM.Models.Port", "Port")
-                        .WithOne("Interface")
-                        .HasForeignKey("SCM.Models.Interface", "PortID");
-
-                    b.HasOne("SCM.Models.Tenant", "Tenant")
+                    b.HasOne("SCM.Models.Device")
                         .WithMany("Interfaces")
-                        .HasForeignKey("TenantID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("Interfaces")
-                        .HasForeignKey("VrfID");
-                });
-
-            modelBuilder.Entity("SCM.Models.InterfaceVlan", b =>
-                {
-                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
-                        .WithMany("InterfaceVlans")
-                        .HasForeignKey("ContractBandwidthPoolID");
-
-                    b.HasOne("SCM.Models.Interface", "Interface")
-                        .WithMany("InterfaceVlans")
-                        .HasForeignKey("InterfaceID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantID");
-
-                    b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
-                        .WithMany("InterfaceVlans")
-                        .HasForeignKey("VlanTagRangeID");
-
-                    b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("InterfaceVlans")
-                        .HasForeignKey("VrfID");
+                        .HasForeignKey("DeviceID1");
                 });
 
             modelBuilder.Entity("SCM.Models.Location", b =>
@@ -1100,25 +1113,16 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("SCM.Models.MultiPortPort", b =>
-                {
-                    b.HasOne("SCM.Models.MultiPort", "MultiPort")
-                        .WithMany("MultiPortPorts")
-                        .HasForeignKey("MultiPortID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SCM.Models.Port", "Port")
-                        .WithMany()
-                        .HasForeignKey("PortID")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("SCM.Models.Port", b =>
                 {
                     b.HasOne("SCM.Models.Device", "Device")
                         .WithMany("Ports")
                         .HasForeignKey("DeviceID")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SCM.Models.Interface", "Interface")
+                        .WithMany("Ports")
+                        .HasForeignKey("InterfaceID");
 
                     b.HasOne("SCM.Models.PortBandwidth", "PortBandwidth")
                         .WithMany()
@@ -1133,8 +1137,7 @@ namespace SCM.Migrations
                 {
                     b.HasOne("SCM.Models.RouteTargetRange", "RouteTargetRange")
                         .WithMany("RouteTargets")
-                        .HasForeignKey("RouteTargetRangeID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("RouteTargetRangeID");
 
                     b.HasOne("SCM.Models.Vpn", "Vpn")
                         .WithMany("RouteTargets")
@@ -1163,6 +1166,58 @@ namespace SCM.Migrations
                     b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany("TenantNetworks")
                         .HasForeignKey("TenantID")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SCM.Models.Vif", b =>
+                {
+                    b.HasOne("SCM.Models.Attachment", "Attachment")
+                        .WithMany("Vifs")
+                        .HasForeignKey("AttachmentID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
+                        .WithMany()
+                        .HasForeignKey("ContractBandwidthPoolID");
+
+                    b.HasOne("SCM.Models.ContractBandwidthPool")
+                        .WithMany("Vifs")
+                        .HasForeignKey("ContractBandwidthPoolID1");
+
+                    b.HasOne("SCM.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantID");
+
+                    b.HasOne("SCM.Models.Tenant")
+                        .WithMany("Vifs")
+                        .HasForeignKey("TenantID1");
+
+                    b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
+                        .WithMany("Vifs")
+                        .HasForeignKey("VlanTagRangeID");
+
+                    b.HasOne("SCM.Models.Vrf", "Vrf")
+                        .WithMany()
+                        .HasForeignKey("VrfID");
+
+                    b.HasOne("SCM.Models.Vrf")
+                        .WithMany("Vifs")
+                        .HasForeignKey("VrfID1");
+                });
+
+            modelBuilder.Entity("SCM.Models.Vlan", b =>
+                {
+                    b.HasOne("SCM.Models.Interface", "Interface")
+                        .WithMany()
+                        .HasForeignKey("InterfaceID");
+
+                    b.HasOne("SCM.Models.Interface")
+                        .WithMany("Vlans")
+                        .HasForeignKey("InterfaceID1");
+
+                    b.HasOne("SCM.Models.Vif", "Vif")
+                        .WithMany("Vlans")
+                        .HasForeignKey("VifID")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

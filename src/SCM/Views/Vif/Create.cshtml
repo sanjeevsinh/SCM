@@ -163,6 +163,8 @@
             autoAllocateVlanTag = $autoAllocateVlanTag[0];
             $requestedVlanTag = $('#RequestedVlanTag'),
             requestedVlanTag = $requestedVlanTag[0],
+            $attachmentID = $('#AttachmentID'),
+            attachmentID = $attachmentID[0],
             $attachmentIsMultiPort = $('#AttachmentIsMultiPort'),
             attachmentIsMultiPort = $attachmentIsMultiPort[0],
             $l3Components1 = $('#L3Components1'),
@@ -203,7 +205,11 @@
 
                 var tenantID = this.value;
 
-                $.get("/Vif/ContractBandwidthPools", { id: tenantID })
+                $.get("/Vif/ContractBandwidthPools", {
+                    tenantID: tenantID,
+                    attachmentID: attachmentID.value,
+                    attachmentIsMultiPort: attachmentIsMultiPort.value
+                })
                 .done(function (data) {
                     $contractBandwidthPool.html(data);
                 });

@@ -94,7 +94,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
-        public string InterfaceID { get; set; }
+        public string InterfaceName { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
         public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
@@ -114,7 +114,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
-        public string InterfaceID { get; set; }
+        public string InterfaceName { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
@@ -133,7 +133,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
-        public string InterfaceID { get; set; }
+        public string InterfaceName { get; set; }
     }
 
     public class UntaggedAttachmentBundleInterfaceNetModel
@@ -185,7 +185,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
-        public string InterfaceID { get; set; }
+        public string InterfaceName { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]
@@ -217,7 +217,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-type")]
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
-        public string InterfaceID { get; set; }
+        public string InterfaceName { get; set; }
         [XmlElement(ElementName = "interface-bandwidth")]
         public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]

@@ -8,21 +8,20 @@ namespace SCM.Data
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private SigmaContext context;
+        private GenericRepository<Attachment> attachmentRepository;
         private GenericRepository<AttachmentSet> attachmentSetRepository;
         private GenericRepository<AttachmentSetVrf> attachmentSetVrfRepository;
         private GenericRepository<VpnAttachmentSet> vpnAttachmentSetRepository;
         private GenericRepository<AttachmentRedundancy> attachmentRedundancyRepository;
         private GenericRepository<BgpPeer> bgpPeerRepository;
-        private GenericRepository<BundleInterfacePort> bundleInterfacePortRepository;
         private GenericRepository<ContractBandwidth> contractBandwidthRepository;
         private GenericRepository<ContractBandwidthPool> contractBandwidthPoolRepository;
         private GenericRepository<Device> deviceRepository;
         private GenericRepository<Interface> interfaceRepository;
-        private GenericRepository<InterfaceVlan> interfaceVlanRepository;
+        private GenericRepository<Vlan> vlanRepository;
+        private GenericRepository<Vif> vifRepository;
         private GenericRepository<Location> locationRepository;
-        private GenericRepository<InterfaceBandwidth> interfaceBandwidthRepository;
-        private GenericRepository<MultiPort> multiPortRepository;
-        private GenericRepository<MultiPortVlan> multiPortVlanRepository;
+        private GenericRepository<AttachmentBandwidth> attachmentBandwidthRepository;
         private GenericRepository<PortBandwidth> portBandwidthRepository;
         private GenericRepository<Port> portRepository;
         private GenericRepository<Region> regionRepository;
@@ -46,6 +45,30 @@ namespace SCM.Data
         public UnitOfWork(SigmaContext sigmaContext)
         {
             context = sigmaContext;
+        }
+
+        public GenericRepository<Attachment> AttachmentRepository
+        {
+            get
+            {
+                if (this.attachmentRepository == null)
+                {
+                    this.attachmentRepository = new GenericRepository<Attachment>(context);
+                }
+                return attachmentRepository;
+            }
+        }
+
+        public GenericRepository<AttachmentBandwidth> AttachmentBandwidthRepository
+        {
+            get
+            {
+                if (this.attachmentBandwidthRepository == null)
+                {
+                    this.attachmentBandwidthRepository = new GenericRepository<AttachmentBandwidth>(context);
+                }
+                return attachmentBandwidthRepository;
+            }
         }
 
         public GenericRepository<AttachmentSet> AttachmentSetRepository
@@ -108,18 +131,6 @@ namespace SCM.Data
             }
         }
 
-        public GenericRepository<BundleInterfacePort> BundleInterfacePortRepository
-        {
-            get
-            {
-                if (this.bundleInterfacePortRepository == null)
-                {
-                    this.bundleInterfacePortRepository = new GenericRepository<BundleInterfacePort>(context);
-                }
-                return bundleInterfacePortRepository;
-            }
-        }
-
         public GenericRepository<ContractBandwidth>  ContractBandwidthRepository
         {
             get
@@ -167,15 +178,27 @@ namespace SCM.Data
             }
         }
 
-        public GenericRepository<InterfaceVlan> InterfaceVlanRepository
+        public GenericRepository<Vlan> VlanRepository
         {
             get
             {
-                if (this.interfaceVlanRepository == null)
+                if (this.vlanRepository == null)
                 {
-                    this.interfaceVlanRepository = new GenericRepository<InterfaceVlan>(context);
+                    this.vlanRepository = new GenericRepository<Vlan>(context);
                 }
-                return interfaceVlanRepository;
+                return vlanRepository;
+            }
+        }
+
+        public GenericRepository<Vif> VifRepository
+        {
+            get
+            {
+                if (this.vifRepository == null)
+                {
+                    this.vifRepository = new GenericRepository<Vif>(context);
+                }
+                return vifRepository;
             }
         }
 
@@ -190,17 +213,7 @@ namespace SCM.Data
                 return locationRepository;
             }
         }
-        public GenericRepository<InterfaceBandwidth> InterfaceBandwidthRepository
-        {
-            get
-            {
-                if (this.interfaceBandwidthRepository == null)
-                {
-                    this.interfaceBandwidthRepository = new GenericRepository<InterfaceBandwidth>(context);
-                }
-                return interfaceBandwidthRepository;
-            }
-        }
+
 
         public GenericRepository<PortBandwidth> PortBandwidthRepository
         {
@@ -211,30 +224,6 @@ namespace SCM.Data
                     this.portBandwidthRepository = new GenericRepository<PortBandwidth>(context);
                 }
                 return portBandwidthRepository;
-            }
-        }
-
-        public GenericRepository<MultiPort> MultiPortRepository
-        {
-            get
-            {
-                if (this.multiPortRepository == null)
-                {
-                    this.multiPortRepository = new GenericRepository<MultiPort>(context);
-                }
-                return multiPortRepository;
-            }
-        }
-
-        public GenericRepository<MultiPortVlan> MultiPortVlanRepository
-        {
-            get
-            {
-                if (this.multiPortVlanRepository == null)
-                {
-                    this.multiPortVlanRepository = new GenericRepository<MultiPortVlan>(context);
-                }
-                return multiPortVlanRepository;
             }
         }
 

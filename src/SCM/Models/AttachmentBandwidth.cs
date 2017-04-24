@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SCM.Models
 {
-    public class InterfaceBandwidth
+    public class AttachmentBandwidth
     {
-        public int InterfaceBandwidthID { get; set; }
+        public int AttachmentBandwidthID { get; set; }
         public int BandwidthGbps { get; set; }
         public bool MustBeBundleOrMultiPort { get; set; }
         public bool SupportedByBundle { get; set; }

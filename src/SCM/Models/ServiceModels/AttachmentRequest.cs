@@ -32,6 +32,6 @@ namespace SCM.Models.ServiceModels
         public int PortBandwidthRequired { get; set; }
         public int NumPortsRequired { get; set; }
         public int DeviceID { get; set; }
-        public InterfaceBandwidth Bandwidth { get; set; }
+        public AttachmentBandwidth Bandwidth { get; set; }
     }
 }

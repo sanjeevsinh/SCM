@@ -5,21 +5,19 @@ namespace SCM.Data
 {
     public interface IUnitOfWork
     {
+        GenericRepository<Attachment> AttachmentRepository { get; }
         GenericRepository<AttachmentSet> AttachmentSetRepository { get; }
         GenericRepository<AttachmentSetVrf> AttachmentSetVrfRepository { get; }
         GenericRepository<VpnAttachmentSet> VpnAttachmentSetRepository { get; }
         GenericRepository<AttachmentRedundancy> AttachmentRedundancyRepository { get; }
         GenericRepository<BgpPeer> BgpPeerRepository { get; }
-        GenericRepository<BundleInterfacePort> BundleInterfacePortRepository { get; }
         GenericRepository<ContractBandwidth> ContractBandwidthRepository { get; }
         GenericRepository<ContractBandwidthPool> ContractBandwidthPoolRepository { get; }
         GenericRepository<Device> DeviceRepository { get; }
         GenericRepository<Interface> InterfaceRepository { get; }
-        GenericRepository<InterfaceVlan> InterfaceVlanRepository { get; }
+        GenericRepository<Vlan> VlanRepository { get; }
         GenericRepository<Location> LocationRepository { get; }
-        GenericRepository<InterfaceBandwidth> InterfaceBandwidthRepository { get; }
-        GenericRepository<MultiPort> MultiPortRepository { get; }
-        GenericRepository<MultiPortVlan> MultiPortVlanRepository { get; }
+        GenericRepository<AttachmentBandwidth> AttachmentBandwidthRepository { get; }
         GenericRepository<PortBandwidth> PortBandwidthRepository { get; }
         GenericRepository<Port> PortRepository { get; }
         GenericRepository<Region> RegionRepository { get; }
@@ -39,6 +37,7 @@ namespace SCM.Data
         GenericRepository<RouteTargetRange> RouteTargetRangeRepository { get; }
         GenericRepository<RouteDistinguisherRange> RouteDistinguisherRangeRepository { get; }
         GenericRepository<VlanTagRange> VlanTagRangeRepository { get; }
+        GenericRepository<Vif> VifRepository { get; }
         Task<int> SaveAsync();
     }
 }

@@ -19,9 +19,7 @@ namespace SCM.Models
         public byte[] RowVersion { get; set; }
         public virtual ContractBandwidth ContractBandwidth { get; set; }
         public virtual Tenant Tenant { get; set; }
-        public virtual ICollection<Interface> Interfaces { get; set; }
-        public virtual ICollection<InterfaceVlan> InterfaceVlans { get; set; }
-        public virtual ICollection<MultiPort> MultiPorts { get; set; }
-        public virtual ICollection<MultiPortVlan> MultiPortVlans { get; set; }
+        public virtual ICollection<Attachment> Attachments { get; set; }
+        public virtual ICollection<Vif> Vifs { get; set; }
     }
 }

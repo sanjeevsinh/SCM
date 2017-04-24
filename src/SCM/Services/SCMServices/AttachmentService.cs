@@ -26,156 +26,92 @@ namespace SCM.Services.SCMServices
         private IVrfService VrfService { get; set; }
         private IContractBandwidthPoolService ContractBandwidthPoolService { get; set; }
 
-        public async Task<AttachmentAndVifs> GetByIDAsync(int id, bool? multiPort = false)
+        public async Task<Attachment> GetByIDAsync(int id)
         {
-            if (multiPort.GetValueOrDefault())
-            {
-                var dbResult = await UnitOfWork.MultiPortRepository.GetAsync(q => q.MultiPortID == id,
-                    includeProperties: "Device.Location.SubRegion.Region,"
-                    + "Device.Plane,"
-                    + "Tenant,"
-                    + "Vrf.BgpPeers,"
-                    + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                    + "InterfaceBandwidth,"
-                    + "ContractBandwidthPool,"
-                    + "Ports.Interface.InterfaceBandwidth,"
-                    + "Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
-                    + "Ports.Interface.Vrf,"
-                    + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                    + "Ports.Interface.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                    + "MultiPortVlans.Vrf.BgpPeers,"
-                    + "MultiPortVlans.InterfaceVlans.Vrf.BgpPeers,"
-                    + "MultiPortVlans.ContractBandwidthPool.ContractBandwidth",
-                    AsTrackable: false);
+            var dbResult = await UnitOfWork.AttachmentRepository.GetAsync(q => q.AttachmentID == id,
+                includeProperties: "Tenant,"
+                + "Vrf.Device.Location.SubRegion.Region,"
+                + "Vrf.Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "AttachmentBandwidth,"
+                + "ContractBandwidthPool,"
+                + "Interfaces.Port,"
+                + "Vifs.Vrf.BgpPeers,"
+                + "Vifs.Vlans,"
+                + "Vifs.ContractBandwidthPool.ContractBandwidth",
+                AsTrackable: false);
 
-                return Mapper.Map<AttachmentAndVifs>(dbResult.SingleOrDefault());
-            }
-
-            else
-            {
-                var dbResult = await UnitOfWork.InterfaceRepository.GetAsync(q => q.InterfaceID == id && q.IsMultiPort == false,
-                    includeProperties: "Device.Location.SubRegion.Region,"
-                    + "Device.Plane,"
-                    + "Vrf.BgpPeers,"
-                    + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                    + "InterfaceBandwidth,"
-                    + "ContractBandwidthPool.ContractBandwidth,"
-                    + "Tenant,"
-                    + "Port.MultiPort,"
-                    + "BundleInterfacePorts.Port,"
-                    + "InterfaceVlans.Vrf.BgpPeers,"
-                    + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth",
-                    AsTrackable: false);
-
-                return Mapper.Map<AttachmentAndVifs>(dbResult.SingleOrDefault());
-            }
+            return dbResult.SingleOrDefault();
         }
 
         /// <summary>
-        /// Return a VIF from the VRF which the VIF is associated with.
+        /// Return an Attachment from the VRF which the Attachment is associated with.
         /// </summary>
         /// <param name="vrfID"></param>
         /// <returns></returns>
-        public async Task<AttachmentAndVifs> GetByVrfIDAsync(int vrfID)
+        public async Task<Attachment> GetByVrfIDAsync(int vrfID)
         {
-            var dbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "Interfaces,MultiPorts");
+            var dbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "Attachment");
             var vrf = dbResult.Single();
 
-            if (vrf.MultiPorts.Count > 0)
-            {
-                var multiPorts = vrf.MultiPorts.Single();
-
-                return await GetByIDAsync(multiPorts.MultiPortID, true);
-            }
-            else if (vrf.Interfaces.Count > 0)
-            {
-                var iface = vrf.Interfaces.Single();
-
-                return await GetByIDAsync(iface.InterfaceID, false);
-            }
-            else
-            {
-                return null;
-            }
+            return vrf.Attachments.SingleOrDefault();
         }
 
-        public async Task<List<AttachmentAndVifs>> GetAllByTenantAsync(Tenant tenant)
+        public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
         {
-            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(q => q.TenantID == tenant.TenantID && !q.IsMultiPort,
-                includeProperties: "Port,"
-                + "Device.Location.SubRegion.Region,"
-                + "Device.Plane,"
-                + "Vrf.Device,"
+            var attachments = await UnitOfWork.AttachmentRepository.GetAsync(q => q.TenantID == tenant.TenantID,
+                includeProperties: "Tenant,"
+                + "Vrf.Device.Location.SubRegion.Region,"
+                + "Vrf.Device.Plane,"
+                + "Vrf.BgpPeers,"
                 + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                + "InterfaceBandwidth,"
+                + "AttachmentBandwidth,"
                 + "ContractBandwidthPool,"
-                + "BundleInterfacePorts,"
-                + "InterfaceVlans.Vrf.BgpPeers,"
-                + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant",
+                + "Interfaces.Port,"
+                + "Vifs.Vrf.BgpPeers,"
+                + "Vifs.Vlans,"
+                + "Vifs.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
-            var multiPorts = await UnitOfWork.MultiPortRepository.GetAsync(q => q.TenantID == tenant.TenantID,
-                includeProperties: "Device.Location.SubRegion.Region,"
-                + "Device.Plane,"
-                + "Vrf.Device,"
-                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                + "InterfaceBandwidth,"
-                + "ContractBandwidthPool,"
-                + "Ports.Interface.InterfaceBandwidth,"
-                + "Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
-                + "Ports.Interface.Vrf,"
-                + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.InterfaceVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant",
-                AsTrackable: false);
-
-            return Mapper.Map<List<AttachmentAndVifs>>(ifaces).ToList().Concat(Mapper.Map<List<AttachmentAndVifs>>(multiPorts)).ToList();
+            return attachments.ToList();
         }
 
-        public async Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<Interface, bool>> filter = null)
+        /// <summary>
+        /// Return all Attachments for a given vpn.
+        /// </summary>
+        /// <param name="attachmentID"></param>
+        /// <returns></returns>
+        public async Task<List<Attachment>> GetAllByVpnIDAsync(int vpnID)
         {
+            var result = await UnitOfWork.AttachmentRepository
+                .GetAsync(q => q.Vrf.AttachmentSetVrfs
+                .Where(r => r.AttachmentSet.VpnAttachmentSets
+                .Where(s => s.VpnID == vpnID)
+                .Count() > 0)
+                .Count() > 0);
 
-            var ifaces = await UnitOfWork.InterfaceRepository.GetAsync(filter,
-                includeProperties: "Port,"
-                + "Device.Location.SubRegion.Region,"
-                + "Device.Plane,"
-                + "Vrf.Device,"
-                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                + "InterfaceBandwidth,"
-                + "ContractBandwidthPool,"
-                + "BundleInterfacePorts,"
-                + "InterfaceVlans.Vrf.BgpPeers,"
-                + "InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant",
-                AsTrackable: false);
-
-            return Mapper.Map<List<AttachmentAndVifs>>(ifaces);
+            return result.ToList();
         }
 
-        public async Task<List<AttachmentAndVifs>> GetAsync(Expression<Func<MultiPort, bool>> filter = null)
+        public async Task<List<Attachment>> GetAsync(Expression<Func<Attachment, bool>> filter = null)
         {
 
-            var multiPorts = await UnitOfWork.MultiPortRepository.GetAsync(filter,
-                includeProperties: "Device.Location.SubRegion.Region,"
-                + "Device.Plane,"
-                + "Vrf.Device,"
+            var attachments = await UnitOfWork.AttachmentRepository.GetAsync(filter,
+                includeProperties: "Tenant,"
+                + "Vrf.Device.Location.SubRegion.Region,"
+                + "Vrf.Device.Plane,"
+                + "Vrf.BgpPeers,"
                 + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                + "InterfaceBandwidth,"
+                + "AttachmentBandwidth,"
                 + "ContractBandwidthPool,"
-                + "Ports.Interface.InterfaceBandwidth,"
-                + "Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
-                + "Ports.Interface.Vrf,"
-                + "Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.InterfaceVlans.Vrf.BgpPeers,"
-                + "MultiPortVlans.ContractBandwidthPool.ContractBandwidth,"
-                + "Tenant",
+                + "Interfaces.Port,"
+                + "Vifs.Vrf.BgpPeers,"
+                + "Vifs.Vlans,"
+                + "Vifs.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
-            return Mapper.Map<List<AttachmentAndVifs>>(multiPorts);
+            return attachments.ToList();
         }
 
         public async Task<ServiceResult> AddAsync(AttachmentRequest request)
@@ -234,7 +170,7 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<ServiceResult> CheckNetworkSyncAsync(AttachmentAndVifs attachment)
+        public async Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment)
         {
             var result = new ServiceResult();
             NetworkSyncServiceResult syncResult;
@@ -245,21 +181,21 @@ namespace SCM.Services.SCMServices
                 {
                     var data = Mapper.Map<TaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{attachment.BundleID}");
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-bundle-interface/{data.BundleID}");
                 }
 
                 else if (attachment.IsMultiPort)
                 {
                     var data = Mapper.Map<TaggedAttachmentMultiPortServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                       $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-multiport/{attachment.Name}");
+                       $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-multiport/{data.Name}");
                 }
                 else
                 {
                     var data = Mapper.Map<TaggedAttachmentInterfaceServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{attachment.InterfaceType},"
-                        + attachment.InterfaceName.Replace("/", "%2F"));
+                        $"/attachment/pe/{attachment.Device.Name}/tagged-attachment-interface/{data.InterfaceType},"
+                        + data.InterfaceName.Replace("/", "%2F"));
                 }
             }
             else
@@ -268,32 +204,32 @@ namespace SCM.Services.SCMServices
                 {
                     var data = Mapper.Map<UntaggedAttachmentBundleInterfaceServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                            $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{attachment.BundleID}");
+                            $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-bundle-interface/{data.BundleID}");
                 }
                 else if (attachment.IsMultiPort)
                 {
                     var data = Mapper.Map<UntaggedAttachmentMultiPortServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-multiport/{attachment.Name}");
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-multiport/{data.Name}");
                 }
                 else
                 {
                     var data = Mapper.Map<UntaggedAttachmentInterfaceServiceNetModel>(attachment);
                     syncResult = await NetSync.CheckNetworkSyncAsync(data,
-                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{attachment.InterfaceType},"
-                        + attachment.InterfaceName.Replace("/", "%2F"));
+                        $"/attachment/pe/{attachment.Device.Name}/untagged-attachment-interface/{data.InterfaceType},"
+                        + data.InterfaceName.Replace("/", "%2F"));
                 }
             }
 
             result.AddRange(syncResult.Messages);
             result.IsSuccess = syncResult.IsSuccess;
 
-            await UpdateRequiresSyncAsync(attachment.ID, !result.IsSuccess, true, attachment.IsMultiPort);
+            await UpdateRequiresSyncAsync(attachment, !result.IsSuccess, true);
 
             return result;
         }
 
-        public async Task<ServiceResult> SyncToNetworkAsync(AttachmentAndVifs attachment)
+        public async Task<ServiceResult> SyncToNetworkAsync(Attachment attachment)
         {
             var result = new ServiceResult();
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(attachment);
@@ -303,7 +239,7 @@ namespace SCM.Services.SCMServices
             result.AddRange(syncResult.Messages);
             result.IsSuccess = syncResult.IsSuccess;
 
-            await UpdateRequiresSyncAsync(attachment.ID, !result.IsSuccess, true, attachment.IsMultiPort);
+            await UpdateRequiresSyncAsync(attachment, !result.IsSuccess, true);
 
             return result;
         }
@@ -313,7 +249,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        public async Task<ServiceResult> DeleteAsync(AttachmentAndVifs attachment)
+        public async Task<ServiceResult> DeleteAsync(Attachment attachment)
         {
             if (attachment.IsBundle)
             {
@@ -329,78 +265,80 @@ namespace SCM.Services.SCMServices
             }
         }
 
-        public async Task<ServiceResult> DeleteFromNetworkAsync(AttachmentAndVifs attachment)
+        public async Task<ServiceResult> DeleteFromNetworkAsync(Attachment attachment)
         {
             var networkSyncServiceResults = new List<NetworkSyncServiceResult>();
             var result = new ServiceResult { IsSuccess = true };
-            var tasks = new List<Task<NetworkSyncServiceResult>>();
+            var taskResult = new NetworkSyncServiceResult();
+
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(attachment);
 
             if (serviceModelData.TaggedAttachmentBundleInterfaces.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                    + $"/tagged-attachment-bundle-interface/{attachment.BundleID}"));
+                var data = serviceModelData.TaggedAttachmentBundleInterfaces.Single();
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                    + $"/tagged-attachment-bundle-interface/{data.BundleID}");
             }
             else if (serviceModelData.TaggedAttachmentInterfaces.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                    + $"/tagged-attachment-interface/{attachment.InterfaceType},"
-                    + attachment.InterfaceName.Replace("/", "%2F")));
+                var data = serviceModelData.TaggedAttachmentInterfaces.Single();
+                 taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                    + $"/tagged-attachment-interface/{data.InterfaceType},"
+                    + data.InterfaceName.Replace("/", "%2F"));
             }
             else if (serviceModelData.TaggedAttachmentMultiPorts.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                   + $"/tagged-attachment-multiport/{attachment.Name}"));
+                var data = serviceModelData.TaggedAttachmentMultiPorts.Single();
+                 taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                   + $"/tagged-attachment-multiport/{data.Name}");
             }
             else if (serviceModelData.UntaggedAttachmentBundleInterfaces.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                   + $"/untagged-attachment-bundle-interface/{attachment.BundleID}"));
+                var data = serviceModelData.UntaggedAttachmentBundleInterfaces.Single();
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                   + $"/untagged-attachment-bundle-interface/{data.BundleID}");
             }
             else if (serviceModelData.UntaggedAttachmentInterfaces.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                   + $"/untagged-attachment-interface/{attachment.InterfaceType},"
-                   + attachment.InterfaceName.Replace("/", "%2F")));
+                var data = serviceModelData.UntaggedAttachmentInterfaces.Single();
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                   + $"/untagged-attachment-interface/{data.InterfaceType},"
+                   + data.InterfaceName.Replace("/", "%2F"));
             }
             else if (serviceModelData.UntaggedAttachmentMultiPorts.Count > 0)
             {
-                tasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                    + $"/untagged-attachment-multiport/{attachment.Name}"));
+                var data = serviceModelData.UntaggedAttachmentMultiPorts.Single();
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                    + $"/untagged-attachment-multiport/{data.Name}");
             }
-
-            // Remove attachments first, then when complete remove vrfs.
-            // This order is important because the server will throw an error if an attempt is made
-            // to delete a vrf which is referenced by an attachment.
-
-            await Task.WhenAll(tasks);
 
             var vrfTasks = new List<Task<NetworkSyncServiceResult>>();
             if (serviceModelData.Vrfs.Count > 0)
             {
-                foreach (var vrf in serviceModelData.Vrfs)
-                {
-                    vrfTasks.Add(NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                        + $"/vrf/{vrf.VrfName},{vrf.EnableLayer3.ToString().ToLower()}"));
-                }
+                vrfTasks.AddRange(serviceModelData.Vrfs.Select(q => NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                        + $"/vrf/{q.VrfName},{q.EnableLayer3.ToString().ToLower()}")));
             }
+
+            result.IsSuccess = taskResult.IsSuccess;
+            result.AddRange(taskResult.Messages);
+
+            // Wait for deletion of vrfs from the network to complete
 
             await Task.WhenAll(vrfTasks);
 
             // Check results
 
-            foreach (var t in tasks.Concat(vrfTasks))
+            foreach (var t in vrfTasks)
             {
-                var r = t.Result;
-                result.NetworkSyncServiceResults.Add(r);
+                result.NetworkSyncServiceResults.Add(t.Result);
 
-                if (!r.IsSuccess)
+                if (!t.Result.IsSuccess)
                 {
                     result.IsSuccess = false;
                 }
             }
 
-            await UpdateRequiresSyncAsync(attachment.ID, true, true, attachment.IsMultiPort);
+            await UpdateRequiresSyncAsync(attachment, true, true);
 
             return result;
         }
@@ -528,15 +466,15 @@ namespace SCM.Services.SCMServices
 
 
         /// <summary>
-        /// Update the RequiresSync property of an interface record.
+        /// Update the RequiresSync property of an Attachment record.
         /// </summary>
         /// <param name="iface"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(Interface iface, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(Attachment attachment, bool requiresSync, bool saveChanges = true)
         {
-            iface.RequiresSync = requiresSync;
-            UnitOfWork.InterfaceRepository.Update(iface);
+            attachment.RequiresSync = requiresSync;
+            UnitOfWork.AttachmentRepository.Update(attachment);
             if (saveChanges)
             {
                 await UnitOfWork.SaveAsync();
@@ -544,43 +482,16 @@ namespace SCM.Services.SCMServices
 
             return;
         }
-        /// <summary>
-        /// Helper to update the RequiresSync property of an interface record.
-        /// </summary>
-        /// <param name="iface"></param>
-        /// <param name="requiresSync"></param>
-        /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? isMultiPort = false)
-        {
-            if (isMultiPort.GetValueOrDefault())
-            {
-                var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(id);
-                await UpdateRequiresSyncAsync(multiPort, requiresSync, saveChanges);
-            }
-            else
-            {
-                var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(id);
-                await UpdateRequiresSyncAsync(iface, requiresSync, saveChanges);
-            }
-
-            return;
-        }
 
         /// <summary>
-        /// Helper to update the RequiresSync property of a multiport record.
+        /// Update the RequiresSync property of an Attachment record.
         /// </summary>
-        /// <param name="multiPort"></param>
-        /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateRequiresSyncAsync(MultiPort multiPort, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true)
         {
-            multiPort.RequiresSync = requiresSync;
-            UnitOfWork.MultiPortRepository.Update(multiPort);
-            if (saveChanges)
-            {
-                await UnitOfWork.SaveAsync();
-            }
-
+            var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(id);
+            await UpdateRequiresSyncAsync(attachment, requiresSync, saveChanges);
+        
             return;
         }
 
@@ -621,7 +532,7 @@ namespace SCM.Services.SCMServices
             // Find all devices in the requested location
 
             var devices = await UnitOfWork.DeviceRepository.GetAsync(q => q.LocationID == request.LocationID,
-                includeProperties: "Ports.PortBandwidth,Ports.Device,Interfaces,Ports.Device.MultiPorts");
+                includeProperties: "Ports.PortBandwidth,Ports.Device,Interfaces");
 
             // Filter devices collection to include only those devices which belong to the requested plane (if specified)
 
@@ -673,12 +584,13 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         private async Task AddAttachmentAsync(AttachmentRequest request, Port port, ServiceResult result)
         {
-            port.TenantID = request.TenantID;
+
+            var attachment = Mapper.Map<Attachment>(request);
+            attachment.AttachmentBandwidthID = request.BandwidthID;
+            attachment.RequiresSync = true;
+
             var iface = Mapper.Map<Interface>(request);
             iface.DeviceID = port.DeviceID;
-            iface.PortID = port.ID;
-            iface.InterfaceBandwidthID = request.BandwidthID;
-            iface.RequiresSync = true;
 
             if (request.IsLayer3)
             {
@@ -690,8 +602,6 @@ namespace SCM.Services.SCMServices
 
             try
             {
-                UnitOfWork.PortRepository.Update(port);
-
                 if (!request.IsTagged)
                 {
                     var vrfResult = await VrfService.AddAsync(request);
@@ -704,7 +614,7 @@ namespace SCM.Services.SCMServices
                     }
 
                     var vrf = (Vrf)vrfResult.Item;
-                    iface.VrfID = vrf.VrfID;
+                    attachment.VrfID = vrf.VrfID;
 
                     var contractBandwidthPoolResult = await ContractBandwidthPoolService.AddAsync(request);
                     if (!contractBandwidthPoolResult.IsSuccess)
@@ -716,11 +626,19 @@ namespace SCM.Services.SCMServices
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
-                    iface.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
+                    attachment.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
                 }
 
+                UnitOfWork.AttachmentRepository.Insert(attachment);
+                await UnitOfWork.SaveAsync();
+                iface.AttachmentID = attachment.AttachmentID;
                 UnitOfWork.InterfaceRepository.Insert(iface);
-                await this.UnitOfWork.SaveAsync();
+                await UnitOfWork.SaveAsync();
+                port.TenantID = request.TenantID;
+                port.InterfaceID = iface.InterfaceID;
+                UnitOfWork.PortRepository.Update(port);
+                await UnitOfWork.SaveAsync();
+
             }
 
             catch (DbUpdateException /** ex **/)
@@ -741,6 +659,10 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         private async Task AddBundleAttachmentAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
         {
+            var attachment = Mapper.Map<Attachment>(request);
+            attachment.AttachmentBandwidthID = request.BandwidthID;
+            attachment.RequiresSync = true;
+
             var bundleIface = Mapper.Map<Interface>(request);
 
             if (request.IsLayer3)
@@ -750,15 +672,14 @@ namespace SCM.Services.SCMServices
             }
 
             var port = ports.First();
-            bundleIface.DeviceID = port.Device.ID;
-            bundleIface.InterfaceBandwidthID = request.BandwidthID;
-            bundleIface.RequiresSync = true;
-            var usedBundleIDs = port.Device.Interfaces.Select(q => q.BundleID).Where(q => q != null);
+            bundleIface.DeviceID = port.DeviceID;
+
+            var usedBundleIDs = port.Device.Attachments.Where(q => q.IsBundle).Select(q => q.ID).Where(q => q != null);
 
             // Find the first un-used bundle ID in the range 1, 65535 (this is the Cisco IOS-XR allowable range for bundle IDs).
 
-            bundleIface.BundleID = Enumerable.Range(1, 65535).Except(usedBundleIDs.Select(q => q.Value)).First();
-
+            attachment.ID = Enumerable.Range(1, 65535).Except(usedBundleIDs.Select(q => q.Value)).First();
+           
             // Need to implement Transaction Scope here when available in dotnet core
 
             try
@@ -775,7 +696,7 @@ namespace SCM.Services.SCMServices
                     }
 
                     var vrf = (Vrf)vrfResult.Item;
-                    bundleIface.VrfID = vrf.VrfID;
+                    attachment.VrfID = vrf.VrfID;
 
                     var contractBandwidthPoolResult = await ContractBandwidthPoolService.AddAsync(request);
                     if (!contractBandwidthPoolResult.IsSuccess)
@@ -787,7 +708,7 @@ namespace SCM.Services.SCMServices
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
-                    bundleIface.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
+                    attachment.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
                 }
 
                 UnitOfWork.InterfaceRepository.Insert(bundleIface);
@@ -796,10 +717,8 @@ namespace SCM.Services.SCMServices
                 foreach (var p in ports)
                 {
                     p.TenantID = request.TenantID;
+                    p.InterfaceID = bundleIface.InterfaceID;
                     UnitOfWork.PortRepository.Update(p);
-
-                    var bundleIfacePort = new BundleInterfacePort { PortID = p.ID, InterfaceID = bundleIface.InterfaceID };
-                    UnitOfWork.BundleInterfacePortRepository.Insert(bundleIfacePort);
                 }
 
                 await UnitOfWork.SaveAsync();
@@ -825,24 +744,20 @@ namespace SCM.Services.SCMServices
         private async Task AddMultiPortAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
         {
 
-            var port = ports.First();        
-            var usedIds = port.Device.MultiPorts.Select(q => q.Identifier);
+            var port = ports.First();
+            var attachment = Mapper.Map<Attachment>(request);
+
+            var usedIds = port.Device.Attachments.Where(q => q.IsMultiPort).Select(q => q.ID).Where(q => q != null);
 
             // Find the first un-used identifier in the range 1, 65535 (this range is fairly arbitrary - the identifer is not used
-            // for network configuration of a multiport. It serves only to create an ID which is unique to a device and which is used
+            // for network configuration of a multiport. It serves only to create a unique multiport ID which is used
             // in the NSO service models).
 
-            var id = Enumerable.Range(1, 65535).Except(usedIds).First();
+            attachment.ID = Enumerable.Range(1, 65535).Except(usedIds.Select(q => q.Value)).First();
 
-            // Create a new multiport
-
-            var multiPort = Mapper.Map<MultiPort>(request);
-            multiPort.Identifier = id;
-            multiPort.DeviceID = request.DeviceID;
-            multiPort.InterfaceBandwidthID = request.BandwidthID;
-            multiPort.LocalFailureDetectionIpAddress = "1.1.1.1";
-            multiPort.RemoteFailureDetectionIpAddress = "1.1.1.2";
-            multiPort.RequiresSync = true;
+            attachment.DeviceID = request.DeviceID;
+            attachment.AttachmentBandwidthID = request.BandwidthID;
+            attachment.RequiresSync = true;
 
             try
             {
@@ -861,7 +776,7 @@ namespace SCM.Services.SCMServices
                     }
 
                     vrf = (Vrf)vrfResult.Item;
-                    multiPort.VrfID = vrf.VrfID;
+                    attachment.VrfID = vrf.VrfID;
 
                     // Create contract bandwidth pool
 
@@ -875,37 +790,23 @@ namespace SCM.Services.SCMServices
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
-                    multiPort.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
+                    attachment.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
                 }
 
-                // Generate key for the multiport record
+                // Generate key for the multiport attachment record
 
-                UnitOfWork.MultiPortRepository.Insert(multiPort);
+                UnitOfWork.AttachmentRepository.Insert(attachment);
                 await UnitOfWork.SaveAsync();
 
                 // Create interface records, one for each member interface 
                 // of the multiport
-
-                var interfaceBandwidthsQuery = await UnitOfWork.InterfaceBandwidthRepository.GetAsync(q => 
-                    q.BandwidthGbps == request.PortBandwidthRequired);
-
-                var interfaceBandwidth = interfaceBandwidthsQuery.Single();
 
                 var portCount = ports.Count();
 
                 for (var i = 1; i <= portCount; i++)
                 {
                     var iface = Mapper.Map<Interface>(request);
-                    var p = ports[i - 1];
                     iface.DeviceID = request.DeviceID;
-                    iface.PortID = p.ID;
-                    iface.InterfaceBandwidthID = interfaceBandwidth.InterfaceBandwidthID;
-                    iface.RequiresSync = true;
-
-                    if (vrf != null)
-                    {
-                        iface.VrfID = vrf.VrfID;
-                    }
 
                     if (request.IsLayer3)
                     {
@@ -936,8 +837,9 @@ namespace SCM.Services.SCMServices
                     // Assign the port to the tenant and make it a member
                     // of the multiport
 
+                    var p = ports[i - 1];
                     p.TenantID = request.TenantID;
-                    p.MultiPortID = multiPort.MultiPortID;
+                    p.InterfaceID = iface.InterfaceID;
                     UnitOfWork.PortRepository.Update(p);
                 }
 
@@ -959,18 +861,20 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        private async Task<ServiceResult> DeleteAttachmentAsync(AttachmentAndVifs attachment)
+        private async Task<ServiceResult> DeleteAttachmentAsync(Attachment attachment)
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var port = await UnitOfWork.PortRepository.GetByIDAsync(attachment.Port.ID);
+            var iface = attachment.Interfaces.Single();
+            var port = await UnitOfWork.PortRepository.GetByIDAsync(iface.Ports.Single().ID);
             port.TenantID = null;
+            port.InterfaceID = null;
 
             try
             {
                 UnitOfWork.PortRepository.Update(port);
-                await UnitOfWork.InterfaceRepository.DeleteAsync(attachment.ID);
-                await CleanUpVifsAndVrfsAndContractBandwidthPools(attachment);
+                await UnitOfWork.InterfaceRepository.DeleteAsync(iface.InterfaceID);
+                await UnitOfWork.AttachmentRepository.DeleteAsync(attachment.ID);
 
                 await UnitOfWork.SaveAsync();
             }
@@ -991,30 +895,24 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachment"></param>
         /// <returns></returns>
-        private async Task<ServiceResult> DeleteBundleAttachmentAsync(AttachmentAndVifs attachment)
+        private async Task<ServiceResult> DeleteBundleAttachmentAsync(Attachment attachment)
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var bundlePorts = await UnitOfWork.BundleInterfacePortRepository.GetAsync(q => q.InterfaceID == attachment.ID,
-                includeProperties: "Port");
-
-            var ports = bundlePorts.Select(q => q.Port);
+            var iface = attachment.Interfaces.Single();
+            var ports = attachment.Interfaces.SelectMany(q => q.Ports);
 
             try
             {
                 foreach (var port in ports)
                 {
                     port.TenantID = null;
+                    port.InterfaceID = null;
                     UnitOfWork.PortRepository.Update(port);
                 }
 
-                foreach (var bundlePort in bundlePorts)
-                {
-                    UnitOfWork.BundleInterfacePortRepository.Delete(bundlePort);
-                }
-
-                await UnitOfWork.InterfaceRepository.DeleteAsync(attachment.ID);
-                await CleanUpVifsAndVrfsAndContractBandwidthPools(attachment);
+                await UnitOfWork.InterfaceRepository.DeleteAsync(iface.InterfaceID);
+                await UnitOfWork.AttachmentRepository.DeleteAsync(attachment.ID);
 
                 await UnitOfWork.SaveAsync();
             }
@@ -1033,23 +931,20 @@ namespace SCM.Services.SCMServices
         /// <summary>
         /// Delete a multiport attachment from inventory
         /// </summary>
-        /// <param name="multiport"></param>
         /// <returns></returns>
-        private async Task<ServiceResult> DeleteMultiPortAttachmentAsync(AttachmentAndVifs attachment)
+        private async Task<ServiceResult> DeleteMultiPortAttachmentAsync(Attachment attachment)
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var ports = await UnitOfWork.PortRepository.GetAsync(q => q.MultiPortID == attachment.ID,
-                includeProperties: "Interface");
-
-            var interfaces = ports.Select(q => q.Interface);
+            var interfaces = attachment.Interfaces;
+            var ports = attachment.Interfaces.SelectMany(q => q.Ports);
 
             try
             {
                 foreach (var port in ports)
                 {
                     port.TenantID = null;
-                    port.MultiPortID = null;
+                    port.InterfaceID = null;
                     UnitOfWork.PortRepository.Update(port);
                 }
 
@@ -1057,10 +952,8 @@ namespace SCM.Services.SCMServices
                 {
                     UnitOfWork.InterfaceRepository.Delete(iface);
                 }
-
-                await CleanUpVifsAndVrfsAndContractBandwidthPools(attachment);   
-                await this.UnitOfWork.MultiPortRepository.DeleteAsync(attachment.ID);
-
+                  
+                await UnitOfWork.AttachmentRepository.DeleteAsync(attachment.ID);
                 await UnitOfWork.SaveAsync();
             }
 
@@ -1073,42 +966,6 @@ namespace SCM.Services.SCMServices
             }
             
             return result;
-        }
-        
-        private async Task CleanUpVifsAndVrfsAndContractBandwidthPools(AttachmentAndVifs attachment)
-        {
-            if (attachment.VrfID != null)
-            {
-                await UnitOfWork.VrfRepository.DeleteAsync(attachment.VrfID);
-            }
-
-            if (attachment.ContractBandwidthPoolID != null)
-            {
-                await UnitOfWork.ContractBandwidthPoolRepository.DeleteAsync(attachment.ContractBandwidthPoolID);
-            }
-
-            foreach (var vif in attachment.Vifs)
-            {
-                if (vif.Attachment.IsMultiPort)
-                {
-                    await UnitOfWork.MultiPortVlanRepository.DeleteAsync(vif.ID);
-                }
-                else
-                {
-                    await UnitOfWork.InterfaceVlanRepository.DeleteAsync(vif.ID);
-                }
-
-                if (vif.VrfID != null)
-                {
-                    await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
-
-                }
-
-                if (vif.ContractBandwidthPoolID != null)
-                {
-                    await UnitOfWork.ContractBandwidthPoolRepository.DeleteAsync(vif.ContractBandwidthPoolID);
-                }
-            }
         }
     }
 }

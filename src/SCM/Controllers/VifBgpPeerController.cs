@@ -87,7 +87,7 @@ namespace SCM.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
+                    await VifService.UpdateRequiresSyncAsync(vif.VifID, true, false);
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                     return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -155,7 +155,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
+                        await VifService.UpdateRequiresSyncAsync(vif.VifID, true, false);
                         await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                         return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -249,7 +249,7 @@ namespace SCM.Controllers
 
                 if (currentBgpPeer != null)
                 {
-                    await VifService.UpdateRequiresSyncAsync(vif.ID, true, false, vif.Attachment.IsMultiPort);
+                    await VifService.UpdateRequiresSyncAsync(vif.VifID, true, false);
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
 

@@ -13,19 +13,27 @@ namespace SCM.Services.SCMServices
     public class VpnService : BaseService, IVpnService
     {
         public VpnService(IUnitOfWork unitOfWork, IMapper mapper,
-            IRouteTargetService routeTargetService, IAttachmentOrVifService attachmentOrVifService,
+            IRouteTargetService routeTargetService,
+            IAttachmentService attachmentService,
+            IVifService vifService,
             INetworkSyncService netSync) : base(unitOfWork, mapper, netSync)
         {
             RouteTargetService = routeTargetService;
-            AttachmentOrVifService = attachmentOrVifService;
+            AttachmentService = attachmentService;
+            VifService = vifService;
         }
 
         private IRouteTargetService RouteTargetService { get; set; }
-        private IAttachmentOrVifService AttachmentOrVifService { get; set; }
+        private IAttachmentService AttachmentService { get; set; }
+        private IVifService VifService { get; set; }
 
         public async Task<IEnumerable<Vpn>> GetAllAsync()
         {
-            return await this.UnitOfWork.VpnRepository.GetAsync(includeProperties: "Plane,VpnTenancyType,VpnTopologyType.VpnProtocolType,Tenant,Region");
+            return await this.UnitOfWork.VpnRepository.GetAsync(includeProperties: "Plane,"
+                + "VpnTenancyType,"
+                + "VpnTopologyType.VpnProtocolType," 
+                + "Tenant," 
+                + "Region");
         }
 
         public async Task<Vpn> GetByIDAsync(int id)
@@ -141,11 +149,18 @@ namespace SCM.Services.SCMServices
         {
             var validationResult = new ServiceResult { IsSuccess = true };
 
-            var attachmentsAndVifs = await AttachmentOrVifService.GetAllByVpnIDAsync(vpn.VpnID);
-            if (attachmentsAndVifs.Where(q => q.RequiresSync == true).Count() > 0)
+            var attachments = await AttachmentService.GetAllByVpnIDAsync(vpn.VpnID);
+            if (attachments.Where(q => q.RequiresSync).Count() > 0)
             {
                 validationResult.IsSuccess = false;
-                validationResult.Add("One or more attachments or vifs for the VPN require synchronisation with the network.");
+                validationResult.Add("One or more attachments for the VPN require synchronisation with the network.");
+            }
+
+            var vifs = await VifService.GetAllByVpnIDAsync(vpn.VpnID);
+            if (vifs.Where(q => q.RequiresSync).Count() > 0)
+            {
+                validationResult.IsSuccess = false;
+                validationResult.Add("One or more vifs for the VPN require synchronisation with the network.");
             }
 
             return validationResult;

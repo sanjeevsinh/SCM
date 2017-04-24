@@ -129,11 +129,11 @@ namespace SCM.Data
                 context.PortBandwidth.Add(p);
             }
 
-            var interfaceBandwidths = new List<InterfaceBandwidth>
+            var attachmentBandwidths = new List<AttachmentBandwidth>
             {
-                new InterfaceBandwidth {BandwidthGbps = 1 },
-                new InterfaceBandwidth {BandwidthGbps = 10 },
-                new InterfaceBandwidth
+                new AttachmentBandwidth {BandwidthGbps = 1 },
+                new AttachmentBandwidth {BandwidthGbps = 10 },
+                new AttachmentBandwidth
                 {
                     BandwidthGbps = 20,
                     BundleOrMultiPortMemberBandwidthGbps = 10,
@@ -141,18 +141,18 @@ namespace SCM.Data
                     SupportedByMultiPort = true,
                     MustBeBundleOrMultiPort = true
                 },
-                new InterfaceBandwidth {
+                new AttachmentBandwidth {
                     BandwidthGbps = 40,
                     BundleOrMultiPortMemberBandwidthGbps = 10,
                     SupportedByBundle = true,
                     SupportedByMultiPort = true
                 },
-                new InterfaceBandwidth {BandwidthGbps = 100 }
+                new AttachmentBandwidth {BandwidthGbps = 100 }
             };
 
-            foreach (InterfaceBandwidth p in interfaceBandwidths)
+            foreach (var p in attachmentBandwidths)
             {
-                context.InterfaceBandwidth.Add(p);
+                context.AttachmentBandwidth.Add(p);
             }
 
             var contractBandwidths = new List<ContractBandwidth>

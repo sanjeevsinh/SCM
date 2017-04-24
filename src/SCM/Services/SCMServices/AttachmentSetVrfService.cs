@@ -120,16 +120,14 @@ namespace SCM.Services.SCMServices
 
             var attachmentSet = await UnitOfWork.AttachmentSetRepository.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
             var vrfDbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == attachmentSetVrf.VrfID, 
-                includeProperties:"Interfaces,"
-                + "InterfaceVlans,"
-                + "MultiPorts,"
-                + "MultiPortVlans");
+                includeProperties:"Attachments,"
+                + "Vifs");
 
             var vrf = vrfDbResult.Single();
 
-            if (vrf.MultiPorts.Count > 0)
+            if (vrf.Attachments.Count > 0)
             {
-                if (vrf.MultiPorts.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
+                if (vrf.Attachments.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
                 {
                     result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
                     result.Add("The protocol layer of the attachment set and the VRF do not match.");
@@ -139,32 +137,9 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            if (vrf.MultiPortVlans.Count > 0)
+            if (vrf.Vifs.Count > 0)
             {
-                if (vrf.MultiPortVlans.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
-                {
-                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
-                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
-                    result.IsSuccess = false;
-
-                    return result;
-                }
-            }
-
-            if (vrf.Interfaces.Count > 0)
-            {
-                if (vrf.Interfaces.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0) {
-                    result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
-                    result.Add("The protocol layer of the attachment set and the VRF do not match.");
-                    result.IsSuccess = false;
-
-                    return result;
-                }
-            }
-
-            if (vrf.InterfaceVlans.Count > 0)
-            {
-                if (vrf.InterfaceVlans.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
+                if (vrf.Vifs.Where(q => q.IsLayer3 != attachmentSet.IsLayer3).Count() > 0)
                 {
                     result.Add($"VRF '{vrf.Name}' cannot be added to attachment set '{attachmentSet.Name}'.");
                     result.Add("The protocol layer of the attachment set and the VRF do not match.");

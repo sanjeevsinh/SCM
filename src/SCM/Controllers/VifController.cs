@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using SCM.Models.ServiceModels;
+using SCM.Models;
 using SCM.Models.ViewModels;
 using SCM.Services;
 using SCM.Services.SCMServices;
@@ -42,61 +43,61 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByAttachmentID(int? id, bool? attachmentIsMultiPort)
+        public async Task<IActionResult> GetAllByAttachmentID(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
             if (attachment == null)
             {
                 return NotFound();
             }
 
             ViewBag.Attachment = attachment;
-            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value, attachmentIsMultiPort);
+            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMultiPortVifsByVifID(int? id)
+        public async Task<IActionResult> GetMultiPortVlansByVifID(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var vif = await VifService.GetByIDAsync(id.Value, true);
+            var vif = await VifService.GetByIDAsync(id.Value);
             if (vif == null)
             {
                 return NotFound();
             }
 
             ViewBag.Vif = vif;
-            var multiPortVifs = await VifService.GetMultiPortVifsByVifIDAsync(id.Value);
+            var multiPortVlans = await VifService.UnitOfWork.VlanRepository.GetAsync(q => q.VifID == id.Value);
 
-            return View(Mapper.Map<List<MultiPortVifViewModel>>(multiPortVifs));
+            return View(Mapper.Map<List<MultiPortVifViewModel>>(multiPortVlans));
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int? id, bool? attachmentIsMultiPort)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var item = await VifService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            var item = await VifService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, attachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             if (attachment == null)
             {
                 return NotFound();
@@ -107,14 +108,14 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(int? id, bool? attachmentIsMultiPort)
+        public async Task<IActionResult> Create(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
             if (attachment == null)
             {
                 return NotFound();
@@ -122,7 +123,7 @@ namespace SCM.Controllers
             ViewBag.Attachment = attachment;
 
             await PopulateTenantsDropDownList(attachment.TenantID);
-            PopulateContractBandwidthPoolsDropDownList(attachment);
+            PopulateContractBandwidthPoolsDropDownList(attachment, attachment.TenantID);
             await PopulateContractBandwidthsDropDownList();
 
             return View();
@@ -156,12 +157,12 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID, attachmentIsMultiPort = request.AttachmentIsMultiPort });
+                        return RedirectToAction("GetAllByAttachmentID", new { id = request.AttachmentID });
                     }
                 }
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID, request.AttachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
             if (attachment == null)
             {
                 return NotFound();
@@ -169,26 +170,26 @@ namespace SCM.Controllers
             ViewBag.Attachment = attachment;
 
             await PopulateTenantsDropDownList(attachment.TenantID);
-            PopulateContractBandwidthPoolsDropDownList(attachment, request.ContractBandwidthPoolID);
+            PopulateContractBandwidthPoolsDropDownList(attachment, request.TenantID, request.ContractBandwidthPoolID);
             await PopulateContractBandwidthsDropDownList(request.ContractBandwidthID);
 
             return View(request);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, int? attachmentID, bool? attachmentIsMultiPort, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, int? attachmentID, bool? concurrencyError = false)
         {
             if (id == null || attachmentID == null)
             {
                 return NotFound();
             }
 
-            var vif = await VifService.GetByIDAsync(id.Value, attachmentIsMultiPort);
+            var vif = await VifService.GetByIDAsync(id.Value);
             if (vif == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByAttachmentID", new { id = attachmentID, attachmentIsMultiPort = attachmentIsMultiPort });
+                    return RedirectToAction("GetAllByAttachmentID", new { id = attachmentID });
                 }
 
                 return NotFound();
@@ -204,7 +205,7 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(attachmentID.Value, attachmentIsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(attachmentID.Value);
             if (attachment == null)
             {
                 return NotFound();
@@ -220,14 +221,14 @@ namespace SCM.Controllers
         {
             try
             {
-                var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
+                var item = await VifService.GetByIDAsync(vif.VifID);
 
                 if (item == null)
                 {
                     return NotFound();
                 }
 
-                var validateVrfDelete = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
+                var validateVrfDelete = await VrfService.ValidateDeleteAsync(item.VrfID);
                 if (!validateVrfDelete.IsSuccess)
                 {
                     ViewData["ErrorMessage"] = validateVrfDelete.GetHtmlListMessage();
@@ -267,12 +268,12 @@ namespace SCM.Controllers
                         }
                         else
                         {
-                            return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID, attachmentIsMultiPort = vif.AttachmentIsMultiPort });
+                            return RedirectToAction("GetAllByAttachmentID", new { id = vif.AttachmentID });
                         }
                     }
                 }
 
-                var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
+                var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
                 ViewBag.Attachment = attachment;
 
                 return View(Mapper.Map<VifViewModel>(item));
@@ -284,9 +285,8 @@ namespace SCM.Controllers
                 return RedirectToAction("Delete", new
                 {
                     concurrencyError = true,
-                    id = vif.ID,
-                    attachmentID = vif.AttachmentID,
-                    attachmentIsMultiPort = vif.AttachmentIsMultiPort
+                    id = vif.VifID,
+                    attachmentID = vif.AttachmentID
                 });
             }
         }
@@ -294,7 +294,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> CheckSync(VifViewModel vif)
         {
-            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
+            var item = await VifService.GetByIDAsync(vif.VifID);
 
             if (item == null)
             {
@@ -314,7 +314,7 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             if (attachment == null)
             {
                 return NotFound();
@@ -329,7 +329,7 @@ namespace SCM.Controllers
         public async Task<IActionResult> Sync(VifViewModel vif)
         {
 
-            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
+            var item = await VifService.GetByIDAsync(vif.VifID);
             if (item == null)
             {
                 return NotFound();
@@ -348,7 +348,7 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             if (attachment == null)
             {
                 return NotFound();
@@ -361,7 +361,7 @@ namespace SCM.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteFromNetwork(VifViewModel vif)
         {
-            var item = await VifService.GetByIDAsync(vif.ID, vif.AttachmentIsMultiPort);
+            var item = await VifService.GetByIDAsync(vif.VifID);
 
             if (item == null)
             {
@@ -374,7 +374,7 @@ namespace SCM.Controllers
             // is to be deleted, and one or more VPNs are bound to the VRF, 
             // then quit and warn the user
 
-            var validationResult = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
+            var validationResult = await VrfService.ValidateDeleteAsync(item.VrfID);
             if (!validationResult.IsSuccess)
             {
                 ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
@@ -392,7 +392,7 @@ namespace SCM.Controllers
                 }
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID, item.Attachment.IsMultiPort);
+            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             ViewBag.Attachment = attachment;
 
             item.RequiresSync = true;
@@ -401,9 +401,14 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<PartialViewResult> ContractBandwidthPools(int id)
+        public async Task<PartialViewResult> ContractBandwidthPools(int tenantID, int attachmentID)
         {
-            var contractBandwidthPools = await VifService.UnitOfWork.ContractBandwidthPoolRepository.GetAsync(q => q.TenantID == id);
+            var attachment = await AttachmentService.GetByIDAsync(attachmentID);
+
+            var contractBandwidthPools = attachment.Vifs.Select(q => q.ContractBandwidthPool).Where(q => q.TenantID == tenantID)
+                .GroupBy(q => q.ContractBandwidthPoolID)
+                .Select(group => group.First());
+
             return PartialView(Mapper.Map<List<ContractBandwidthPoolViewModel>>(contractBandwidthPools));
         }
 
@@ -413,10 +418,13 @@ namespace SCM.Controllers
             ViewBag.TenantID = new SelectList(tenants, "TenantID", "Name", selectedTenant);
         }
 
-        private void PopulateContractBandwidthPoolsDropDownList(AttachmentAndVifs attachment, object selectedContractBandwidthPool = null)
+        private void PopulateContractBandwidthPoolsDropDownList(Attachment attachment, int tenantID, object selectedContractBandwidthPool = null)
         {
-            var contractBandwidthPools = attachment.Vifs.Select(q => q.ContractBandwidthPool);
-            ViewBag.ContractBandwidthPoolID = new SelectList(contractBandwidthPools.GroupBy(q => q.ContractBandwidthPoolID).Select(group => group.First()), "ContractBandwidthPoolID", "Name", selectedContractBandwidthPool);
+            var contractBandwidthPools = attachment.Vifs.Select(q => q.ContractBandwidthPool).Where(q => q.TenantID == tenantID)
+                .GroupBy(q => q.ContractBandwidthPoolID)
+                .Select(group => group.First());
+
+            ViewBag.ContractBandwidthPoolID = new SelectList(contractBandwidthPools,"ContractBandwidthPoolID", "Name", selectedContractBandwidthPool);
         }
 
         private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)

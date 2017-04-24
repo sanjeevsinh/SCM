@@ -5,10 +5,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SCM.Models.ViewModels
 {
-    public class InterfaceBandwidthViewModel
+    public class AttachmentBandwidthViewModel
     {
         [Display(AutoGenerateField = false)]
-        public int InterfaceBandwidthID { get; set; }
+        public int AttachmentBandwidthID { get; set; }
         public int BandwidthGbps { get; set; }
         public byte[] RowVersion { get; set; }
     }

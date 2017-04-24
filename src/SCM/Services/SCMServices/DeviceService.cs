@@ -76,19 +76,14 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult();
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
                 includeProperties: "Vrfs,"
-                               + "Interfaces.Port,"
-                               + "Interfaces.InterfaceBandwidth,"
-                               + "Interfaces.Vrf.BgpPeers,"
-                               + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
-                               + "Interfaces.BundleInterfacePorts.Port,"
-                               + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
-                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.Ports.Interface.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
-                               + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.MultiPort.MultiPortVlans.ContractBandwidthPool.ContractBandwidth");
+                               + "Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.AttachmentBandwidth,"
+                               + "Attachments.Vrf.BgpPeers,"
+                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
+                               + "Vifs.Vlans,"
+                               + "Vifs.Vrf.BgpPeers,"
+                               + "Vifs.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
 
@@ -115,19 +110,15 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult();
 
             var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
-                includeProperties: "Vrfs," 
-                               + "Interfaces.Port,"
-                               + "Interfaces.InterfaceBandwidth,"
-                               + "Interfaces.Vrf.BgpPeers,"
-                               + "Interfaces.InterfaceVlans.Vrf.BgpPeers,"
-                               + "Interfaces.BundleInterfacePorts.Port,"
-                               + "Interfaces.ContractBandwidthPool.ContractBandwidth,"
-                               + "Interfaces.InterfaceVlans.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.Ports.Interface.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.Interface.InterfaceBandwidth,"
-                               + "MultiPorts.Ports.Interface.ContractBandwidthPool.ContractBandwidth,"
-                               + "MultiPorts.Ports.Interface.InterfaceVlans.Vrf.BgpPeers,"
-                               + "MultiPorts.Ports.MultiPort.MultiPortVlans.ContractBandwidthPool.ContractBandwidth");
+                includeProperties: "Vrfs,"
+                               + "Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.AttachmentBandwidth,"
+                               + "Attachments.Vrf.BgpPeers,"
+                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
+                               + "Vifs.Vlans,"
+                               + "Vifs.Vrf.BgpPeers,"
+                               + "Vifs.ContractBandwidthPool.ContractBandwidth");
 
             var device = deviceDbResult.SingleOrDefault();
 

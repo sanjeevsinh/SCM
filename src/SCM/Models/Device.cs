@@ -24,7 +24,7 @@ namespace SCM.Models
         public virtual Plane Plane { get; set; }
         public virtual ICollection<Port> Ports { get; set; }
         public virtual ICollection<Interface> Interfaces { get; set; }
+        public virtual ICollection<Attachment> Attachments { get; set; }
         public virtual ICollection<Vrf> Vrfs { get; set; }
-        public virtual ICollection<MultiPort> MultiPorts { get; set; }
     }
 }

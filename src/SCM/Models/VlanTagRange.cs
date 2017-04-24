@@ -13,6 +13,6 @@ namespace SCM.Models
         public int VlanTagRangeCount { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
-        public ICollection<InterfaceVlan> InterfaceVlans { get; set; }
+        public ICollection<Vif> Vifs { get; set; }
     }
 }

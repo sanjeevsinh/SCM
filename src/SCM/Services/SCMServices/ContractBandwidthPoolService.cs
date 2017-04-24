@@ -83,67 +83,51 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            InterfaceBandwidth interfaceBandwidth;
-            int aggregateContractBandwidthMbps;
-
-            if (request.AttachmentIsMultiPort)
-            {
-                var vlans = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortID == request.AttachmentID,
+            var vifs = await UnitOfWork.VifRepository.GetAsync(q => q.AttachmentID == request.AttachmentID,
                     includeProperties: "ContractBandwidthPool.ContractBandwidth",
                     AsTrackable: false);
 
-                if (request.ContractBandwidthPoolID != null)
-                {
-                    if (vlans.Where(q => q.ContractBandwidthPoolID == request.ContractBandwidthPoolID).Count() == 0)
-                    {
-                        result.Add("The selected Contract Bandwidth Pool is invalid because it is not associated with any vif "
-                            + "of the current attachment.");
-                        result.IsSuccess = false;
-
-                        return result;
-                    }
-                }
-
-                // Get arguments needed to check for sufficient bandwidth
-
-                var multiPort = await UnitOfWork.MultiPortRepository.GetByIDAsync(request.AttachmentID);
-                interfaceBandwidth = multiPort.InterfaceBandwidth;
-
-                // Calculate aggregate bandwidth used from distinct Contract Bandwidth Pool assignments
-
-                aggregateContractBandwidthMbps = vlans.GroupBy(q => q.ContractBandwidthPoolID)
-                    .Select(group => group.First())
-                    .Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
-            }
-            else
+            if (request.ContractBandwidthPoolID != null)
             {
-                var vlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == request.AttachmentID,
-                    includeProperties: "ContractBandwidthPool.ContractBandwidth",
-                    AsTrackable: false);
+                // Request is to share an existing Contract Bandwidth Pool
 
-                if (request.ContractBandwidthPoolID != null)
+                if (vifs.Where(q => q.ContractBandwidthPoolID == request.ContractBandwidthPoolID).Count() == 0)
                 {
-                    if (vlans.Where(q => q.ContractBandwidthPoolID == request.ContractBandwidthPoolID).Count() == 0)
-                    {
-                        result.Add("The selected Contract Bandwidth Pool is invalid because it is not associated with any vif "
-                            + "of the current attachment.");
-                        result.IsSuccess = false;
+                    // The request is invalid - a request to share a Contract Bandwidth Pool must be for vifs
+                    // associated with a common Attachment
 
-                        return result;
-                    }
+                    result.Add("The selected Contract Bandwidth Pool is invalid because it is not associated with any vif "
+                        + "of the current attachment.");
+                    result.IsSuccess = false;
+
+                    return result;
                 }
 
-                // Get arguments needed to check for sufficient bandwidth
+                var contractBandwidthPool = await UnitOfWork.ContractBandwidthPoolRepository.GetByIDAsync(request.ContractBandwidthPoolID);
+                if (contractBandwidthPool.TenantID != request.TenantID)
+                {
+                    // The request is invalid - a request to share a Contract Bandwidth Pool must be for vifs
+                    // associated with a common Tenant
 
-                var iface = await UnitOfWork.InterfaceRepository.GetByIDAsync(request.AttachmentID);
-                interfaceBandwidth = iface.InterfaceBandwidth;
+                    result.Add("The selected Contract Bandwidth Pool is invalid because it does not belong to the tenant "
+                        + "specified in the request.");
+                    result.IsSuccess = false;
 
-                // Calculate aggregate bandwidth used from distinct Contract Bandwidth Pool assignments
-
-                aggregateContractBandwidthMbps = vlans.GroupBy(q => q.ContractBandwidthPoolID)
-                    .Select(group => group.First())
-                    .Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
+                    return result;
+                }
             }
+
+            // Get arguments needed to check for sufficient bandwidth
+
+            var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(request.AttachmentID);
+            var attachmentBandwidth = attachment.AttachmentBandwidth;
+
+            // Calculate aggregate bandwidth used from distinct Contract Bandwidth Pool assignments
+
+            var aggregateContractBandwidthMbps = vifs.GroupBy(q => q.ContractBandwidthPoolID)
+                .Select(group => group.First())
+                .Sum(q => q.ContractBandwidthPool.ContractBandwidth.BandwidthMbps);
+     
 
             // If a Contract Bandwidth is specified then the required bandwidth must be added to the current aggregate bandwidth.
             // If a Contract Bandwidth Pool is specified then the required bandwidth is already accounted for since the bandwidth
@@ -158,10 +142,10 @@ namespace SCM.Services.SCMServices
 
             // Check sufficient bandwidth is available
 
-            if ((aggregateContractBandwidthMbps + requestedBandwidthMbps) > interfaceBandwidth.BandwidthGbps * 1000)
+            if ((aggregateContractBandwidthMbps + requestedBandwidthMbps) > attachmentBandwidth.BandwidthGbps * 1000)
             {
                 result.Add("The selected contract bandwidth exceeds the remaining bandwidth of the attachment.");
-                result.Add($"Remaining bandwidth : {(interfaceBandwidth.BandwidthGbps * 1000) - aggregateContractBandwidthMbps} Mbps.");
+                result.Add($"Remaining bandwidth : {(attachmentBandwidth.BandwidthGbps * 1000) - aggregateContractBandwidthMbps} Mbps.");
                 result.Add($"Requested bandwidth : {requestedBandwidthMbps} Mbps.");
 
                 result.IsSuccess = false;
@@ -174,33 +158,17 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            if (vif.Attachment.IsMultiPort)
+            var vifs = await UnitOfWork.VifRepository.GetAsync(q => q.AttachmentID == vif.AttachmentID,
+                AsTrackable: false);
+
+            if (vifs.Where(q => q.ContractBandwidthPoolID == vif.ContractBandwidthPoolID).Count() > 1)
             {
-                var vlans = await UnitOfWork.MultiPortVlanRepository.GetAsync(q => q.MultiPortID == vif.AttachmentID,
-                    AsTrackable: false);
+                result.Add("The Contract Bandwidth Pool cannot be deleted because it is shared by other VIFs.");
+                result.IsSuccess = false;
 
-                if (vlans.Where(q => q.ContractBandwidthPoolID == vif.ContractBandwidthPoolID).Count() > 1)
-                {
-                    result.Add("The Contract Bandwidth Pool cannot be deleted because it is shared by other VIFs.");
-                    result.IsSuccess = false;
-
-                    return result;
-                }
+                return result;
             }
-            else
-            {
-                var vlans = await UnitOfWork.InterfaceVlanRepository.GetAsync(q => q.InterfaceID == vif.AttachmentID,
-                    AsTrackable: false);
-
-                if (vlans.Where(q => q.ContractBandwidthPoolID == vif.ContractBandwidthPoolID).Count() > 1)
-                {
-                    result.Add("The Contract Bandwidth Pool cannot be deleted because it is shared by other VIFs.");
-                    result.IsSuccess = false;
-
-                    return result;
-                }
-            }
-
+ 
             return result;
         }
 

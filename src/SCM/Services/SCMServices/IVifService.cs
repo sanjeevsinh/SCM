@@ -12,19 +12,18 @@ namespace SCM.Services.SCMServices
     public interface IVifService
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<Vif> GetByIDAsync(int id, bool? attachmentIsMultiPort = false);
+        Task<Vif> GetByIDAsync(int id);
         Task<Vif> GetByVrfIDAsync(int vrfID);
-        Task<List<MultiPortVif>> GetMultiPortVifsByVifIDAsync(int id);
-        Task<List<Vif>> GetAllByAttachmentIDAsync(int id, bool? attachmentIsMultiPort = false);
-        Task<List<Vif>> GetAsync(Expression<Func<InterfaceVlan, bool>> filter = null);
-        Task<List<Vif>> GetAsync(Expression<Func<MultiPortVlan, bool>> filter = null);
+        Task<List<Vif>> GetAllByAttachmentIDAsync(int id);
+        Task<List<Vif>> GetAllByVpnIDAsync(int vpnID);
+        Task<List<Vif>> GetAsync(Expression<Func<Vif, bool>> filter = null);
         Task<ServiceResult> AddAsync(VifRequest request);
         Task<ServiceResult> DeleteAsync(Vif vif);
         Task<ServiceResult> CheckNetworkSyncAsync(Vif vif);
         Task<ServiceResult> SyncToNetworkAsync(Vif vif);
         Task<ServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateNewAsync(VifRequest request);
-        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true, bool? attachmentIsMultiPort = false);
-        Task UpdateRequiresSyncAsync(InterfaceVlan ifaceVlan, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true);
+        Task UpdateRequiresSyncAsync(Vif vif, bool requiresSync, bool saveChanges = true);
     }
 }
