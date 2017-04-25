@@ -14,9 +14,9 @@ namespace SCM.Models
         public int AttachmentID { get; set; }
         [Range(2,4094)]
         public int VlanTag { get; set; }
-        public int VrfID { get; set; }
+        public int? VrfID { get; set; }
         public int TenantID { get; set; }
-        public int ContractBandwidthPoolID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public int? VlanTagRangeID { get; set; }
         public bool RequiresSync { get; set; }
         [Timestamp]

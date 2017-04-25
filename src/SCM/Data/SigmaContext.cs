@@ -123,6 +123,11 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Interface>()
+                   .HasOne(c => c.Device)
+                   .WithMany()
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Location>()
                    .HasOne(c => c.AlternateLocation)
                    .WithMany()
@@ -133,23 +138,13 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Vrf>()
+                  .HasOne(c => c.Tenant)
+                  .WithMany()
+                  .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Vpn>()
                    .HasOne(c => c.Tenant)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Vif>()
-                    .HasOne(c => c.Tenant)
-                    .WithMany()
-                    .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Vrf>()
-                   .HasOne(c => c.Tenant)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Vrf>()
-                   .HasOne(c => c.Device)
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 

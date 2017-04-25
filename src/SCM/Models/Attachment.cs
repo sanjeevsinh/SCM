@@ -17,8 +17,8 @@ namespace SCM.Models
         public int AttachmentBandwidthID { get; set; }
         public int TenantID { get; set; }
         public int DeviceID { get; set; }
-        public int VrfID { get; set; }
-        public int ContractBandwidthPoolID { get; set; }
+        public int? VrfID { get; set; }
+        public int? ContractBandwidthPoolID { get; set; }
         public bool RequiresSync { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }

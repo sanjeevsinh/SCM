@@ -42,7 +42,7 @@
                 @Html.DisplayNameFor(model => model.Vrf)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Bandwidth)
+                @Html.DisplayNameFor(model => model.AttachmentBandwidth)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.ContractBandwidthPool)
@@ -80,7 +80,7 @@
                     @Html.DisplayFor(modelItem => item.Vrf.Name)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Bandwidth.BandwidthGbps)
+                    @Html.DisplayFor(modelItem => item.AttachmentBandwidth.BandwidthGbps)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
@@ -89,15 +89,15 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID, isMultiPort = item.IsMultiPort, tenantID = item.TenantID }) |
-                    @Html.ActionLink("Delete", "Delete", new { id = item.ID, isMultiPort = item.IsMultiPort, tenantID = item.TenantID })
+                    @Html.ActionLink("Details", "Details", new { id = item.AttachmentID, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentID, tenantID = item.TenantID })
                     @if (item.IsBundle)
                     {
-                        <span>|</span> @Html.ActionLink("Member Ports", "GetBundleInterfaceMemberPorts", new { ID = item.ID, tenantID= item.TenantID })
+                        <span>|</span> @Html.ActionLink("Member Ports", "GetBundleInterfaceMemberPorts", new { ID = item.AttachmentID, tenantID= item.TenantID })
                     }
                     @if (item.IsMultiPort)
                     {
-                        <span>|</span> @Html.ActionLink("Member Attachments", "GetMultiPortMemberAttachments", new { ID = item.ID, tenantID = item.TenantID })
+                        <span>|</span> @Html.ActionLink("Member Attachments", "GetMultiPortMemberAttachments", new { ID = item.AttachmentID, tenantID = item.TenantID })
                     }
                     @if (item.IsLayer3)
                     {
@@ -105,7 +105,7 @@
                     }
                     @if (item.IsTagged)
                     {
-                        <span>|</span> @Html.ActionLink("VIFs", "GetAllByAttachmentID", "Vif", new { ID = item.ID, attachmentIsMultiPort = item.IsMultiPort, tenantID = item.TenantID })
+                        <span>|</span> @Html.ActionLink("VIFs", "GetAllByAttachmentID", "Vif", new { ID = item.AttachmentID, tenantID = item.TenantID })
                     }
                 </td>
             </tr>

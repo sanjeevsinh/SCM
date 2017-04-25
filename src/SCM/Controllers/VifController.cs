@@ -56,7 +56,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
@@ -102,7 +102,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View(Mapper.Map<VifViewModel>(item));
         }
@@ -120,7 +120,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             await PopulateTenantsDropDownList(attachment.TenantID);
             PopulateContractBandwidthPoolsDropDownList(attachment, attachment.TenantID);
@@ -131,16 +131,26 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AttachmentID,AttachmentIsMultiPort,IpAddress1,SubnetMask1,"
+        public async Task<IActionResult> Create([Bind("AttachmentID,IpAddress1,SubnetMask1,"
             + "IpAddress2,SubnetMask2,IpAddress3,SubnetMask3,"
             + "IpAddress4,SubnetMask4,IsLayer3,AutoAllocateVlanTag,"
             + "RequestedVlanTag,TenantID,ContractBandwidthPoolID," 
             + "ContractBandwidthID,TrustReceivedCosDscp")] VifRequestViewModel request)
         {
 
+            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
             if (ModelState.IsValid)
             {
                 var mappedRequest = Mapper.Map<VifRequest>(request);
+
+                // Add AttachmentIsMultiPort property here to control program flow in the service logic
+
+                mappedRequest.AttachmentIsMultiPort = attachment.IsMultiPort;
 
                 var validationResult = await VifService.ValidateNewAsync(mappedRequest);
 
@@ -162,12 +172,7 @@ namespace SCM.Controllers
                 }
             }
 
-            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
-            if (attachment == null)
-            {
-                return NotFound();
-            }
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             await PopulateTenantsDropDownList(attachment.TenantID);
             PopulateContractBandwidthPoolsDropDownList(attachment, request.TenantID, request.ContractBandwidthPoolID);
@@ -210,7 +215,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View(Mapper.Map<VifViewModel>(vif));
         }
@@ -228,7 +233,7 @@ namespace SCM.Controllers
                     return NotFound();
                 }
 
-                var validateVrfDelete = await VrfService.ValidateDeleteAsync(item.VrfID);
+                var validateVrfDelete = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
                 if (!validateVrfDelete.IsSuccess)
                 {
                     ViewData["ErrorMessage"] = validateVrfDelete.GetHtmlListMessage();
@@ -274,7 +279,7 @@ namespace SCM.Controllers
                 }
 
                 var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
-                ViewBag.Attachment = attachment;
+                ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
                 return View(Mapper.Map<VifViewModel>(item));
             }
@@ -320,7 +325,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View("Details", Mapper.Map<VifViewModel>(item));
         }
@@ -353,7 +358,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View("Details", Mapper.Map<VifViewModel>(item));
         }
@@ -374,7 +379,7 @@ namespace SCM.Controllers
             // is to be deleted, and one or more VPNs are bound to the VRF, 
             // then quit and warn the user
 
-            var validationResult = await VrfService.ValidateDeleteAsync(item.VrfID);
+            var validationResult = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
             if (!validationResult.IsSuccess)
             {
                 ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
@@ -393,7 +398,7 @@ namespace SCM.Controllers
             }
 
             var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             item.RequiresSync = true;
 

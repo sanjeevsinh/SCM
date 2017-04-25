@@ -8,8 +8,8 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    [Migration("20170424214531_Update1")]
-    partial class Update1
+    [Migration("20170425082624_Update4")]
+    partial class Update4
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,11 +24,9 @@ namespace SCM.Migrations
 
                     b.Property<int>("AttachmentBandwidthID");
 
-                    b.Property<int>("ContractBandwidthPoolID");
+                    b.Property<int?>("ContractBandwidthPoolID");
 
                     b.Property<int>("DeviceID");
-
-                    b.Property<int?>("DeviceID1");
 
                     b.Property<int?>("ID");
 
@@ -50,7 +48,7 @@ namespace SCM.Migrations
 
                     b.Property<int?>("TenantID1");
 
-                    b.Property<int>("VrfID");
+                    b.Property<int?>("VrfID");
 
                     b.HasKey("AttachmentID");
 
@@ -59,8 +57,6 @@ namespace SCM.Migrations
                     b.HasIndex("ContractBandwidthPoolID");
 
                     b.HasIndex("DeviceID");
-
-                    b.HasIndex("DeviceID1");
 
                     b.HasIndex("TenantID");
 
@@ -307,6 +303,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
+                    b.Property<int?>("DeviceID1");
+
                     b.Property<string>("IpAddress")
                         .HasMaxLength(15);
 
@@ -322,6 +320,8 @@ namespace SCM.Migrations
                     b.HasIndex("AttachmentID");
 
                     b.HasIndex("DeviceID");
+
+                    b.HasIndex("DeviceID1");
 
                     b.ToTable("Interface");
                 });
@@ -383,6 +383,8 @@ namespace SCM.Migrations
 
                     b.Property<int?>("InterfaceID");
 
+                    b.Property<int?>("InterfaceID1");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50);
@@ -404,6 +406,8 @@ namespace SCM.Migrations
                     b.HasIndex("DeviceID");
 
                     b.HasIndex("InterfaceID");
+
+                    b.HasIndex("InterfaceID1");
 
                     b.HasIndex("PortBandwidthID");
 
@@ -642,6 +646,8 @@ namespace SCM.Migrations
 
                     b.Property<int>("ContractBandwidthPoolID");
 
+                    b.Property<int?>("ContractBandwidthPoolID1");
+
                     b.Property<bool>("IsLayer3");
 
                     b.Property<bool>("RequiresSync");
@@ -660,9 +666,13 @@ namespace SCM.Migrations
 
                     b.Property<int>("VrfID");
 
+                    b.Property<int?>("VrfID1");
+
                     b.HasKey("VifID");
 
                     b.HasIndex("ContractBandwidthPoolID");
+
+                    b.HasIndex("ContractBandwidthPoolID1");
 
                     b.HasIndex("TenantID");
 
@@ -671,6 +681,8 @@ namespace SCM.Migrations
                     b.HasIndex("VlanTagRangeID");
 
                     b.HasIndex("VrfID");
+
+                    b.HasIndex("VrfID1");
 
                     b.HasIndex("AttachmentID", "VlanTag")
                         .IsUnique();
@@ -939,8 +951,6 @@ namespace SCM.Migrations
 
                     b.Property<int>("DeviceID");
 
-                    b.Property<int?>("DeviceID1");
-
                     b.Property<bool>("IsLayer3");
 
                     b.Property<string>("Name")
@@ -958,8 +968,6 @@ namespace SCM.Migrations
                     b.HasKey("VrfID");
 
                     b.HasIndex("DeviceID");
-
-                    b.HasIndex("DeviceID1");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -982,16 +990,12 @@ namespace SCM.Migrations
 
                     b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
                         .WithMany("Attachments")
-                        .HasForeignKey("ContractBandwidthPoolID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ContractBandwidthPoolID");
 
                     b.HasOne("SCM.Models.Device", "Device")
-                        .WithMany()
-                        .HasForeignKey("DeviceID");
-
-                    b.HasOne("SCM.Models.Device")
                         .WithMany("Attachments")
-                        .HasForeignKey("DeviceID1");
+                        .HasForeignKey("DeviceID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany()
@@ -1003,8 +1007,7 @@ namespace SCM.Migrations
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
                         .WithMany("Attachments")
-                        .HasForeignKey("VrfID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("VrfID");
                 });
 
             modelBuilder.Entity("SCM.Models.AttachmentSet", b =>
@@ -1078,9 +1081,12 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Device", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceID");
+
+                    b.HasOne("SCM.Models.Device")
                         .WithMany("Interfaces")
-                        .HasForeignKey("DeviceID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("DeviceID1");
                 });
 
             modelBuilder.Entity("SCM.Models.Location", b =>
@@ -1103,8 +1109,12 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Interface", "Interface")
-                        .WithMany("Ports")
+                        .WithMany()
                         .HasForeignKey("InterfaceID");
+
+                    b.HasOne("SCM.Models.Interface")
+                        .WithMany("Ports")
+                        .HasForeignKey("InterfaceID1");
 
                     b.HasOne("SCM.Models.PortBandwidth", "PortBandwidth")
                         .WithMany()
@@ -1159,9 +1169,12 @@ namespace SCM.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
+                        .WithMany()
+                        .HasForeignKey("ContractBandwidthPoolID");
+
+                    b.HasOne("SCM.Models.ContractBandwidthPool")
                         .WithMany("Vifs")
-                        .HasForeignKey("ContractBandwidthPoolID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ContractBandwidthPoolID1");
 
                     b.HasOne("SCM.Models.Tenant", "Tenant")
                         .WithMany()
@@ -1176,9 +1189,12 @@ namespace SCM.Migrations
                         .HasForeignKey("VlanTagRangeID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
+                        .WithMany()
+                        .HasForeignKey("VrfID");
+
+                    b.HasOne("SCM.Models.Vrf")
                         .WithMany("Vifs")
-                        .HasForeignKey("VrfID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("VrfID1");
                 });
 
             modelBuilder.Entity("SCM.Models.Vlan", b =>
@@ -1281,12 +1297,9 @@ namespace SCM.Migrations
             modelBuilder.Entity("SCM.Models.Vrf", b =>
                 {
                     b.HasOne("SCM.Models.Device", "Device")
-                        .WithMany()
-                        .HasForeignKey("DeviceID");
-
-                    b.HasOne("SCM.Models.Device")
                         .WithMany("Vrfs")
-                        .HasForeignKey("DeviceID1");
+                        .HasForeignKey("DeviceID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.RouteDistinguisherRange", "RouteDistinguisherRange")
                         .WithMany("Vrfs")

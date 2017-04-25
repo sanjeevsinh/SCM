@@ -9,7 +9,7 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID?attachmentIsMultiPort=@ViewBag.Vif.Attachment.IsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID">VIFs</a></li>
     <li class="breadcrumb-item active">BGP Peers</li>
 </ol>
 
@@ -68,5 +68,5 @@
 </table>
 <div>
     <a asp-action="GetAllByAttachmentID" asp-controller="Vif" 
-       asp-route-id="@ViewBag.Vif.AttachmentID" asp-route-attachmentIsMultiPort="@ViewBag.Vif.Attachment.IsMultiPort">Back to VIFs</a>
+       asp-route-id="@ViewBag.Vif.AttachmentID">Back to VIFs</a>
 </div>

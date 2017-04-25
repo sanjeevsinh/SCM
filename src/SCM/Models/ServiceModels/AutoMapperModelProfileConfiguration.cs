@@ -19,9 +19,6 @@ namespace SCM.Models.ServiceModels
             CreateMap<VifRequest, Vif>()
                 .ForMember(dest => dest.VlanTag, conf => conf.MapFrom(src => src.AllocatedVlanTag));
 
-            CreateMap<VifRequest, Vlan>()
-                .ForMember(dest => dest.InterfaceID, conf => conf.MapFrom(src => src.AttachmentID));
-
             CreateMap<VifRequest, Vrf>();
 
             CreateMap<VifRequest, ContractBandwidthPool>();

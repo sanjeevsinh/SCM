@@ -10,7 +10,6 @@ namespace SCM.Models.ViewModels
     public class VifRequestViewModel : IValidatableObject
     {
         public int AttachmentID { get; set; }
-        public bool AttachmentIsMultiPort { get; set; }
         [Display(Name = "Auto-Allocate Vlan Tag")]
         public bool AutoAllocateVlanTag { get; set; }
         [Display(Name = "Request Vlan Tag")]

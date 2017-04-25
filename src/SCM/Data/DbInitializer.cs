@@ -188,6 +188,32 @@ namespace SCM.Data
                 context.AttachmentRedundancy.Add(p);
             }
 
+            var defaultVlanTagRange = new VlanTagRange()
+            {
+                Name = "Default",
+                VlanTagRangeStart = 2,
+                VlanTagRangeCount = 4000
+            };
+            context.VlanTagRanges.Add(defaultVlanTagRange);
+
+            var defaultRdRange = new RouteDistinguisherRange()
+            {
+                Name = "Default",
+                AdministratorSubField = 8718,
+                AssignedNumberSubFieldStart = 1,
+                AssignedNumberSubFieldCount = 1000000
+            };
+            context.RouteDistinguisherRanges.Add(defaultRdRange);
+
+            var defaultRtRange = new RouteTargetRange()
+            {
+                Name = "Default",
+                AdministratorSubField = 8718,
+                AssignedNumberSubFieldStart = 1,
+                AssignedNumberSubFieldCount = 1000000
+            };
+            context.RouteTargetRanges.Add(defaultRtRange);
+
             context.SaveChanges();
         }
     }

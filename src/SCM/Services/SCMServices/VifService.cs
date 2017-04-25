@@ -35,6 +35,7 @@ namespace SCM.Services.SCMServices
                 includeProperties: "Attachment.Device.Location.SubRegion.Region,"
                 + "Attachment.Device.Plane,"
                 + "Attachment.AttachmentBandwidth,"
+                + "Attachment.Interfaces.Ports,"
                 + "Vrf.BgpPeers,"
                 + "Vlans,"
                 + "ContractBandwidthPool.ContractBandwidth,"
@@ -63,6 +64,7 @@ namespace SCM.Services.SCMServices
                 includeProperties: "Attachment.Device.Location.SubRegion.Region,"
                  + "Attachment.Device.Plane,"
                  + "Attachment.AttachmentBandwidth,"
+                 + "Attachment.Interfaces.Ports,"
                  + "Vrf.BgpPeers,"
                  + "Vlans,"
                  + "ContractBandwidthPool.ContractBandwidth,"
@@ -95,6 +97,7 @@ namespace SCM.Services.SCMServices
                 includeProperties: "Attachment.Device.Location.SubRegion.Region,"
                  + "Attachment.Device.Plane,"
                  + "Attachment.AttachmentBandwidth,"
+                 + "Attachment.Interfaces.Ports,"
                  + "Vrf.BgpPeers,"
                  + "Vlans,"
                  + "ContractBandwidthPool.ContractBandwidth,"
@@ -166,6 +169,7 @@ namespace SCM.Services.SCMServices
 
             try
             {
+                UnitOfWork.VifRepository.Delete(vif);
                 await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
 
                 // Check if the Contract Bandwidth Pool can be deleted
@@ -357,14 +361,6 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult { IsSuccess = true };
             var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
 
-            if (attachment == null)
-            {
-                result.Add("The attachment was not found.");
-                result.IsSuccess = false;
-
-                return result;
-            }
-
             if (!attachment.IsTagged)
             {
                 result.Add("A vif cannot be created for an untagged attachment interface.");
@@ -466,10 +462,10 @@ namespace SCM.Services.SCMServices
             var vif = Mapper.Map<Vif>(request);
             vif.RequiresSync = true;
 
-            var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(request.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
             request.DeviceID = attachment.DeviceID;
 
-            var vlan = Mapper.Map<Vlan>(request);
+            var vlan = new Vlan();
 
             if (request.IsLayer3)
             {
@@ -508,12 +504,13 @@ namespace SCM.Services.SCMServices
                     vif.ContractBandwidthPoolID = contractBandwidthPool.ContractBandwidthPoolID;
                 }
 
-                this.UnitOfWork.VifRepository.Insert(vif);
-                await this.UnitOfWork.SaveAsync();
+                UnitOfWork.VifRepository.Insert(vif);
+                await UnitOfWork.SaveAsync();
                 var iface = attachment.Interfaces.Single();
                 vlan.InterfaceID = iface.InterfaceID;
                 vlan.VifID = vif.VifID;
-                await this.UnitOfWork.SaveAsync();
+                UnitOfWork.VlanRepository.Insert(vlan);
+                await UnitOfWork.SaveAsync();
             }
 
             catch (DbUpdateException /** ex **/)

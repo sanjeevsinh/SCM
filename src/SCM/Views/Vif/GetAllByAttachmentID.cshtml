@@ -14,7 +14,7 @@
 <h2>VIFs for Attachment '@ViewBag.Attachment.Name'</h2>
 
 <p>
-    <a asp-action="Create" asp-route-id="@ViewBag.Attachment.ID" asp-route-attachmentIsMultiPort="@ViewBag.Attachment.IsMultiPort" 
+    <a asp-action="Create" asp-route-id="@ViewBag.Attachment.AttachmentID" asp-route-attachmentIsMultiPort="@ViewBag.Attachment.IsMultiPort" 
        asp-route-tenantID="@ViewBag.Attachment.TenantID">Create New</a>
 </p>
 
@@ -67,17 +67,16 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID, attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.VifID, attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort, tenantID = item.TenantID }) |
                     @Html.ActionLink("Delete", "Delete", new
                {
-                   ID = item.ID,
-                   attachmentID = ViewBag.Attachment.ID,
-                   attachmentIsMultiPort = ViewBag.Attachment.IsMultiPort,
+                   ID = item.VifID,
+                   attachmentID = ViewBag.Attachment.AttachmentID,
                    tenantID = item.TenantID
                })
-                    @if (item.AttachmentIsMultiPort)
+                    @if (ViewBag.Attachment.IsMultiPort)
                     {
-                        <span>|</span> <a asp-action="GetMultiPortVifsByVifID" asp-route-id="@item.ID">Multi-Port VIFs</a>
+                        <span>|</span> <a asp-action="GetMultiPortVlansByVifID" asp-route-id="@item.VifID">Multi-Port VIFs</a>
                     }
                     @if (item.IsLayer3)
                     {

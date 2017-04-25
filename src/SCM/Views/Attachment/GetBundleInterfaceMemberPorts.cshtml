@@ -11,19 +11,19 @@
     <li class="breadcrumb-item active">Bundle Ports</li>
 </ol>
 
-<h2>Ports for Bundle @ViewBag.Attachment.Name</h2>
+<h2>Ports for Bundle '@ViewBag.Attachment.Name'</h2>
 
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Port.Device.Name)
+                @Html.DisplayNameFor(model => model.DeviceName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Port.Type)
+                @Html.DisplayNameFor(model => model.PortType)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Port.Name)
+                @Html.DisplayNameFor(model => model.PortName)
             </th>
             <th></th>
         </tr>
@@ -34,13 +34,13 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Port.Device.Name)
+                    @Html.DisplayFor(modelItem => item.DeviceName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Port.Type)
+                    @Html.DisplayFor(modelItem => item.PortType)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Port.Name)
+                    @Html.DisplayFor(modelItem => item.PortName)
                 </td>
             </tr>
         }

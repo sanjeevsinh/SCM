@@ -50,9 +50,15 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(AttachmentViewModel attachment)
+        public async Task<IActionResult> Details(int? id)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var item = await AttachmentService.GetByIDAsync(id.Value);
+
             if (item == null)
             {
                 return NotFound();
@@ -70,8 +76,8 @@ namespace SCM.Controllers
             }
 
             var attachment = await AttachmentService.GetByIDAsync(id.Value);
-            ViewBag.Attachment = attachment;
-            var ports = attachment.Interfaces.Select(q => q.Ports);
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
+            var ports = attachment.Interfaces.SelectMany(q => q.Ports).ToList();
 
             return View(Mapper.Map<List<BundleInterfacePortViewModel>>(ports));
         }
@@ -85,7 +91,7 @@ namespace SCM.Controllers
             }
 
             var attachment = await AttachmentService.GetByIDAsync(id.Value);
-            ViewBag.Attachment = attachment;
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             var ifaces = attachment.Interfaces;
 
@@ -361,7 +367,7 @@ namespace SCM.Controllers
 
             if (!attachment.IsTagged)
             {
-                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID);
+                var vrfValidationResult = await VrfService.ValidateDeleteAsync(attachment.VrfID.Value);
 
                 if (!vrfValidationResult.IsSuccess)
                 {
@@ -380,7 +386,7 @@ namespace SCM.Controllers
             {
                 foreach (var vif in attachment.Vifs)
                 {
-                    var vifVrfValidationResult = await VrfService.ValidateDeleteAsync(vif.VrfID);
+                    var vifVrfValidationResult = await VrfService.ValidateDeleteAsync(vif.VrfID.Value);
                     if (!vifVrfValidationResult.IsSuccess)
                     {
                         result = false;
@@ -397,7 +403,7 @@ namespace SCM.Controllers
         private async Task PopulateTenantItem(int tenantID)
         {
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
-            ViewBag.Tenant = tenant;
+            ViewBag.Tenant = Mapper.Map<TenantViewModel>(tenant);
         }
 
         private async Task PopulateRegionsDropDownList(object selectedRegion = null)

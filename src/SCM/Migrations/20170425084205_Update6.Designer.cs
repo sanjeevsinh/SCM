@@ -8,9 +8,10 @@ using SCM.Data;
 namespace SCM.Migrations
 {
     [DbContext(typeof(SigmaContext))]
-    partial class SigmaContextModelSnapshot : ModelSnapshot
+    [Migration("20170425084205_Update6")]
+    partial class Update6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
@@ -639,7 +640,7 @@ namespace SCM.Migrations
 
                     b.Property<int>("AttachmentID");
 
-                    b.Property<int?>("ContractBandwidthPoolID");
+                    b.Property<int>("ContractBandwidthPoolID");
 
                     b.Property<bool>("IsLayer3");
 
@@ -651,11 +652,15 @@ namespace SCM.Migrations
 
                     b.Property<int>("TenantID");
 
+                    b.Property<int?>("TenantID1");
+
                     b.Property<int>("VlanTag");
 
                     b.Property<int?>("VlanTagRangeID");
 
-                    b.Property<int?>("VrfID");
+                    b.Property<int>("VrfID");
+
+                    b.Property<int?>("VrfID1");
 
                     b.HasKey("VifID");
 
@@ -663,9 +668,13 @@ namespace SCM.Migrations
 
                     b.HasIndex("TenantID");
 
+                    b.HasIndex("TenantID1");
+
                     b.HasIndex("VlanTagRangeID");
 
                     b.HasIndex("VrfID");
+
+                    b.HasIndex("VrfID1");
 
                     b.HasIndex("AttachmentID", "VlanTag")
                         .IsUnique();
@@ -1149,20 +1158,28 @@ namespace SCM.Migrations
 
                     b.HasOne("SCM.Models.ContractBandwidthPool", "ContractBandwidthPool")
                         .WithMany("Vifs")
-                        .HasForeignKey("ContractBandwidthPoolID");
+                        .HasForeignKey("ContractBandwidthPoolID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SCM.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantID");
+
+                    b.HasOne("SCM.Models.Tenant")
                         .WithMany("Vifs")
-                        .HasForeignKey("TenantID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("TenantID1");
 
                     b.HasOne("SCM.Models.VlanTagRange", "VlanTagRange")
                         .WithMany("Vifs")
                         .HasForeignKey("VlanTagRangeID");
 
                     b.HasOne("SCM.Models.Vrf", "Vrf")
-                        .WithMany("Vifs")
+                        .WithMany()
                         .HasForeignKey("VrfID");
+
+                    b.HasOne("SCM.Models.Vrf")
+                        .WithMany("Vifs")
+                        .HasForeignKey("VrfID1");
                 });
 
             modelBuilder.Entity("SCM.Models.Vlan", b =>

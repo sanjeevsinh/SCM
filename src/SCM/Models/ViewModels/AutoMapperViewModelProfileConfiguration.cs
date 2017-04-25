@@ -19,7 +19,10 @@ namespace SCM.Models.ViewModels
             CreateMap<AttachmentBandwidth, AttachmentBandwidthViewModel>().ReverseMap();
             CreateMap<Vrf, VrfViewModel>().ReverseMap();
             CreateMap<Vlan, VlanViewModel>().ReverseMap();
-            CreateMap<Port, BundleInterfacePortViewModel>().ReverseMap();
+            CreateMap<Port, BundleInterfacePortViewModel>()
+                .ForMember(dest => dest.DeviceName, conf => conf.MapFrom(src => src.Device.Name))
+                .ForMember(dest => dest.PortType, conf => conf.MapFrom(src => src.Type))
+                .ForMember(dest => dest.PortName, conf => conf.MapFrom(src => src.Name));
             CreateMap<Vpn, VpnViewModel>().ReverseMap();
             CreateMap<Region, RegionViewModel>().ReverseMap();
             CreateMap<VpnTopologyType, VpnTopologyTypeViewModel>().ReverseMap();
@@ -40,13 +43,20 @@ namespace SCM.Models.ViewModels
             CreateMap<VpnTenantNetwork, VpnTenantNetworkViewModel>().ReverseMap();
             CreateMap<VpnTenantCommunity, VpnTenantCommunityViewModel>().ReverseMap();
             CreateMap<Attachment, AttachmentViewModel>()
+                .ForMember(dest => dest.CountOfMultiPortMembers, conf => conf.MapFrom(src => src.Interfaces.Count))
+                .ForMember(dest => dest.IpAddress, conf => conf.MapFrom(src => src.Interfaces.Count == 1 ? src.Interfaces.Single().IpAddress : null))
+                .ForMember(dest => dest.SubnetMask, conf => conf.MapFrom(src => src.Interfaces.Count == 1 ? src.Interfaces.Single().SubnetMask : null))
                 .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Device.Location))
                 .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new AttachmentNameResolver()))
                 .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Device.Plane))
                 .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
                 .ForMember(dest => dest.SubRegion, conf => conf.MapFrom(src => src.Device.Location.SubRegion))
                 .ReverseMap();
-            CreateMap<Vif, VifViewModel>().ReverseMap();
+            CreateMap<Vif, VifViewModel>()
+                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new VifNameResolver()))
+                .ForMember(dest => dest.IpAddress, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().IpAddress : null))
+                .ForMember(dest => dest.SubnetMask, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().SubnetMask : null))
+                .ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
             CreateMap<VifRequestViewModel, VifRequest>();
             CreateMap<AttachmentSetVrfRequestViewModel, AttachmentSetVrfRequest>();
@@ -70,6 +80,17 @@ namespace SCM.Models.ViewModels
                     var port = source.Interfaces.Single().Ports.Single();
                     return $"{port.Type} {port.Name}";
                 }
+            }
+        }
+
+        public class VifNameResolver : IValueResolver<Vif, VifViewModel, string>
+        {
+            public string Resolve(Vif source, VifViewModel destination, string destMember, ResolutionContext context)
+            {
+                var mapper = context.Mapper;
+                var attachment = mapper.Map<AttachmentViewModel>(source.Attachment);
+
+                return $"{attachment.Name}.{source.VlanTag}";
             }
         }
 

@@ -8,7 +8,7 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID?attachmentIsMultiPort=@ViewBag.Attachment.IsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.AttachmentID">VIFs</a></li>
     <li class="breadcrumb-item active">Create</li>
 </ol>
 
@@ -18,11 +18,10 @@
     <div class="form-horizontal">
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-        <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.ID" />
-        <input type="hidden" asp-for="AttachmentIsMultiPort" value="@ViewBag.Attachment.IsMultiPort" />
+        <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.AttachmentID" />
         @if (ViewBag.Attachment.IsMultiPort)
         {
-        <input type="hidden" id ="MultiPortMemberPortsCount" value="@ViewBag.Attachment.MultiPortMembers.Count" />
+        <input type="hidden" id ="CountOfMultiPortMembers" value="@ViewBag.Attachment.CountOfMultiPortMembers" />
         }
         <div class="form-group">
             <label asp-for="Tenant" class="col-md-2 control-label"></label>
@@ -141,7 +140,7 @@
 </form>
 
 <div>
-    <a asp-action="GetAllByAttachmentID" asp-route-id = "@ViewBag.Attachment.ID" asp-route-attachmentIsMultiPort = "@ViewBag.Attachment.IsMultiPort" >Back to VIFs List</a>
+    <a asp-action="GetAllByAttachmentID" asp-route-id = "@ViewBag.Attachment.AttachmentID">Back to VIFs List</a>
 </div>
 
 @section Scripts {
@@ -242,10 +241,10 @@
 
                     $l3Components2.fadeIn();
 
-                    var $multiPortMemberPortsCount = $('#MultiPortMemberPortsCount'),
-                    multiPortMemberPortsCount = $multiPortMemberPortsCount[0];
+                    var $countOfMultiPortMembers = $('#CountOfMultiPortMembers'),
+                    countOfMultiPortMembers = $countOfMultiPortMembers[0];
 
-                    if (multiPortMemberPortsCount.value == 4) {
+                    if (countOfMultiPortMembers.value == 4) {
 
                         $l3Components4.fadeIn();
                     }

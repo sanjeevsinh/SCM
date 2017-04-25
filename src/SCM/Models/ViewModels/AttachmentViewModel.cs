@@ -16,6 +16,7 @@ namespace SCM.Models.ViewModels
         public bool IsBundle { get; set; }
         [Display(Name = "Multi-Port Attachment")]
         public bool IsMultiPort { get; set; }
+        public int CountOfMultiPortMembers { get; set; }
         [Display(Name = "Enabled for Layer 3")]
         public bool IsLayer3 { get; set; }
         [Display(Name = "Enabled with Tagging")]

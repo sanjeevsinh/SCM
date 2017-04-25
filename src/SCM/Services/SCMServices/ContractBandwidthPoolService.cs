@@ -119,8 +119,9 @@ namespace SCM.Services.SCMServices
 
             // Get arguments needed to check for sufficient bandwidth
 
-            var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(request.AttachmentID);
-            var attachmentBandwidth = attachment.AttachmentBandwidth;
+            var attachmentResult = await UnitOfWork.AttachmentRepository.GetAsync(q => q.AttachmentID == request.AttachmentID, 
+                includeProperties:"AttachmentBandwidth");
+            var attachmentBandwidth = attachmentResult.Single().AttachmentBandwidth;
 
             // Calculate aggregate bandwidth used from distinct Contract Bandwidth Pool assignments
 

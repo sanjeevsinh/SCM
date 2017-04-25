@@ -8,13 +8,11 @@ namespace SCM.Models.ViewModels
 {
     public class BundleInterfacePortViewModel
     {
-        [Display(AutoGenerateField = false)]
-        public int BundleInterfacePortID { get; set; }
-        public int BundleInterfaceID { get; set; }
-        [Required(ErrorMessage = "A port must be selected")]
-        public int PortID { get; set; }
-        public byte[] RowVersion { get; set; }
-        public PortViewModel Port { get; set; }
-        public InterfaceViewModel Interface { get; set; }
+        [Display(Name ="Device Name")]
+        public string DeviceName { get; set; }
+        [Display(Name = "Port Type")]
+        public string PortType { get; set; }
+        [Display(Name = "Port Name")]
+        public string PortName { get; set; }
     }
 }

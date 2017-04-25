@@ -11,7 +11,7 @@
     <li class="breadcrumb-item active">Delete</li>
 </ol>
 
-<h2>Delete</h2>
+<h2>Delete Attachment '@Model.Name'</h2>
 
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -59,16 +59,15 @@
             @Html.DisplayFor(model => model.Vrf.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Bandwidth)
+            @Html.DisplayNameFor(model => model.AttachmentBandwidth)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Bandwidth.BandwidthGbps)
+            @Html.DisplayFor(model => model.AttachmentBandwidth.BandwidthGbps)
         </dd>
     </dl>
     
     <form asp-action="Delete">
-        <input type="hidden" asp-for="ID" />
-        <input type="hidden" asp-for="IsMultiPort" />
+        <input type="hidden" asp-for="AttachmentID" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" sp-action="Delete" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |

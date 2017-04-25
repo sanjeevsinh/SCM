@@ -27,7 +27,9 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().PortBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Type))
-                .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool).Distinct()))
+                .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
+                    .GroupBy(q => q.Name)
+                    .Select(group => group.First())))
                 .Include<Attachment, TaggedAttachmentInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>();
@@ -36,7 +38,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwdithPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
-                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.Select(q => q.Ports)))
+                .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
                 .Include<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>();
@@ -45,8 +47,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
             CreateMap<Attachment, TaggedAttachmentBundleInterfaceNetModel>()
               .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
-              .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.Select(q => q.Ports)))
-              .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool).Distinct()))
+              .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
+              .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
+                    .GroupBy(q => q.Name)
+                    .Select(group => group.First())))
               .Include<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>();
@@ -58,8 +62,11 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Attachment, UntaggedAttachmentMultiPortServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentMultiPortNetModel>()
-                .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool).Distinct()))
+                .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
+                     .GroupBy(q => q.Name)
+                     .Select(group => group.First())))
                 .Include<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
+
             CreateMap<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
 
             CreateMap<Attachment, VrfNetModel>()
@@ -294,7 +301,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 var result = new AttachmentServiceNetModel();
                 var mapper = context.Mapper;
 
-                result.PEName = source.Vrf.Device.Name;
+                result.PEName = source.Attachment.Device.Name;
 
                 if (source.Attachment.IsBundle)
                 {

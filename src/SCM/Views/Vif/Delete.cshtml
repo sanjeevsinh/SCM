@@ -8,11 +8,11 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.ID?attachmentIsMultiPort=@ViewBag.Attachment.IsMultiPort">VIFs</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.AttachmentID">VIFs</a></li>
     <li class="breadcrumb-item active">Delete</li>
 </ol>
 
-<h2>Delete</h2>
+<h2>Delete VIF '@Model.Name'</h2>
 
 
 @if (@ViewData["ErrorMessage"] != null)
@@ -38,13 +38,12 @@
     </dl>
 
     <form asp-action="Delete">
-        <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="VifID" />
         <input type="hidden" asp-for="AttachmentID" />
-        <input type="hidden" asp-for="AttachmentIsMultiPort" />
         <div class="form-actions no-color">
             <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit"  asp-action="Delete" value="Delete" class="btn btn-default" /> |
-            <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID" asp-route-attachmentIsMultiPort = "@ViewBag.Attachment.IsMultiPort" >Back to VIFs List</a>
+            <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
         </div>
     </form>
 </div>
