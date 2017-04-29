@@ -1,35 +1,29 @@
-@model IEnumerable<SCM.Models.ViewModels.AttachmentViewModel>
+@model IEnumerable<SCM.Models.ViewModels.MultiPortMemberViewModel>
 
 @{
-    ViewData["Title"] = "Bundle Ports";
+    ViewData["Title"] = "Multiport Members";
 }
 
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item active">Multi-Port Member Attachments</li>
+    <li class="breadcrumb-item active">Multi-Port Members</li>
 </ol>
 
-<h2>Member Attachments for '@ViewBag.Attachment.Name'</h2>
+<h2>Members of '@ViewBag.Attachment.Name'</h2>
 
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Device.Name)
+                @Html.DisplayNameFor(model => model.DeviceName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                @Html.DisplayNameFor(model => model.PortType)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsLayer3)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Vrf.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContractBandwidthPool.Name)
+                @Html.DisplayNameFor(model => model.PortName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IpAddress)
@@ -46,19 +40,13 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Device.Name)
+                    @Html.DisplayFor(modelItem => item.DeviceName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Name)
+                    @Html.DisplayFor(modelItem => item.PortType)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.IsLayer3)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Vrf.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
+                    @Html.DisplayFor(modelItem => item.PortName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.IpAddress)

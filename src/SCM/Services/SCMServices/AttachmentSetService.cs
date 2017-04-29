@@ -21,9 +21,22 @@ namespace SCM.Services.SCMServices
         public async Task<AttachmentSet> GetByIDAsync(int id)
         {
             var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, 
-                includeProperties: "Tenant,SubRegion,Region,AttachmentRedundancy");
+                includeProperties: "Tenant,"
+                + "SubRegion,"
+                + "Region,"
+                + "AttachmentRedundancy");
 
             return dbResult.SingleOrDefault();
+        }
+
+        public async Task<IEnumerable<AttachmentSet>> GetAllByVpnIDAsync(int id)
+        {
+            return await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.VpnAttachmentSets
+                .Select(r => r.VpnID == id)
+                .Count() > 0, includeProperties: "Tenant,"
+                + "SubRegion,"
+                + "Region,"
+                + "AttachmentRedundancy");
         }
 
         public async Task<int> AddAsync(AttachmentSet attachmentSet)

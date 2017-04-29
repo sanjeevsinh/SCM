@@ -12,32 +12,33 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         {
             CreateMap<Attachment, UntaggedAttachmentInterfaceNetModel>()
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-               .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().PortBandwidth.BandwidthGbps))
-               .ForMember(dest => dest.ContractBandwdithPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
+               .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
+               .ForMember(dest => dest.ContractBandwidthPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
                .ForMember(dest => dest.PolicyBandwidth, conf => conf.ResolveUsing(new UntaggedAttachmentInterfacePolicyBandwidthResolver()))
                .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Name))
                .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Type))
                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src.Interfaces.Single() : null))
                .Include<Attachment, UntaggedAttachmentInterfaceServiceNetModel>();
 
             CreateMap<Attachment, UntaggedAttachmentInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentInterfaceNetModel>()
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().PortBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Name))
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Interfaces.Single().Ports.Single().Type))
                 .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
                     .GroupBy(q => q.Name)
                     .Select(group => group.First())))
+                .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Vifs.SelectMany(q => q.Vlans)))
                 .Include<Attachment, TaggedAttachmentInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentInterfaceServiceNetModel>();
 
             CreateMap<Attachment, UntaggedAttachmentBundleInterfaceNetModel>()
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
-                .ForMember(dest => dest.ContractBandwdithPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
+                .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
+                .ForMember(dest => dest.ContractBandwidthPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
@@ -46,25 +47,33 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentBundleInterfaceNetModel>()
-              .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
+              .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
+              .ForMember(dest => dest.BundleID, conf => conf.MapFrom(src => src.ID))
               .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
               .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
                     .GroupBy(q => q.Name)
                     .Select(group => group.First())))
+              .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Vifs.SelectMany(q => q.Vlans)))
               .Include<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentBundleInterfaceServiceNetModel>();
 
             CreateMap<Attachment, UntaggedAttachmentMultiPortNetModel>()
+               .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
+               .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
+               .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.ID))
                .Include<Attachment, UntaggedAttachmentMultiPortServiceNetModel>();
 
             CreateMap<Attachment, UntaggedAttachmentMultiPortServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentMultiPortNetModel>()
+                .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidthPools, conf => conf.MapFrom(src => src.Vifs.Select(q => q.ContractBandwidthPool)
                      .GroupBy(q => q.Name)
                      .Select(group => group.First())))
+                .ForMember(dest => dest.MultiPortMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
+                .ForMember(dest => dest.Name, conf => conf.MapFrom(src => src.ID))
                 .Include<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
 
             CreateMap<Attachment, TaggedAttachmentMultiPortServiceNetModel>();
@@ -78,28 +87,28 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
             CreateMap<Attachment, VrfServiceNetModel>();
 
-            CreateMap<Attachment, Layer3NetModel>()
-                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
+            CreateMap<Interface, Layer3NetModel>()
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Attachment.Vrf.BgpPeers));
 
-            CreateMap<Vif, AttachmentVifNetModel>()
-               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
-               .ForMember(dest => dest.ContractBandwidthPoolName, conf => conf.MapFrom(src => src.ContractBandwidthPool.Name))
-               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
-               .Include<Vif, AttachmentVifServiceNetModel>();
+            CreateMap<Vlan, AttachmentVifNetModel>()
+               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Vif.IsLayer3))
+               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.Vif.VlanTag))
+               .ForMember(dest => dest.ContractBandwidthPoolName, conf => conf.MapFrom(src => src.Vif.ContractBandwidthPool.Name))
+               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vif.Vrf.Name))
+               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Vif.IsLayer3 ? src : null))
+               .Include<Vlan, AttachmentVifServiceNetModel>();
 
-            CreateMap<Vif, AttachmentVifServiceNetModel>();
+            CreateMap<Vlan, AttachmentVifServiceNetModel>();
 
-            CreateMap<Vif, MultiPortVifNetModel>()
-               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
-               .ForMember(dest => dest.PolicyBandwidthName, conf => conf.MapFrom(src => $"{src.ContractBandwidthPool.Name}-{src.Attachment.ID}"))
-               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
-               .Include<Vif, MultiPortVifServiceNetModel>();
+            CreateMap<Vlan, MultiPortVifNetModel>()
+               .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.Vif.VlanTag))
+               .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Vif.IsLayer3))
+               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vif.Vrf.Name))
+               .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Vif.IsLayer3 ? src : null))
+               .ForMember(dest => dest.PolicyBandwidthName, conf => conf.MapFrom(src => $"{src.Vif.ContractBandwidthPool.Name}-{src.Interface.InterfaceID}"))
+               .Include<Vlan, MultiPortVifServiceNetModel>();
 
-            CreateMap<Vif, MultiPortVifServiceNetModel>();
+            CreateMap<Vlan, MultiPortVifServiceNetModel>();
 
             CreateMap<Vif, VrfNetModel>()
               .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
@@ -110,18 +119,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
 
             CreateMap<Vif, VrfServiceNetModel>();
 
-            CreateMap<Vif, Layer3NetModel>()
-                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vrf.BgpPeers));
-
-            CreateMap<Vif, MultiPortVifNetModel>()
-              .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.VlanTag))
-              .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
-              .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-              .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
-              .ForMember(dest => dest.PolicyBandwidthName, conf => conf.MapFrom(src => $"{src.ContractBandwidthPool.Name}-{src.Attachment.ID}"))
-              .Include<Vif, MultiPortVifServiceNetModel>();
-
-            CreateMap<Vif, MultiPortVifServiceNetModel>();
+            CreateMap<Vlan, Layer3NetModel>()
+                .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Vif.Vrf.BgpPeers));
 
             CreateMap<Attachment, AttachmentServiceNetModel>().ConvertUsing(new AttachmentTypeConverter());
 
@@ -134,7 +133,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Port, UntaggedMultiPortMemberNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Type))
                 .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.Ports.Single().PortBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.PolicyBandwidth, conf => conf.ResolveUsing(new UntaggedMultiPortMemberPolicyBandwidthResolver()))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Interface.Attachment.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Interface.Attachment.IsLayer3 ? src.Interface : null));
@@ -142,28 +140,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
             CreateMap<Port, TaggedMultiPortMemberNetModel>()
                 .ForMember(dest => dest.InterfaceType, conf => conf.MapFrom(src => src.Type))
                 .ForMember(dest => dest.InterfaceName, conf => conf.MapFrom(src => src.Name))
-                .ForMember(dest => dest.InterfaceBandwidth, conf => conf.MapFrom(src => src.Interface.Ports.Single().PortBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.PolicyBandwidths, conf => conf.ResolveUsing(new TaggedMultiPortMemberPolicyBandwidthResolver()))
                 .ForMember(dest => dest.Vifs, conf => conf.MapFrom(src => src.Interface.Vlans));
-
-            CreateMap<Vlan, AttachmentVifNetModel>()
-                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.Vif.VlanTag))
-                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Vif.IsLayer3))
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vif.Vrf.Name))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Vif.IsLayer3 ? src : null))
-                .Include<Vlan, AttachmentVifServiceNetModel>();
-
-            CreateMap<Vlan, AttachmentVifServiceNetModel>();
-
-            CreateMap<Vlan, MultiPortVifNetModel>()
-                .ForMember(dest => dest.VlanID, conf => conf.MapFrom(src => src.Vif.VlanTag))
-                .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.Vif.IsLayer3))
-                .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vif.Vrf.Name))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.Vif.IsLayer3 ? src : null))
-                .ForMember(dest => dest.PolicyBandwidthName, conf => conf.MapFrom(src => $"{src.Vif.ContractBandwidthPool.Name}-{src.Interface.InterfaceID}"))
-                .Include<Vlan, MultiPortVifServiceNetModel>();
-
-            CreateMap<Vlan, MultiPortVifServiceNetModel>();
 
             CreateMap<Interface, Layer3NetModel>()
                 .ForMember(dest => dest.BgpPeers, conf => conf.MapFrom(src => src.Attachment.Vrf.BgpPeers));
@@ -308,7 +286,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentBundleInterfaceNetModel>(source.Attachment);
-                        var vif = mapper.Map<AttachmentVifNetModel>(source);
+                        var vif = mapper.Map<AttachmentVifNetModel>(source.Vlans.Single());
                         data.Vifs.Add(vif);
                         data.ContractBandwidthPools.Add(mapper.Map<ContractBandwidthPoolNetModel>(source.ContractBandwidthPool));
                         result.TaggedAttachmentBundleInterfaces.Add(data);
@@ -335,7 +313,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentInterfaceNetModel>(source.Attachment);
-                        var vif = mapper.Map<AttachmentVifNetModel>(source);
+                        var vif = mapper.Map<AttachmentVifNetModel>(source.Vlans.Single());
                         data.Vifs.Add(vif);
                         data.ContractBandwidthPools.Add(mapper.Map<ContractBandwidthPoolNetModel>(source.ContractBandwidthPool));
                         result.TaggedAttachmentInterfaces.Add(data);
@@ -421,10 +399,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public PolicyBandwidthNetModel Resolve(Port source, UntaggedMultiPortMemberNetModel destination, PolicyBandwidthNetModel destMember, ResolutionContext context)
         {
             var memberPortCount = source.Interface.Ports.Count();
-            var interfaceBandwidthGbps = source.Interface.Ports.Single().PortBandwidth.BandwidthGbps;
+            var portBandwidthGbps = source.Interface.Ports.Single().PortBandwidth.BandwidthGbps;
             var contractBandwidthMbps = source.Interface.Attachment.ContractBandwidthPool.ContractBandwidth.BandwidthMbps;
 
-            if (interfaceBandwidthGbps * 1000 > (contractBandwidthMbps / memberPortCount))
+            if (portBandwidthGbps * 1000 > (contractBandwidthMbps / memberPortCount))
             {
                 var result = new PolicyBandwidthNetModel();
                 result.Name = $"{source.Interface.Attachment.ContractBandwidthPool.Name}-{source.InterfaceID}";

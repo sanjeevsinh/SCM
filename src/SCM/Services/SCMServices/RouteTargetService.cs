@@ -70,7 +70,7 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
-        /// Validate an existing VPN
+        /// Validate route targets for an existing VPN
         /// </summary>
         /// <param name="vpn"></param>
         /// <returns></returns>

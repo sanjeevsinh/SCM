@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Net;
 
 namespace SCM.Models
@@ -9,6 +10,26 @@ namespace SCM.Models
     public class Attachment { 
 
         public int AttachmentID { get; set; }
+        [NotMapped]
+        public string Name
+        {
+            get
+            {
+                if (IsBundle)
+                {
+                    return $"Bundle{ID}";
+                }
+                else if (IsMultiPort)
+                {
+                    return $"MultiPort{ID}";
+                }
+                else
+                {
+                    var port = Interfaces.Single().Ports.Single();
+                    return $"{port.Type} {port.Name}";
+                }
+            }
+        }
         public bool IsTagged { get; set; }
         public bool IsLayer3 { get; set; }
         public bool IsBundle { get; set; }

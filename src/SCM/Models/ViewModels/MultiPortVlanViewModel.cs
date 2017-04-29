@@ -8,13 +8,17 @@ using SCM.Models.ServiceModels;
 
 namespace SCM.Models.ViewModels
 {
-    public class MultiPortVifViewModel
+    public class MultiPortVlanViewModel
     {
-        public string MemberAttachmentName { get; set; }
+        [Display(Name = "Port Type")]
+        public string PortType { get; set; }
+        [Display(Name = "Port Name")]
+        public string PortName { get; set; }
+        [Display(Name = "Vlan Tag")]
         public int VlanTag { get; set; }
-        public bool IsLayer3 { get; set; }
+        [Display(Name = "IP Address")]
         public string IpAddress { get; set; }
+        [Display(Name = "Subnet Mask")]
         public string SubnetMask { get; set; }
-        public string VrfName { get; set; }
     }
 }

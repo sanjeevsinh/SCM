@@ -11,7 +11,7 @@
 </ol>
 
 
-<h2>Details for Device @Model.Name</h2>
+<h2>Details for Device '@Model.Name'</h2>
 
 @if (@ViewData["ErrorMessage"] != null)
 {
@@ -61,9 +61,26 @@
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id"/>
     <div class="form-actions no-color">
-        <input type="submit" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" asp-action="Sync" value="Sync" class="btn btn-default" /> |
+        <input type="submit" id="CheckSync" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
+        <input type="submit" id="Sync" asp-action="Sync" value="Sync" class="btn btn-default" /> |
         @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
         <a asp-action="GetAll">Back to List</a>
     </div>
 </form>
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $sync = $('#Sync');
+            $sync.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+        }(jQuery));
+
+</script>
+}

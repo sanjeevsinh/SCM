@@ -165,7 +165,7 @@ namespace SCM.Services.SCMServices
 
         /// <summary>
         /// Recursively sorts the children of an XML element
-        /// using the child element name and value as sort parameters.
+        /// using the child element name followed by value as sort parameters.
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>

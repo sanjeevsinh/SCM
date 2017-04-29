@@ -148,11 +148,6 @@ namespace SCM.Data
                    .WithMany()
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Vlan>()
-                   .HasOne(c => c.Interface)
-                   .WithMany()
-                   .OnDelete(DeleteBehavior.Restrict);
-
             builder.Entity<Vpn>()
                    .HasOne(c => c.Plane)
                    .WithMany()

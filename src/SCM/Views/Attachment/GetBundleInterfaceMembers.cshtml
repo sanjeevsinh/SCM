@@ -1,17 +1,17 @@
-@model IEnumerable<SCM.Models.ViewModels.BundleInterfacePortViewModel>
+@model IEnumerable<SCM.Models.ViewModels.BundleInterfaceMemberViewModel>
 
 @{
-    ViewData["Title"] = "Bundle Ports";
+    ViewData["Title"] = "Bundle Members";
 }
 
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item active">Bundle Ports</li>
+    <li class="breadcrumb-item active">Bundle Members</li>
 </ol>
 
-<h2>Ports for Bundle '@ViewBag.Attachment.Name'</h2>
+<h2>Members of '@ViewBag.Attachment.Name'</h2>
 
 <table class="table">
     <thead>

@@ -17,12 +17,17 @@ namespace SCM.Controllers
 {
     public class AttachmentSetVrfController : BaseViewController
     {
-        public AttachmentSetVrfController(IAttachmentSetVrfService attachmentSetVrfService, IMapper mapper)
+        public AttachmentSetVrfController(IAttachmentSetVrfService attachmentSetVrfService, 
+            IAttachmentSetService attachmentSetService, IVpnService vpnService, IMapper mapper)
         {
            AttachmentSetVrfService = attachmentSetVrfService;
+           AttachmentSetService = attachmentSetService;
+           VpnService = vpnService;
            Mapper = mapper;
         }
         private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
+        private IAttachmentSetService AttachmentSetService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -33,7 +38,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var attachmentSet = await GetAttachmentSet(id.Value);
+            var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
             ViewBag.AttachmentSet = attachmentSet;
 
             var checkVrfsResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
@@ -66,7 +71,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(item.AttachmentSetID);
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(item.AttachmentSetID);
 
             return View(Mapper.Map<AttachmentSetVrfViewModel>(item));
         }
@@ -83,23 +88,25 @@ namespace SCM.Controllers
             await PopulateLocationsDropDownList(attachmentSet);
             await PopulatePlanesDropDownList();
             ViewBag.AttachmentSet = attachmentSet;
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSetVrfRequestViewModel attachmentSetVrfRequest)
+        public async Task<IActionResult> CreateStep2([Bind("AttachmentSetID,LocationID,PlaneID,TenantID")] AttachmentSetVrfRequestViewModel request)
         {
-            await PopulateVrfsDropDownList(attachmentSetVrfRequest);
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrfRequest.AttachmentSetID);
-            ViewBag.AttachmentSetVrfRequest = attachmentSetVrfRequest;
+            await PopulateVrfsDropDownList(Mapper.Map<AttachmentSetVrfRequest>(request));
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(request.AttachmentSetID);
+            ViewBag.AttachmentSetVrfRequest = request;
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AttachmentSetID,VrfID,Preference")] AttachmentSetVrfViewModel attachmentSetVrf,
-            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfRequestViewModel attachmentSetVrfRequest)
+            [Bind("AttachmentSetID,TenantID,LocationID,PlaneID")] AttachmentSetVrfRequestViewModel request)
         {
             try
             {
@@ -115,6 +122,12 @@ namespace SCM.Controllers
                     else
                     {
                         await AttachmentSetVrfService.AddAsync(mappedAttachmentSetVrf);
+
+                        // Update 'requiresSync' property of each VPN which the VRF was associated with
+
+                        var vpns = await VpnService.GetAllByVrfIDAsync(mappedAttachmentSetVrf.VrfID);
+                        await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+
                         return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
                     }
                 }
@@ -127,9 +140,10 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
-            await PopulateVrfsDropDownList(attachmentSetVrfRequest);
-            ViewBag.AttachmentSetVrfRequest = attachmentSetVrfRequest;
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
+            await PopulateVrfsDropDownList(Mapper.Map<AttachmentSetVrfRequest>(request));
+            ViewBag.AttachmentSetVrfRequest = request;
+
             return View("CreateStep2", attachmentSetVrf);
         }
 
@@ -148,7 +162,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateVrfsDropDownList(new AttachmentSetVrfRequestViewModel
+            await PopulateVrfsDropDownList(new AttachmentSetVrfRequest
             {
                 AttachmentSetID = attachmentSetVrf.AttachmentSetID,
                 LocationID = attachmentSetVrf.Vrf.Device.LocationID,
@@ -156,7 +170,7 @@ namespace SCM.Controllers
                 PlaneID = attachmentSetVrf.Vrf.Device.PlaneID
             });
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
@@ -218,7 +232,7 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
             return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
@@ -252,30 +266,31 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            ViewBag.AttachmentSet = await GetAttachmentSet(attachmentSetVrf.AttachmentSetID);
+            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(attachmentSetVrf.AttachmentSetID);
+
             return View(Mapper.Map<AttachmentSetVrfViewModel>(attachmentSetVrf));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(AttachmentSetVrfViewModel attachmentSetVrf, [FromQuery]int tenantID)
-        {  
+        {
             try
             {
                 var currentAttachmentSetVrf = await AttachmentSetVrfService.GetByIDAsync(attachmentSetVrf.AttachmentSetVrfID);
 
-                if (currentAttachmentSetVrf != null)
+                if (currentAttachmentSetVrf == null)
                 {
-                    var validationResult = await AttachmentSetVrfService.ValidateDeleteAsync(currentAttachmentSetVrf);
-                    if (!validationResult.IsSuccess)
-                    {
-                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
-                        ViewBag.AttachmentSet = currentAttachmentSetVrf.AttachmentSet;
-                        return View(Mapper.Map<AttachmentSetVrfViewModel>(currentAttachmentSetVrf));
-                    }
-
-                    await AttachmentSetVrfService.DeleteAsync(currentAttachmentSetVrf);
+                    return NotFound();
                 }
+
+                var vpns = await VpnService.GetAllByVrfIDAsync(currentAttachmentSetVrf.VrfID);
+
+                await AttachmentSetVrfService.DeleteAsync(currentAttachmentSetVrf);
+
+                // Update 'requiresSync' property of each VPN which the VRF was associated with
+
+                await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
 
                 return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID, tenantID = tenantID });
             }
@@ -305,20 +320,11 @@ namespace SCM.Controllers
             ViewBag.LocationID = new SelectList(locations, "LocationID", "SiteName");
         }
 
-        private async Task PopulateVrfsDropDownList(AttachmentSetVrfRequestViewModel request, object selectedVrf = null)
+        private async Task PopulateVrfsDropDownList(AttachmentSetVrfRequest request, object selectedVrf = null)
         {
 
-            var vrfs = await AttachmentSetVrfService.GetCandidateVrfs(Mapper.Map<AttachmentSetVrfRequest>(request));
+            var vrfs = await AttachmentSetVrfService.GetCandidateVrfs(request);
             ViewBag.VrfID = new SelectList(vrfs, "VrfID", "Name", selectedVrf);
-        }
-
-        private async Task<AttachmentSet> GetAttachmentSet(int attachmentSetID)
-        {
-            var dbResult = await AttachmentSetVrfService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSetID,
-                 includeProperties:"AttachmentRedundancy");
-
-            return dbResult.SingleOrDefault();
-           
         }
     }
 }

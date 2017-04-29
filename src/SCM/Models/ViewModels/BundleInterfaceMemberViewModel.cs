@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace SCM.Models.ViewModels
 {
-    public class BundleInterfacePortViewModel
+    public class BundleInterfaceMemberViewModel
     {
         [Display(Name ="Device Name")]
         public string DeviceName { get; set; }

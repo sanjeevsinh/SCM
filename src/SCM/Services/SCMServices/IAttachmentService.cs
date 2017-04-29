@@ -16,13 +16,13 @@ namespace SCM.Services.SCMServices
         Task<Attachment> GetByVrfIDAsync(int vrfID);
         Task<List<Attachment>> GetAllByVpnIDAsync(int vpnID);
         Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
-        Task<List<Attachment>> GetAsync(Expression<Func<Attachment, bool>> filter = null);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
         Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment);
         Task<ServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<ServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);
+        Task<ServiceResult> ValidateAsync(Vpn vpn);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true);
         Task UpdateRequiresSyncAsync(Attachment attachment, bool requiresSync, bool saveChanges = true);
     }

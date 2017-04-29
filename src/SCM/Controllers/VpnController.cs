@@ -17,14 +17,22 @@ namespace SCM.Controllers
 {
     public class VpnController : BaseViewController
     {
-        public VpnController(IVpnService vpnService, IRouteTargetService routeTargetService, IMapper mapper)
+        public VpnController(IVpnService vpnService, IRouteTargetService routeTargetService, 
+                             IAttachmentSetVrfService attachmentSetVrfService, 
+                             IAttachmentService attachmentService, IVifService vifService, IMapper mapper)
         {
            VpnService = vpnService;
            RouteTargetService = routeTargetService;
+           AttachmentService = attachmentService;
+           VifService = vifService;
+           AttachmentSetVrfService = attachmentSetVrfService;
            Mapper = mapper;
         }
         private IVpnService VpnService { get; set; }
+        private IAttachmentService AttachmentService { get; set; }
+        private IVifService VifService { get; set; }
         private IRouteTargetService RouteTargetService { get; set; }
+        private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -67,22 +75,41 @@ namespace SCM.Controllers
             }
 
             var validationOk = true;
+            var validationMessage = "You must resolve the following issues first: ";
 
-            var vpnValidationResult = await VpnService.ValidateAsync(vpn);
-            if (!vpnValidationResult.IsSuccess)
+            var attachmentValidationResult = await AttachmentService.ValidateAsync(vpn);
+            if (!attachmentValidationResult.IsSuccess)
             {
                 validationOk = false;
-                ViewData["ErrorMessage"] = vpnValidationResult.GetHtmlListMessage();
+                validationMessage += attachmentValidationResult.GetHtmlListMessage();
+            }
+
+            var vifValidationResult = await VifService.ValidateAsync(vpn);
+            if (!vifValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += vifValidationResult.GetHtmlListMessage();
             }
 
             var routeTargetsValidationResult = RouteTargetService.Validate(vpn);
             if (!routeTargetsValidationResult.IsSuccess)
             {
                 validationOk = false;
-                ViewData["ErrorMessage"] += routeTargetsValidationResult.GetHtmlListMessage();
+                validationMessage += routeTargetsValidationResult.GetHtmlListMessage();
             }
 
-            if (validationOk)
+            var attachmentSetVrfsValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(vpn);
+            if (!attachmentSetVrfsValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += attachmentSetVrfsValidationResult.GetHtmlListMessage();
+            }
+
+            if (!validationOk)
+            {
+                ViewData["ErrorMessage"] += validationMessage; 
+            }
+            else
             {
                 var syncResult = await VpnService.SyncToNetworkAsync(vpn);
                 if (syncResult.IsSuccess)

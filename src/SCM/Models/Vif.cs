@@ -12,6 +12,14 @@ namespace SCM.Models
         public int VifID { get; set; }
         public bool IsLayer3 { get; set; }
         public int AttachmentID { get; set; }
+        [NotMapped]
+        public string Name
+        {
+            get
+            {
+                return $"{Attachment.Name}.{VlanTag}";
+            }
+        }
         [Range(2,4094)]
         public int VlanTag { get; set; }
         public int? VrfID { get; set; }

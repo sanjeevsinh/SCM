@@ -76,7 +76,7 @@
                })
                     @if (ViewBag.Attachment.IsMultiPort)
                     {
-                        <span>|</span> <a asp-action="GetMultiPortVlansByVifID" asp-route-id="@item.VifID">Multi-Port VIFs</a>
+                        <span>|</span> <a asp-action="GetMultiPortVlansByVifID" asp-route-id="@item.VifID">MultiPort Vlans</a>
                     }
                     @if (item.IsLayer3)
                     {

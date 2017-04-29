@@ -68,7 +68,7 @@ namespace SCM.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBundleInterfaceMemberPorts(int? id)
+        public async Task<IActionResult> GetBundleInterfaceMembers(int? id)
         {
             if (id == null)
             {
@@ -79,11 +79,11 @@ namespace SCM.Controllers
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
             var ports = attachment.Interfaces.SelectMany(q => q.Ports).ToList();
 
-            return View(Mapper.Map<List<BundleInterfacePortViewModel>>(ports));
+            return View(Mapper.Map<List<BundleInterfaceMemberViewModel>>(ports));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMultiPortMemberAttachments(int? id)
+        public async Task<IActionResult> GetMultiPortMembers(int? id)
         {
             if (id == null)
             {
@@ -95,7 +95,7 @@ namespace SCM.Controllers
 
             var ifaces = attachment.Interfaces;
 
-            return View(Mapper.Map<List<AttachmentViewModel>>(ifaces));
+            return View(Mapper.Map<List<MultiPortMemberViewModel>>(ifaces));
         }
 
         [HttpGet]
@@ -266,9 +266,15 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(AttachmentViewModel attachment)
+        public async Task<IActionResult> CheckSync(int? id)
         {
-            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var item = await AttachmentService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
@@ -299,10 +305,14 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(AttachmentViewModel attachment)
+        public async Task<IActionResult> Sync(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
+            var item = await AttachmentService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 return NotFound();

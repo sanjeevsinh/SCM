@@ -19,10 +19,18 @@ namespace SCM.Models.ViewModels
             CreateMap<AttachmentBandwidth, AttachmentBandwidthViewModel>().ReverseMap();
             CreateMap<Vrf, VrfViewModel>().ReverseMap();
             CreateMap<Vlan, VlanViewModel>().ReverseMap();
-            CreateMap<Port, BundleInterfacePortViewModel>()
+            CreateMap<Port, BundleInterfaceMemberViewModel>()
                 .ForMember(dest => dest.DeviceName, conf => conf.MapFrom(src => src.Device.Name))
                 .ForMember(dest => dest.PortType, conf => conf.MapFrom(src => src.Type))
                 .ForMember(dest => dest.PortName, conf => conf.MapFrom(src => src.Name));
+            CreateMap<Interface, MultiPortMemberViewModel>()
+                .ForMember(dest => dest.DeviceName, conf => conf.MapFrom(src => src.Device.Name))
+                .ForMember(dest => dest.PortType, conf => conf.MapFrom(src => src.Ports.Single().Type))
+                .ForMember(dest => dest.PortName, conf => conf.MapFrom(src => src.Ports.Single().Name));
+            CreateMap<Vlan, MultiPortVlanViewModel>()
+                .ForMember(dest => dest.PortType, conf => conf.MapFrom(src => src.Interface.Ports.Single().Type))
+                .ForMember(dest => dest.PortName, conf => conf.MapFrom(src => src.Interface.Ports.Single().Name))
+                .ForMember(dest => dest.VlanTag, conf => conf.MapFrom(src => src.Vif.VlanTag));
             CreateMap<Vpn, VpnViewModel>().ReverseMap();
             CreateMap<Region, RegionViewModel>().ReverseMap();
             CreateMap<VpnTopologyType, VpnTopologyTypeViewModel>().ReverseMap();
@@ -47,13 +55,11 @@ namespace SCM.Models.ViewModels
                 .ForMember(dest => dest.IpAddress, conf => conf.MapFrom(src => src.Interfaces.Count == 1 ? src.Interfaces.Single().IpAddress : null))
                 .ForMember(dest => dest.SubnetMask, conf => conf.MapFrom(src => src.Interfaces.Count == 1 ? src.Interfaces.Single().SubnetMask : null))
                 .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Device.Location))
-                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new AttachmentNameResolver()))
                 .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Device.Plane))
                 .ForMember(dest => dest.Region, conf => conf.MapFrom(src => src.Device.Location.SubRegion.Region))
                 .ForMember(dest => dest.SubRegion, conf => conf.MapFrom(src => src.Device.Location.SubRegion))
                 .ReverseMap();
             CreateMap<Vif, VifViewModel>()
-                .ForMember(dest => dest.Name, conf => conf.ResolveUsing(new VifNameResolver()))
                 .ForMember(dest => dest.IpAddress, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().IpAddress : null))
                 .ForMember(dest => dest.SubnetMask, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().SubnetMask : null))
                 .ReverseMap();
@@ -61,37 +67,6 @@ namespace SCM.Models.ViewModels
             CreateMap<VifRequestViewModel, VifRequest>();
             CreateMap<AttachmentSetVrfRequestViewModel, AttachmentSetVrfRequest>();
             CreateMap<RouteTargetRequestViewModel, RouteTargetRequest>();
-        }
-
-        public class AttachmentNameResolver : IValueResolver<Attachment, AttachmentViewModel, string>
-        {
-            public string Resolve(Attachment source, AttachmentViewModel destination, string destMember, ResolutionContext context)
-            {
-                if (source.IsBundle)
-                {
-                    return $"Bundle{source.ID}";
-                }
-                else if (source.IsMultiPort)
-                {
-                    return $"MultiPort{source.ID}";
-                }
-                else
-                {
-                    var port = source.Interfaces.Single().Ports.Single();
-                    return $"{port.Type} {port.Name}";
-                }
-            }
-        }
-
-        public class VifNameResolver : IValueResolver<Vif, VifViewModel, string>
-        {
-            public string Resolve(Vif source, VifViewModel destination, string destMember, ResolutionContext context)
-            {
-                var mapper = context.Mapper;
-                var attachment = mapper.Map<AttachmentViewModel>(source.Attachment);
-
-                return $"{attachment.Name}.{source.VlanTag}";
-            }
         }
 
         public class AttachmentSetVrfTypeConverter : ITypeConverter<AttachmentSetVrf, AttachmentSetVrfViewModel>

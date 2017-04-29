@@ -19,9 +19,10 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="AttachmentID" value="@ViewBag.Attachment.AttachmentID" />
+        <input type="hidden" id="AttachmentIsMultiPort" value="@ViewBag.Attachment.IsMultiPort.ToString()" />
         @if (ViewBag.Attachment.IsMultiPort)
         {
-        <input type="hidden" id ="CountOfMultiPortMembers" value="@ViewBag.Attachment.CountOfMultiPortMembers" />
+        <input type="hidden" id="CountOfMultiPortMembers" value="@ViewBag.Attachment.CountOfMultiPortMembers" />
         }
         <div class="form-group">
             <label asp-for="Tenant" class="col-md-2 control-label"></label>

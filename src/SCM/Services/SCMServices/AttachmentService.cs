@@ -36,9 +36,12 @@ namespace SCM.Services.SCMServices
                 + "Vrf.AttachmentSetVrfs.AttachmentSet,"
                 + "AttachmentBandwidth,"
                 + "ContractBandwidthPool.ContractBandwidth,"
+                + "Interfaces.Device,"
                 + "Interfaces.Ports.Device,"
+                + "Interfaces.Ports.PortBandwidth,"
+                + "Interfaces.Ports.Interface.Vlans.Vif,"
                 + "Vifs.Vrf.BgpPeers,"
-                + "Vifs.Vlans,"
+                + "Vifs.Vlans.Vif.ContractBandwidthPool,"
                 + "Vifs.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
@@ -68,9 +71,12 @@ namespace SCM.Services.SCMServices
                 + "Vrf.AttachmentSetVrfs.AttachmentSet,"
                 + "AttachmentBandwidth,"
                 + "ContractBandwidthPool.ContractBandwidth,"
+                + "Interfaces.Device,"
                 + "Interfaces.Ports.Device,"
+                + "Interfaces.Ports.PortBandwidth,"
+                + "Interfaces.Ports.Interface.Vlans.Vif,"
                 + "Vifs.Vrf.BgpPeers,"
-                + "Vifs.Vlans,"
+                + "Vifs.Vlans.Vif.ContractBandwidthPool,"
                 + "Vifs.ContractBandwidthPool.ContractBandwidth",
                 AsTrackable: false);
 
@@ -92,26 +98,6 @@ namespace SCM.Services.SCMServices
                 .Count() > 0);
 
             return result.ToList();
-        }
-
-        public async Task<List<Attachment>> GetAsync(Expression<Func<Attachment, bool>> filter = null)
-        {
-
-            var attachments = await UnitOfWork.AttachmentRepository.GetAsync(filter,
-                includeProperties: "Tenant,"
-                + "Device.Location.SubRegion.Region,"
-                + "Device.Plane,"
-                + "Vrf.BgpPeers,"
-                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
-                + "AttachmentBandwidth,"
-                + "ContractBandwidthPool.ContractBandwidth,"
-                + "Interfaces.Ports.Device,"
-                + "Vifs.Vrf.BgpPeers,"
-                + "Vifs.Vlans,"
-                + "Vifs.ContractBandwidthPool.ContractBandwidth",
-                AsTrackable: false);
-
-            return attachments.ToList();
         }
 
         public async Task<ServiceResult> AddAsync(AttachmentRequest request)
@@ -464,6 +450,22 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        public async Task<ServiceResult> ValidateAsync(Vpn vpn)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var attachments = await GetAllByVpnIDAsync(vpn.VpnID);
+            var attachmentsRequireSync = attachments.Where(q => q.RequiresSync).ToList();
+
+            if (attachmentsRequireSync.Count() > 0) { 
+            
+                result.IsSuccess = false;
+                result.Add("The following attachments for the VPN require synchronisation with the network:");
+                attachmentsRequireSync.ForEach(a => result.Add($"'{a.Name}' on device '{a.Device.Name}' for tenant '{a.Tenant.Name}'."));
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Update the RequiresSync property of an Attachment record.
@@ -869,11 +871,6 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
 
-            var iface = attachment.Interfaces.Single();
-            var port = await UnitOfWork.PortRepository.GetByIDAsync(iface.Ports.Single().ID);
-            port.TenantID = null;
-            port.InterfaceID = null;
-
             try
             {
                 if (attachment.IsTagged)
@@ -882,8 +879,13 @@ namespace SCM.Services.SCMServices
 
                     foreach (var vif in attachment.Vifs)
                     {
-                        // Delete Vrf cascade deletes the VIF
 
+                        foreach (var vlan in vif.Vlans)
+                        {
+                            await UnitOfWork.VlanRepository.DeleteAsync(vlan.VlanID);
+                        }
+
+                        await UnitOfWork.VifRepository.DeleteAsync(vif.VifID);
                         await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
 
                         // Clean up Contract Bandwidth Pool
@@ -898,6 +900,12 @@ namespace SCM.Services.SCMServices
                     await UnitOfWork.VrfRepository.DeleteAsync(attachment.VrfID);
                     await UnitOfWork.ContractBandwidthPoolRepository.DeleteAsync(attachment.ContractBandwidthPoolID);
                 }
+
+
+                var iface = attachment.Interfaces.Single();
+                var port = await UnitOfWork.PortRepository.GetByIDAsync(iface.Ports.Single().ID);
+                port.TenantID = null;
+                port.InterfaceID = null;
 
                 UnitOfWork.PortRepository.Update(port);
                 await UnitOfWork.InterfaceRepository.DeleteAsync(iface.InterfaceID);
@@ -942,6 +950,10 @@ namespace SCM.Services.SCMServices
                 {
                     foreach (var vif in attachment.Vifs)
                     {
+                        foreach (var vlan in vif.Vlans)
+                        {
+                            await UnitOfWork.VlanRepository.DeleteAsync(vlan.VlanID);
+                        }
 
                         await UnitOfWork.VifRepository.DeleteAsync(vif.VifID);
                         await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
@@ -1003,8 +1015,15 @@ namespace SCM.Services.SCMServices
 
                 if (attachment.IsTagged)
                 {
+
+                    // Delete vifs of a tagged attachment
+
                     foreach (var vif in attachment.Vifs)
                     {
+                        foreach (var vlan in vif.Vlans)
+                        {
+                            await UnitOfWork.VlanRepository.DeleteAsync(vlan.VlanID);
+                        }
 
                         await UnitOfWork.VifRepository.DeleteAsync(vif.VifID);
                         await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);

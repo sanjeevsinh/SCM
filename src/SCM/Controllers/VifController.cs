@@ -76,10 +76,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Vif = vif;
-            var multiPortVlans = await VifService.UnitOfWork.VlanRepository.GetAsync(q => q.VifID == id.Value);
+            ViewBag.Vif = Mapper.Map<VifViewModel>(vif);
 
-            return View(Mapper.Map<List<MultiPortVifViewModel>>(multiPortVlans));
+            var attachment = await AttachmentService.GetByIDAsync(vif.AttachmentID);
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
+
+            var multiPortVlans = await VifService.UnitOfWork.VlanRepository.GetAsync(q => q.VifID == id.Value, 
+                includeProperties:"Vif.Attachment.Interfaces.Ports");
+
+            return View(Mapper.Map<List<MultiPortVlanViewModel>>(multiPortVlans));
         }
 
         [HttpGet]
@@ -297,9 +302,14 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(VifViewModel vif)
+        public async Task<IActionResult> CheckSync(int? id)
         {
-            var item = await VifService.GetByIDAsync(vif.VifID);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var item = await VifService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
@@ -331,10 +341,14 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(VifViewModel vif)
+        public async Task<IActionResult> Sync(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            var item = await VifService.GetByIDAsync(vif.VifID);
+            var item = await VifService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 return NotFound();

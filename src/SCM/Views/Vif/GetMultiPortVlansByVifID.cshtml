@@ -1,0 +1,64 @@
+@model IEnumerable<SCM.Models.ViewModels.MultiPortVlanViewModel>
+
+@{
+    ViewData["Title"] = "MultiPort Vlans";
+}
+
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Attachment.AttachmentID">VIFs</a></li>
+    <li class="breadcrumb-item active">Multi-Port Vlans</li>
+</ol>
+
+<h2>Multi-Port Vlans for VIF '@ViewBag.Vif.Name'</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.PortType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PortName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VlanTag)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubnetMask)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PortType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PortName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.VlanTag)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IpAddress)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SubnetMask)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="GetAllByAttachmentID" asp-route-id="@ViewBag.Attachment.AttachmentID">Back to VIFs List</a>
+</div>

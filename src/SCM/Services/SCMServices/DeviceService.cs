@@ -19,12 +19,30 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<Device>> GetAllAsync()
         {
-            return await this.UnitOfWork.DeviceRepository.GetAsync(includeProperties:"Location,Plane");
+            return await this.UnitOfWork.DeviceRepository.GetAsync(includeProperties: "Vrfs,"
+                               + "Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.AttachmentBandwidth,"
+                               + "Attachments.Vrf.BgpPeers,"
+                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
+                               + "Attachments.Vifs.Vlans,"
+                               + "Attachments.Vifs.Vrf.BgpPeers,"
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth");
         }
 
         public async Task<Device> GetByIDAsync(int id)
         {
-            var result = await this.UnitOfWork.DeviceRepository.GetAsync(d => d.ID == id, includeProperties: "Location,Plane");
+            var result = await this.UnitOfWork.DeviceRepository.GetAsync(d => d.ID == id,
+                includeProperties: "Vrfs,"
+                               + "Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.AttachmentBandwidth,"
+                               + "Attachments.Vrf.BgpPeers,"
+                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
+                               + "Attachments.Vifs.Vlans,"
+                               + "Attachments.Vifs.Vrf.BgpPeers,"
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth");
+
             return result.SingleOrDefault();
         }
 
@@ -74,18 +92,7 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> CheckNetworkSyncAsync(int deviceID)
         {
             var result = new ServiceResult();
-            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
-                includeProperties: "Vrfs,"
-                               + "Interfaces.Ports,"
-                               + "Attachments.Interfaces.Ports,"
-                               + "Attachments.AttachmentBandwidth,"
-                               + "Attachments.Vrf.BgpPeers,"
-                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
-                               + "Vifs.Vlans,"
-                               + "Vifs.Vrf.BgpPeers,"
-                               + "Vifs.ContractBandwidthPool.ContractBandwidth");
-
-            var device = deviceDbResult.SingleOrDefault();
+            var device = await GetByIDAsync(deviceID);
 
             if (device == null)
             {
@@ -109,18 +116,7 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult();
 
-            var deviceDbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID,
-                includeProperties: "Vrfs,"
-                               + "Interfaces.Ports,"
-                               + "Attachments.Interfaces.Ports,"
-                               + "Attachments.AttachmentBandwidth,"
-                               + "Attachments.Vrf.BgpPeers,"
-                               + "Attachments.ContractBandwidthPool.ContractBandwidth,"
-                               + "Vifs.Vlans,"
-                               + "Vifs.Vrf.BgpPeers,"
-                               + "Vifs.ContractBandwidthPool.ContractBandwidth");
-
-            var device = deviceDbResult.SingleOrDefault();
+            var device = await GetByIDAsync(deviceID);
 
             if (device == null)
             {

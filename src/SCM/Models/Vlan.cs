@@ -15,7 +15,7 @@ namespace SCM.Models
         [MaxLength(15)]
         public string SubnetMask { get; set; }
         public int InterfaceID { get; set; }
-        public int VifID { get; set; }
+        public int? VifID { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }
         public virtual Interface Interface { get; set; }

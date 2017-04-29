@@ -96,9 +96,9 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceName { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
-        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
+        public ContractBandwidthPoolNetModel ContractBandwidthPool { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]
         public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
@@ -115,8 +115,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceName { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
         public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "vif")]
@@ -141,9 +141,9 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         [XmlElement(ElementName = "bundle-interface-id")]
         public int BundleID { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
-        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
+        public ContractBandwidthPoolNetModel ContractBandwidthPool { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]
         public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
@@ -164,8 +164,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "bundle-interface-id")]
         public int BundleID { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
         public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "bundle-interface-member")]
@@ -186,8 +186,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceName { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]
         public PolicyBandwidthNetModel PolicyBandwidth { get; set; }
         [XmlElement(ElementName = "layer-3")]
@@ -200,8 +198,10 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
-        public ContractBandwidthPoolNetModel ContractBandwdithPool { get; set; }
+        public ContractBandwidthPoolNetModel ContractBandwidthPool { get; set; }
         [XmlElement(ElementName = "enable-layer-3")]
         public bool EnableLayer3 { get; set; }
         [XmlElement(ElementName = "multiport-member")]
@@ -218,8 +218,6 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public string InterfaceType { get; set; }
         [XmlElement(ElementName = "interface-id")]
         public string InterfaceName { get; set; }
-        [XmlElement(ElementName = "interface-bandwidth")]
-        public int InterfaceBandwidth { get; set; }
         [XmlElement(ElementName = "policy-bandwidth")]
         public List<TaggedMultiPortPolicyBandwidthNetModel> PolicyBandwidths { get; set; }
         [XmlElement(ElementName = "vif")]
@@ -235,6 +233,8 @@ namespace SCM.Models.NetModels.AttachmentNetModels
     {
         [XmlElement(ElementName = "name")]
         public string Name { get; set; }
+        [XmlElement(ElementName = "attachment-bandwidth")]
+        public int AttachmentBandwidth { get; set; }
         [XmlElement(ElementName = "contract-bandwidth-pool")]
         public List<ContractBandwidthPoolNetModel> ContractBandwidthPools { get; set; }
         [XmlElement(ElementName = "multiport-member")]

@@ -16,13 +16,13 @@ namespace SCM.Services.SCMServices
         Task<Vif> GetByVrfIDAsync(int vrfID);
         Task<List<Vif>> GetAllByAttachmentIDAsync(int id);
         Task<List<Vif>> GetAllByVpnIDAsync(int vpnID);
-        Task<List<Vif>> GetAsync(Expression<Func<Vif, bool>> filter = null);
         Task<ServiceResult> AddAsync(VifRequest request);
         Task<ServiceResult> DeleteAsync(Vif vif);
         Task<ServiceResult> CheckNetworkSyncAsync(Vif vif);
         Task<ServiceResult> SyncToNetworkAsync(Vif vif);
         Task<ServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateNewAsync(VifRequest request);
+        Task<ServiceResult> ValidateAsync(Vpn vpn);
         Task UpdateRequiresSyncAsync(int id, bool requiresSync, bool saveChanges = true);
         Task UpdateRequiresSyncAsync(Vif vif, bool requiresSync, bool saveChanges = true);
     }

@@ -32,10 +32,20 @@ namespace SCM.Services.SCMServices
         {
 
             var dbResult = await UnitOfWork.VifRepository.GetAsync(q => q.VifID == id, 
-                includeProperties: "Attachment.Device.Location.SubRegion.Region,"
+                includeProperties: "Attachment.Tenant,"
+                + "Attachment.Device.Location.SubRegion.Region,"
                 + "Attachment.Device.Plane,"
+                + "Attachment.Vrf.BgpPeers,"
+                + "Attachment.Vrf.AttachmentSetVrfs.AttachmentSet,"
                 + "Attachment.AttachmentBandwidth,"
-                + "Attachment.Interfaces.Ports,"
+                + "Attachment.ContractBandwidthPool.ContractBandwidth,"
+                + "Attachment.Interfaces.Device,"
+                + "Attachment.Interfaces.Ports.Device,"
+                + "Attachment.Interfaces.Ports.PortBandwidth,"
+                + "Attachment.Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Attachment.Vifs.Vrf.BgpPeers,"
+                + "Attachment.Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Attachment.Vifs.ContractBandwidthPool.ContractBandwidth,"
                 + "Vrf.BgpPeers,"
                 + "Vlans,"
                 + "ContractBandwidthPool.ContractBandwidth,"
@@ -61,14 +71,24 @@ namespace SCM.Services.SCMServices
         public async Task<List<Vif>> GetAllByAttachmentIDAsync(int id)
         {
             var vifs = await UnitOfWork.VifRepository.GetAsync(q => q.AttachmentID == id,
-                includeProperties: "Attachment.Device.Location.SubRegion.Region,"
-                 + "Attachment.Device.Plane,"
-                 + "Attachment.AttachmentBandwidth,"
-                 + "Attachment.Interfaces.Ports,"
-                 + "Vrf.BgpPeers,"
-                 + "Vlans,"
-                 + "ContractBandwidthPool.ContractBandwidth,"
-                 + "Tenant",
+                includeProperties: "Attachment.Tenant,"
+                + "Attachment.Device.Location.SubRegion.Region,"
+                + "Attachment.Device.Plane,"
+                + "Attachment.Vrf.BgpPeers,"
+                + "Attachment.Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "Attachment.AttachmentBandwidth,"
+                + "Attachment.ContractBandwidthPool.ContractBandwidth,"
+                + "Attachment.Interfaces.Device,"
+                + "Attachment.Interfaces.Ports.Device,"
+                + "Attachment.Interfaces.Ports.PortBandwidth,"
+                + "Attachment.Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Attachment.Vifs.Vrf.BgpPeers,"
+                + "Attachment.Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Attachment.Vifs.ContractBandwidthPool.ContractBandwidth,"
+                + "Vrf.BgpPeers,"
+                + "Vlans,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant",
                 AsTrackable: false);
 
             return vifs.ToList();
@@ -83,28 +103,29 @@ namespace SCM.Services.SCMServices
         {
             var result = await UnitOfWork.VifRepository
                 .GetAsync(q => q.Vrf.AttachmentSetVrfs
-                .Where(r => r.AttachmentSet.VpnAttachmentSets
+                .SelectMany(r => r.AttachmentSet.VpnAttachmentSets)
                 .Where(s => s.VpnID == vpnID)
-                .Count() > 0)
-                .Count() > 0);
+                .Count() > 0,
+                includeProperties: "Attachment.Tenant,"
+                + "Attachment.Device.Location.SubRegion.Region,"
+                + "Attachment.Device.Plane,"
+                + "Attachment.Vrf.BgpPeers,"
+                + "Attachment.Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "Attachment.AttachmentBandwidth,"
+                + "Attachment.ContractBandwidthPool.ContractBandwidth,"
+                + "Attachment.Interfaces.Device,"
+                + "Attachment.Interfaces.Ports.Device,"
+                + "Attachment.Interfaces.Ports.PortBandwidth,"
+                + "Attachment.Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Attachment.Vifs.Vrf.BgpPeers,"
+                + "Attachment.Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Attachment.Vifs.ContractBandwidthPool.ContractBandwidth,"
+                + "Vrf.BgpPeers,"
+                + "Vlans,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant");
 
             return result.ToList();
-        }
-
-        public async Task<List<Vif>> GetAsync(Expression<Func<Vif, bool>> filter = null)
-        {
-            var vifs = await UnitOfWork.VifRepository.GetAsync(filter,
-                includeProperties: "Attachment.Device.Location.SubRegion.Region,"
-                 + "Attachment.Device.Plane,"
-                 + "Attachment.AttachmentBandwidth,"
-                 + "Attachment.Interfaces.Ports,"
-                 + "Vrf.BgpPeers,"
-                 + "Vlans,"
-                 + "ContractBandwidthPool.ContractBandwidth,"
-                 + "Tenant",
-                AsTrackable: false);
-
-            return vifs.ToList();
         }
 
         public async Task<ServiceResult> AddAsync(VifRequest request)
@@ -171,6 +192,11 @@ namespace SCM.Services.SCMServices
             {
                 UnitOfWork.VifRepository.Delete(vif);
                 await UnitOfWork.VrfRepository.DeleteAsync(vif.VrfID);
+
+                foreach (var vlan in vif.Vlans)
+                {
+                    await UnitOfWork.VlanRepository.DeleteAsync(vlan.VlanID);
+                }
 
                 // Check if the Contract Bandwidth Pool can be deleted
 
@@ -415,6 +441,24 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        public async Task<ServiceResult> ValidateAsync(Vpn vpn)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var vifs = await GetAllByVpnIDAsync(vpn.VpnID);
+            var vifsRequireSync = vifs.Where(q => q.RequiresSync).ToList();
+
+            if (vifsRequireSync.Count() > 0)
+            {
+
+                result.IsSuccess = false;
+                result.Add("Vifs for the VPN require synchronisation with the network.");
+                vifsRequireSync.ForEach(a => result.Add($"'{a.Name}' on device '{a.Attachment.Device.Name}' for tenant '{a.Tenant.Name}'."));
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Update the RequiresSync property of a vif record.
         /// </summary>
@@ -537,7 +581,7 @@ namespace SCM.Services.SCMServices
                 return;
             }
 
-            var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(request.AttachmentID);
+            var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
             request.DeviceID = attachment.DeviceID;
 
             var vif = Mapper.Map<Vif>(request);
@@ -582,7 +626,7 @@ namespace SCM.Services.SCMServices
 
                 for (var i = 1; i <= ifaceCount; i++)
                 {
-                    var vlan = Mapper.Map<Vlan>(request);
+                    var vlan = new Vlan();
                     vlan.InterfaceID = ifaces[i - 1].InterfaceID;
                     vlan.VifID = vif.VifID;
                     
@@ -633,7 +677,7 @@ namespace SCM.Services.SCMServices
         private  async Task<NetworkSyncServiceResult> CheckNetworkSyncAttachmentVifAsync(Vif vif)
         {
             var result = new NetworkSyncServiceResult { IsSuccess = true };
-            var vifServiceModelData = Mapper.Map<AttachmentVifServiceNetModel>(vif);
+            var vifServiceModelData = Mapper.Map<AttachmentVifServiceNetModel>(vif.Vlans.Single());
 
             if (vif.Attachment.IsBundle)
             {
@@ -665,19 +709,18 @@ namespace SCM.Services.SCMServices
         {
             var result = new NetworkSyncServiceResult { IsSuccess = true };
             var tasks = new List<Task<NetworkSyncServiceResult>>();
-            var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(vif);
-            var data = attachmentServiceModelData.TaggedAttachmentMultiPorts.Single();
 
-            foreach (var port in data.MultiPortMembers)
+            foreach (var vlan in vif.Vlans)
             {
                 // Create async task to check each vlan 
 
-                var vifServiceModelData = Mapper.Map<MultiPortVifServiceNetModel>(port.Vifs.Single());
+                var vifServiceModelData = Mapper.Map<MultiPortVifServiceNetModel>(vlan);
+                var port = vlan.Interface.Ports.Single();
 
                 tasks.Add(NetSync.CheckNetworkSyncAsync(vifServiceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}" 
                     + $"/tagged-attachment-multiport/{vif.Attachment.ID}"
-                    + $"/multiport-member/{port.InterfaceType},"
-                    + $"{port.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
+                    + $"/multiport-member/{port.Type},"
+                    + $"{port.Name.Replace("/", "%2F")}/vif/{vif.VlanTag}"));
             }
 
             // Await for all network checks to complete

@@ -46,10 +46,29 @@ namespace SCM.Services.SCMServices
                 + "Tenant,"
                 + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,"
                 + "VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
-                + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device,"
+                + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device.Location.SubRegion.Region,"
                 + "RouteTargets", AsTrackable: false);
 
             return dbResult.SingleOrDefault();
+        }
+
+
+        public async Task<IEnumerable<Vpn>> GetAllByVrfIDAsync(int id)
+        {
+            var dbResult = await this.UnitOfWork.VpnRepository.GetAsync(q => q.VpnAttachmentSets
+                    .SelectMany(r => r.AttachmentSet.AttachmentSetVrfs)
+                    .Where(s => s.VrfID == id).Count() > 0,
+                includeProperties: "Region,"
+                + "Plane,"
+                + "VpnTenancyType,"
+                + "VpnTopologyType.VpnProtocolType,"
+                + "Tenant,"
+                + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,"
+                + "VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
+                + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device.Location.SubRegion.Region,"
+                + "RouteTargets", AsTrackable: false);
+
+            return dbResult.GroupBy(q => q.VpnID).Select(r => r.First());
         }
 
         public async Task<ServiceResult> AddAsync(Vpn vpn)
@@ -141,32 +160,6 @@ namespace SCM.Services.SCMServices
         }
 
         /// <summary>
-        /// Validate an existing VPN
-        /// </summary>
-        /// <param name="vpn"></param>
-        /// <returns></returns>
-        public async Task<ServiceResult> ValidateAsync(Vpn vpn)
-        {
-            var validationResult = new ServiceResult { IsSuccess = true };
-
-            var attachments = await AttachmentService.GetAllByVpnIDAsync(vpn.VpnID);
-            if (attachments.Where(q => q.RequiresSync).Count() > 0)
-            {
-                validationResult.IsSuccess = false;
-                validationResult.Add("One or more attachments for the VPN require synchronisation with the network.");
-            }
-
-            var vifs = await VifService.GetAllByVpnIDAsync(vpn.VpnID);
-            if (vifs.Where(q => q.RequiresSync).Count() > 0)
-            {
-                validationResult.IsSuccess = false;
-                validationResult.Add("One or more vifs for the VPN require synchronisation with the network.");
-            }
-
-            return validationResult;
-        }
-
-        /// <summary>
         /// Validate change requests to a VPN
         /// </summary>
         /// <param name="vpn"></param>
@@ -202,10 +195,10 @@ namespace SCM.Services.SCMServices
                 var regions = currentVpn.VpnAttachmentSets.SelectMany(q =>
                 q.AttachmentSet.AttachmentSetVrfs.Select(r => r.Vrf.Device.Location.SubRegion.Region));
 
-                var distinctRegionsCount = regions.Distinct().Count();
-                if (distinctRegionsCount == 1)
+                var distinctRegions = regions.GroupBy(q => q.RegionID).Select(group => group.First());
+                if (distinctRegions.Count() == 1)
                 {
-                    var region = regions.Distinct().Single();
+                    var region = distinctRegions.Single();
                     if (region.RegionID != vpn.RegionID)
                     {
                         validationResult.Add("The Region setting cannot be narrowed to a specific region because all of the tenants "
@@ -213,7 +206,7 @@ namespace SCM.Services.SCMServices
                         validationResult.IsSuccess = false;
                     }
                 }
-                else if (distinctRegionsCount > 1)
+                else if (distinctRegions.Count() > 1)
                 {
                     validationResult.Add("The Region setting cannot be narrowed to a specific region because tenants of the VPN "
                         + "exist in more than one region.");
@@ -305,6 +298,25 @@ namespace SCM.Services.SCMServices
         {
             var vpn = await UnitOfWork.VpnRepository.GetByIDAsync(vpnID);
             await UpdateVpnRequiresSyncAsync(vpn, requiresSync, saveChanges);
+
+            return;
+        }
+
+        /// <summary>
+        /// Update the RequiresSync property of a collecton of vpn records.
+        /// </summary>
+        /// <param name="vpns"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateVpnRequiresSyncAsync(IEnumerable<Vpn> vpns, bool requiresSync, bool saveChanges = true)
+        {
+            var tasks = new List<Task>();
+            foreach (var vpn in vpns)
+            {
+                tasks.Add(UpdateVpnRequiresSyncAsync(vpn, requiresSync, saveChanges));
+            }
+
+            await Task.WhenAll(tasks);
 
             return;
         }
