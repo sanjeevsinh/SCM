@@ -13,6 +13,7 @@ namespace SCM.Services.SCMServices
 
         Task<IEnumerable<Vpn>> GetAllAsync();
         Task<IEnumerable<Vpn>> GetAllByVrfIDAsync(int id);
+        Task<IEnumerable<Vpn>> GetAllByAttachmentSetIDAsync(int id);
         Task<Vpn> GetByIDAsync(int id);
         Task<ServiceResult> AddAsync(Vpn vpn);
         Task<int> UpdateAsync(Vpn vpn);
@@ -21,6 +22,7 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> ValidateChangesAsync(Vpn vpn, Vpn currentVpn);
         Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn);
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn);
+        Task<ServiceResult> SyncToNetworkAsync(IEnumerable<Vpn> vpns);
         Task<ServiceResult> DeleteFromNetworkAsync(Vpn vpn);
         Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
         Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);

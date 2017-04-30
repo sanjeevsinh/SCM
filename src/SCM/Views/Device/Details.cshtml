@@ -75,7 +75,14 @@
         (function ($) {
 
             var $sync = $('#Sync');
+            var $checkSync = $('#CheckSync');
+
             $sync.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+            $checkSync.on('click', function (e) {
 
                 SCM.Utilities.showSpinner($('body')[0]);
             });

@@ -15,148 +15,24 @@ using System.Net;
 
 namespace SCM.Controllers
 {
-    public class VpnController : BaseViewController
+    public class VpnController : BaseVpnController
     {
-        public VpnController(IVpnService vpnService, IRouteTargetService routeTargetService, 
-                             IAttachmentSetVrfService attachmentSetVrfService, 
-                             IAttachmentService attachmentService, IVifService vifService, IMapper mapper)
+        public VpnController(IVpnService vpnService, 
+            IRouteTargetService routeTargetService,
+            IAttachmentSetService attachmentSetService,
+            IAttachmentSetVrfService attachmentSetVrfService, 
+            IAttachmentService attachmentService, 
+            IVifService vifService, 
+            IMapper mapper) :
+            base(vpnService, routeTargetService, attachmentSetService, attachmentSetVrfService, attachmentService, vifService, mapper)
         {
-           VpnService = vpnService;
-           RouteTargetService = routeTargetService;
-           AttachmentService = attachmentService;
-           VifService = vifService;
-           AttachmentSetVrfService = attachmentSetVrfService;
-           Mapper = mapper;
         }
-        private IVpnService VpnService { get; set; }
-        private IAttachmentService AttachmentService { get; set; }
-        private IVifService VifService { get; set; }
-        private IRouteTargetService RouteTargetService { get; set; }
-        private IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
-        private IMapper Mapper { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var vpns = await VpnService.GetAllAsync();
             return View(Mapper.Map<List<VpnViewModel>>(vpns));
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var item = await VpnService.GetByIDAsync(id.Value);
-
-            if (item == null)
-            {
-                return NotFound();
-            }
-
-            return View(Mapper.Map<VpnViewModel>(item));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Sync(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vpn = await VpnService.GetByIDAsync(id.Value);
-            if (vpn == null)
-            {
-                return NotFound();
-            }
-
-            var validationOk = true;
-            var validationMessage = "You must resolve the following issues first: ";
-
-            var attachmentValidationResult = await AttachmentService.ValidateAsync(vpn);
-            if (!attachmentValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += attachmentValidationResult.GetHtmlListMessage();
-            }
-
-            var vifValidationResult = await VifService.ValidateAsync(vpn);
-            if (!vifValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += vifValidationResult.GetHtmlListMessage();
-            }
-
-            var routeTargetsValidationResult = RouteTargetService.Validate(vpn);
-            if (!routeTargetsValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += routeTargetsValidationResult.GetHtmlListMessage();
-            }
-
-            var attachmentSetVrfsValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(vpn);
-            if (!attachmentSetVrfsValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += attachmentSetVrfsValidationResult.GetHtmlListMessage();
-            }
-
-            if (!validationOk)
-            {
-                ViewData["ErrorMessage"] += validationMessage; 
-            }
-            else
-            {
-                var syncResult = await VpnService.SyncToNetworkAsync(vpn);
-                if (syncResult.IsSuccess)
-                {
-                    ViewData["SuccessMessage"] = "The network is synchronised.";
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
-                }
-            }
-
-            return View("Details", Mapper.Map<VpnViewModel>(vpn));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CheckSync(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vpn = await VpnService.GetByIDAsync(id.Value);
-            if (vpn == null)
-            {
-                return NotFound();
-            }
-
-            var checkSyncResult = await VpnService.CheckNetworkSyncAsync(vpn);
-            if (checkSyncResult.IsSuccess)
-            {
-                ViewData["SuccessMessage"] = "The VPN is synchronised with the network.";
-            }
-            else
-            {
-                if (checkSyncResult.IsSuccess)
-                {
-                    ViewData["ErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                }
-            }
-
-            return View("Details", Mapper.Map<VpnViewModel>(vpn));
         }
 
         [HttpGet]
@@ -175,7 +51,9 @@ namespace SCM.Controllers
             await PopulateRegionsDropDownList();
             await PopulateTopologyTypesDropDownListByProtocolType(protocolType.VpnProtocolTypeID);
             await PopulateTenancyTypesDropDownList();
+
             ViewBag.VpnProtocolType = await GetProtocolTypeItem(protocolType.VpnProtocolTypeID);
+
             return View();
         }
 
@@ -437,36 +315,6 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = id });
             }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteFromNetwork(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vpn = await VpnService.GetByIDAsync(id.Value);
-            if (vpn == null)
-            {
-
-                ViewData["VpnDeletedMessage"] = "The VPN has been deleted by another user. Return to the list.";
-                return View("VpnDeleted");
-            }
-
-            var syncResult = await VpnService.DeleteFromNetworkAsync(vpn);
-            if (syncResult.IsSuccess)
-            {
-                ViewData["SuccessMessage"] = "The VPN has been deleted from the network.";
-            }
-            else
-            {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
-            }
-
-            vpn.RequiresSync = true;
-            return View("Delete", Mapper.Map<VpnViewModel>(vpn));
         }
 
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)

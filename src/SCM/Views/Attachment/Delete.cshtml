@@ -1,7 +1,7 @@
 @model SCM.Models.ViewModels.AttachmentViewModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Attachment";
 }
 
 <ol class="breadcrumb">
@@ -69,9 +69,32 @@
     <form asp-action="Delete">
         <input type="hidden" asp-for="AttachmentID" />
         <div class="form-actions no-color">
-            <input type="submit" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
-            <input type="submit" sp-action="Delete" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <input type="submit" id="DeleteFromNetwork" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
+            <input type="submit" id ="Delete" asp-action="Delete" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
             <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Attachments List</a>
         </div>
     </form>
 </div>
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $delete = $('#Delete');
+            var $deleteFromNetwork = $('#DeleteFromNetwork');
+
+            $delete.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+            $deleteFromNetwork.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+        }(jQuery));
+
+    </script>
+}

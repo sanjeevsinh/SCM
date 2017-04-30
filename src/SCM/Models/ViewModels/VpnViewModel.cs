@@ -35,5 +35,11 @@ namespace SCM.Models.ViewModels
         public VpnTopologyTypeViewModel VpnTopologyType { get; set; }
         [Display(Name = "Tenancy Type")]
         public VpnTenancyTypeViewModel VpnTenancyType { get; set; }
+        /// <summary>
+        /// This property provides Attachment Set context for the AttachmentSetVpn controller.
+        /// It is not used to update the model.
+        /// </summary>
+        public AttachmentSetViewModel AttachmentSet { get; set; }
+        public int? AttachmentSetID { get; set; } 
     }
 }

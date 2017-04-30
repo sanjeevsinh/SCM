@@ -6,14 +6,13 @@
 
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
     <li class="breadcrumb-item active">VPNs</li>
 </ol>
 
-<h2>VPNs</h2>
+<h2>VPNs for Attachment Set '@ViewBag.AttachmentSet.Name'</h2>
 
-<p>
-    <a asp-action="CreateStep1">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -72,13 +71,10 @@
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.VpnID }) |
-                @Html.ActionLink("Details", "Details", new { VpnID = item.VpnID } ) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.VpnID }) |
-                <a asp-controller="RouteTarget" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Route Targets</a> |
-                <a asp-controller="VpnAttachmentSet" asp-action="GetAllByVpnID" asp-route-id="@item.VpnID">Attachment Sets</a>
+                @Html.ActionLink("Details", "Details", new { VpnID = item.VpnID, AttachmentSetID = ViewBag.AttachmentSet.AttachmentSetID } )
             </td>
         </tr>
 }
     </tbody>
 </table>
+<a asp-controller="AttachmentSet" asp-action="GetAllByTenantID" asp-route-id="@ViewBag.AttachmentSet.TenantID">Back to Attachment Sets</a>

@@ -1,7 +1,7 @@
 @model SCM.Models.ViewModels.AttachmentSetViewModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Attachment Set";
 }
 
 <ol class="breadcrumb">
@@ -15,7 +15,7 @@
 
 @if (@ViewData["ErrorMessage"] != null)
 {
-<div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+<div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 }
 
 <h3>Are you sure you want to delete this?</h3>
@@ -40,7 +40,7 @@
         <input type="hidden" asp-for="AttachmentSetID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <input type="submit" id="Delete" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
             <a asp-action="GetAllByTenantID" asp-route-id="@Context.Request.Query["tenantID"]">Back to List</a>
         </div>
     </form>

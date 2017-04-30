@@ -41,9 +41,32 @@
         <input type="hidden" asp-for="VifID" />
         <input type="hidden" asp-for="AttachmentID" />
         <div class="form-actions no-color">
-            <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
-            <input type="submit"  asp-action="Delete" value="Delete" class="btn btn-default" /> |
+            <input type="submit" id="DeleteFromNetwork" asp-action="DeleteFromNetwork" value="Delete Network Only" class="btn btn-default" /> |
+            <input type="submit"  id="Delete" asp-action="Delete" value="Delete" class="btn btn-default" /> |
             <a asp-action="GetAllByAttachmentID" asp-route-id="@Model.AttachmentID">Back to VIFs List</a>
         </div>
     </form>
 </div>
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $delete = $('#Delete');
+            var $deleteFromNetwork = $('#DeleteFromNetwork');
+
+            $delete.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+            $deleteFromNetwork.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+        }(jQuery));
+
+    </script>
+}

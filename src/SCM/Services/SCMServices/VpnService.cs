@@ -71,6 +71,23 @@ namespace SCM.Services.SCMServices
             return dbResult.GroupBy(q => q.VpnID).Select(r => r.First());
         }
 
+        public async Task<IEnumerable<Vpn>> GetAllByAttachmentSetIDAsync(int id)
+        {
+            var dbResult = await this.UnitOfWork.VpnRepository.GetAsync(q => q.VpnAttachmentSets
+                    .Where(r => r.AttachmentSetID == id).Count() > 0,
+                includeProperties: "Region,"
+                + "Plane,"
+                + "VpnTenancyType,"
+                + "VpnTopologyType.VpnProtocolType,"
+                + "Tenant,"
+                + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,"
+                + "VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
+                + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device.Location.SubRegion.Region,"
+                + "RouteTargets", AsTrackable: false);
+
+            return dbResult.GroupBy(q => q.VpnID).Select(r => r.First());
+        }
+
         public async Task<ServiceResult> AddAsync(Vpn vpn)
         {
 
@@ -242,6 +259,31 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        public async Task<ServiceResult> SyncToNetworkAsync(IEnumerable<Vpn> vpns)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+            var tasks = new List<Task<ServiceResult>>();
+
+            foreach (var vpn in vpns)
+            {
+                tasks.Add(SyncToNetworkAsync(vpn));
+            }
+
+            await Task.WhenAll(tasks);
+
+            foreach (var task in tasks)
+            {
+                if (!task.Result.IsSuccess)
+                {
+                    result.IsSuccess = false;
+                    result.AddRange(task.Result.GetMessageList());
+                    result.NetworkSyncServiceResults.AddRange(task.Result.NetworkSyncServiceResults);
+                }
+            }
+
+            return result;
+        }
+
         public async Task<ServiceResult> SyncToNetworkAsync(Vpn vpn)
         {
             var result = new ServiceResult();
@@ -313,7 +355,7 @@ namespace SCM.Services.SCMServices
             var tasks = new List<Task>();
             foreach (var vpn in vpns)
             {
-                tasks.Add(UpdateVpnRequiresSyncAsync(vpn, requiresSync, saveChanges));
+                tasks.Add(UpdateVpnRequiresSyncAsync(vpn.VpnID, requiresSync, saveChanges));
             }
 
             await Task.WhenAll(tasks);

@@ -17,14 +17,21 @@ namespace SCM.Controllers
     public class VpnTenantCommunityController : BaseViewController
     {
         public VpnTenantCommunityController(IVpnTenantCommunityService vpnTenantCommunityService, 
-            IVpnAttachmentSetService vpnAttachmentSetService, IMapper mapper)
+            IVpnAttachmentSetService vpnAttachmentSetService, 
+            ITenantCommunityService tenantCommunityService,
+            IVpnService vpnService, 
+            IMapper mapper)
         {
            VpnTenantCommunityService = vpnTenantCommunityService;
            VpnAttachmentSetService = vpnAttachmentSetService;
+           TenantCommunityService = tenantCommunityService;
+           VpnService = vpnService;
            Mapper = mapper;
         }
         private IVpnTenantCommunityService VpnTenantCommunityService { get; set; }
         private IVpnAttachmentSetService VpnAttachmentSetService { get; set; }
+        private ITenantCommunityService TenantCommunityService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -56,14 +63,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == id, 
-                includeProperties: "VpnAttachmentSet.Vpn,VpnAttachmentSet.AttachmentSet.Tenant,TenantCommunity");
-            var item = dbResult.SingleOrDefault();
-
+            var item = await VpnTenantCommunityService.GetByIDAsync(id.Value);
             if (item == null)
             {
                 return NotFound();
             }
+
             return View(Mapper.Map<VpnTenantCommunityViewModel>(item));
         }
 
@@ -111,6 +116,8 @@ namespace SCM.Controllers
                     else
                     {
                         await VpnTenantCommunityService.AddAsync(mappedVpnTenantCommunity);
+                        await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, true);
+
                         return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
                     }
                 }
@@ -130,22 +137,19 @@ namespace SCM.Controllers
         }
   
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id, bool? concurrencyError = false)
+        public async Task<IActionResult> Delete(int? id, int? vpnAttachmentSetID, bool? concurrencyError = false)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == id.Value,
-                includeProperties:"VpnAttachmentSet.Vpn,TenantCommunity");
-            var vpnTenantCommunity = dbResult.SingleOrDefault();
-
+            var vpnTenantCommunity = await VpnTenantCommunityService.GetByIDAsync(id.Value);
             if (vpnTenantCommunity == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
+                    return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnAttachmentSetID });
                 }
 
                 return NotFound();
@@ -170,38 +174,39 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await VpnTenantCommunityService.UnitOfWork.VpnTenantCommunityRepository.GetAsync(q => q.VpnTenantCommunityID == vpnTenantCommunity.VpnTenantCommunityID,
-                    AsTrackable:false);
-                var currentVpnTenantCommunity = dbResult.SingleOrDefault();
-
+                var currentVpnTenantCommunity = await VpnTenantCommunityService.GetByIDAsync(vpnTenantCommunity.VpnTenantCommunityID);
                 if (currentVpnTenantCommunity != null)
                 {
-                    await VpnTenantCommunityService.DeleteAsync(Mapper.Map<VpnTenantCommunity>(vpnTenantCommunity));
+                    await VpnTenantCommunityService.DeleteAsync(currentVpnTenantCommunity);
+                    await VpnService.UpdateVpnRequiresSyncAsync(currentVpnTenantCommunity.VpnAttachmentSet.VpnID, true, true);
                 }
+
                 return RedirectToAction("GetAllByVpnAttachmentSetID", new { id = vpnTenantCommunity.VpnAttachmentSetID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = vpnTenantCommunity.VpnTenantCommunityID });
+                return RedirectToAction("Delete", new
+                {
+                    concurrencyError = true,
+                    id = vpnTenantCommunity.VpnTenantCommunityID,
+                    vpnAttachmentSetID = vpnTenantCommunity.VpnAttachmentSetID
+                });
             }
         }
 
         private async Task PopulateTenantCommunitysDropDownList(int vpnAttachmentSetID, object selectedTenantCommunity = null)
         {
+            var tenantCommunities = await TenantCommunityService.GetAllByVpnAttachmentSetIDAsync(vpnAttachmentSetID);
 
-            var dbResult1 = await VpnTenantCommunityService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnAttachmentSetID, 
-                includeProperties:"AttachmentSet");
-            var vpnAttachmentSet = dbResult1.SingleOrDefault();
-
-            if (vpnAttachmentSet != null)
+            var result = tenantCommunities.Select(p => new
             {
-                var dbResult2 = await VpnTenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID);
-                var tenantCommunitys = dbResult2.Select(p => new { TenantCommunityID = p.TenantCommunityID, TenantCommunity = string.Concat(p.AutonomousSystemNumber, ":", p.Number) });
+                TenantCommunityID = p.TenantCommunityID,
+                TenantCommunity = string.Concat(p.AutonomousSystemNumber, ":", p.Number)
+            });
 
-                ViewBag.TenantCommunityID = new SelectList(tenantCommunitys, "TenantCommunityID", "TenantCommunity", selectedTenantCommunity);
-            }
+            ViewBag.TenantCommunityID = new SelectList(result, "TenantCommunityID", "TenantCommunity", selectedTenantCommunity);
         }
     }
 }

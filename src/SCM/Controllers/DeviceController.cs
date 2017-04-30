@@ -161,17 +161,15 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("ID,Description,RowVersion")] DeviceViewModel device)
+        public async Task<ActionResult> Edit(int id, [Bind("ID,Name,Description,RowVersion")] DeviceViewModel device)
         {
             if (id != device.ID)
             {
                 return NotFound();
             }
 
-            var dbResult = await DeviceService.UnitOfWork.DeviceRepository.GetAsync(filter: d => d.ID == id, 
-                includeProperties:"Plane,Location", AsTrackable: false);
-            var currentDevice = dbResult.SingleOrDefault();
-
+            var currentDevice = await DeviceService.GetByIDAsync(id);
+         
             try
             {
                 if (ModelState.IsValid)

@@ -18,12 +18,21 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<VpnTenantNetwork>> GetAllAsync()
         {
-            return await this.UnitOfWork.VpnTenantNetworkRepository.GetAsync(includeProperties: "TenantNetwork,VpnAttachmentSet");
+            return await this.UnitOfWork.VpnTenantNetworkRepository.GetAsync(includeProperties: "VpnAttachmentSet.Vpn,"
+                + "VpnAttachmentSet.AttachmentSet.Tenant,"
+                + "TenantNetwork", 
+                AsTrackable: false);
         }
 
-        public async Task<VpnTenantNetwork> GetByIDAsync(int key)
+        public async Task<VpnTenantNetwork> GetByIDAsync(int id)
         {
-            return await UnitOfWork.VpnTenantNetworkRepository.GetByIDAsync(key);
+            var dbResult = await UnitOfWork.VpnTenantNetworkRepository.GetAsync(q => q.VpnTenantNetworkID == id, 
+                includeProperties: "VpnAttachmentSet.Vpn,"
+                + "VpnAttachmentSet.AttachmentSet.Tenant,"
+                + "TenantNetwork", 
+                AsTrackable:false);
+
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<int> AddAsync(VpnTenantNetwork vpnTenantNetwork)

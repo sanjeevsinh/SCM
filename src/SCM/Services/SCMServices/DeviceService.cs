@@ -27,7 +27,7 @@ namespace SCM.Services.SCMServices
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
                                + "Attachments.Vifs.Vlans,"
                                + "Attachments.Vifs.Vrf.BgpPeers,"
-                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth");
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable: false);
         }
 
         public async Task<Device> GetByIDAsync(int id)
@@ -41,7 +41,7 @@ namespace SCM.Services.SCMServices
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
                                + "Attachments.Vifs.Vlans,"
                                + "Attachments.Vifs.Vrf.BgpPeers,"
-                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth");
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable: false);
 
             return result.SingleOrDefault();
         }
@@ -115,7 +115,6 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> SyncToNetworkAsync(int deviceID)
         {
             var result = new ServiceResult();
-
             var device = await GetByIDAsync(deviceID);
 
             if (device == null)
@@ -139,9 +138,7 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> DeleteFromNetworkAsync(int deviceID)
         {
             var result = new ServiceResult();
-
-            var dbResult = await UnitOfWork.DeviceRepository.GetAsync(q => q.ID == deviceID, AsTrackable: false);
-            var device = dbResult.SingleOrDefault();
+            var device = await GetByIDAsync(deviceID);
 
             if (device == null)
             {

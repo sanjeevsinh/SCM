@@ -18,6 +18,7 @@ namespace SCM.Services.SCMServices
         Task<int> DeleteAsync(AttachmentSet attachmentSet);
         Task<IEnumerable<AttachmentSet>> GetAllByVpnIDAsync(int id);
         Task<ServiceResult> ValidateNewAsync(AttachmentSet attachmentSet);
+        Task<ServiceResult> ValidateDeleteAsync(AttachmentSet attachmentSet);
         Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet);
     }
 }

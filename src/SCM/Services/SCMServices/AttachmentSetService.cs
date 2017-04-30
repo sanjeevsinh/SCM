@@ -61,6 +61,23 @@ namespace SCM.Services.SCMServices
             return await ValidateAttachmentRedundancy(attachmentSet);
         }
 
+        public async Task<ServiceResult> ValidateDeleteAsync(AttachmentSet attachmentSet)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var vpnAttachmentSets = await UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID,
+                includeProperties:"Vpn");
+
+            if (vpnAttachmentSets.Count > 0)
+            {
+                result.IsSuccess = false;
+                result.Add("You must complete the following first before the Attachment Set can be deleted: ");
+                vpnAttachmentSets.ToList().ForEach(q => result.Add($"Remove the Attachment Set from VPN '{q.Vpn.Name}'"));
+            }
+
+            return result;
+        }
+
         public async Task<ServiceResult> ValidateChangesAsync(AttachmentSet attachmentSet)
         {
             var validationResult = new ServiceResult { IsSuccess = true };

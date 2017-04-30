@@ -1,7 +1,7 @@
 @model IEnumerable<SCM.Models.ViewModels.AttachmentSetViewModel>
 
 @{
-    ViewData["Title"] = "GetAll";
+    ViewData["Title"] = "Attachment Sets";
 }
 
 <ol class="breadcrumb">
@@ -64,7 +64,8 @@
                 @Html.ActionLink("Edit", "Edit", new { id = item.AttachmentSetID, tenantID = item.TenantID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.AttachmentSetID, tenantID = item.TenantID } ) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentSetID, tenantID = item.TenantID }) |
-                @Html.ActionLink("Member VRFs", "GetAllByAttachmentSetID", "AttachmentSetVrf", new { id = item.AttachmentSetID, tenantID = item.TenantID })
+                @Html.ActionLink("Member VRFs", "GetAllByAttachmentSetID", "AttachmentSetVrf", new { id = item.AttachmentSetID, tenantID = item.TenantID }) |
+                @Html.ActionLink("VPNs", "GetAllByAttachmentSetID", "AttachmentSetVpn", new { id = item.AttachmentSetID })
             </td>
         </tr>
 }

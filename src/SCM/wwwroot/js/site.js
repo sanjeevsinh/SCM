@@ -1,10 +1,14 @@
-﻿
+﻿// Define utility methods for the client-side application
+
 var SCM = {
 };
 
 SCM.Utilities = (function () {
 
     "use strict";
+
+
+    // Define spinner options
 
     var showSpinner = function (target) {
 
@@ -31,8 +35,14 @@ SCM.Utilities = (function () {
           , position: 'absolute' // Element positioning
         };
 
+        // Append spinner to target element and dim the background
+
         $('body').addClass('modalBackground');
-        var spinner = new Spinner(opts).spin(target);
+        var spinner = new Spinner(opts).spin();
+        spinner.el.hidden = true;
+        target.appendChild(spinner.el);
+
+        $(spinner.el).fadeIn('slow');
     };
 
     return {

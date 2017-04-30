@@ -12,6 +12,7 @@ namespace SCM.Services.SCMServices
         IUnitOfWork UnitOfWork { get; }
         Task<IEnumerable<TenantCommunity>> GetAllAsync();
         Task<TenantCommunity> GetByIDAsync(int id);
+        Task<IEnumerable<TenantCommunity>> GetAllByVpnAttachmentSetIDAsync(int id);
         Task<int> AddAsync(TenantCommunity tenantCommunity);
         Task<int> UpdateAsync(TenantCommunity tenantCommunity);
         Task<int> DeleteAsync(TenantCommunity tenantCommunity);

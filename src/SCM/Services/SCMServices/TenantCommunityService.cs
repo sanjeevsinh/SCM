@@ -23,6 +23,19 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.TenantCommunityRepository.GetByIDAsync(id);
         }
 
+        /// <summary>
+        /// Return all Tenant Communities which belong to a Tenant which is associated
+        /// with a given VPN Attachment Set.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<TenantCommunity>> GetAllByVpnAttachmentSetIDAsync(int id)
+        {
+
+            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(id);
+            return await UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID);
+        }
+
         public async Task<int> AddAsync(TenantCommunity tenantCommunity)
         {
             this.UnitOfWork.TenantCommunityRepository.Insert(tenantCommunity);

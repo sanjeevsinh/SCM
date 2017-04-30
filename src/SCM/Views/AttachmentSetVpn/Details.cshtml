@@ -6,7 +6,9 @@
 
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
-    <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
+    <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@Model.AttachmentSet.TenantID">Attachment Sets</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSetVpn/GetAllByAttachmentSetID/@Model.AttachmentSet.AttachmentSetID">VPNs</a></li>
     <li class="breadcrumb-item active">Details</li>
 </ol>
 
@@ -89,8 +91,7 @@
     <input type="hidden" asp-for="AttachmentSetID" name="AttachmentSetID" />
     <input type="submit" id="CheckSync" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
     <input type="submit" id="Sync" asp-action="Sync" value="Sync" class="btn btn-default" /> |
-    @Html.ActionLink("Edit", "Edit", new { id = Model.VpnID }) |
-    <a asp-action="GetAll">Back to List</a>
+    <a asp-action="GetAllByAttachmentSetID" asp-route-id="@Model.AttachmentSet.AttachmentSetID">Back to List</a>
 </form>
 @section Scripts {
 

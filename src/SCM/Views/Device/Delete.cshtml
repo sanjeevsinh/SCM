@@ -1,7 +1,7 @@
 @model SCM.Models.ViewModels.DeviceViewModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Device";
 }
 
 <ol class="breadcrumb">
@@ -59,9 +59,33 @@
         <input type="hidden" asp-for="ID" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-actions no-color">
-            <input type="submit" asp-action="DeleteFromNetwork" value="Delete Network Only" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-            <input type="submit" value="Delete" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <input type="submit" id="DeleteFromNetwork" asp-action="DeleteFromNetwork" value="Delete Network Only" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
+            <input type="submit" id="Delete" value="Delete" asp-route-tenantID = "@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
             <a asp-action="GetAll" asp-route-tenantID = "@Context.Request.Query["tenantID"]">Back to List</a>
         </div>
     </form>
 </div>
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $delete = $('#Delete');
+            var $deleteFromNetwork = $('#DeleteFromNetwork');
+
+            $delete.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+            $deleteFromNetwork.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+        }(jQuery));
+
+    </script>
+}

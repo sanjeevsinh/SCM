@@ -1,7 +1,7 @@
 @model SCM.Models.ViewModels.DeviceViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Device";
 }
 
 <ol class="breadcrumb">
@@ -18,6 +18,7 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="ID" />
+        <input type="hidden" asp-for="Name" />
         <input type="hidden" asp-for="RowVersion" />
         <div class="form-group">
             <label asp-for="Description" class="col-md-2 control-label"></label>

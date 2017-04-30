@@ -16,12 +16,14 @@ namespace SCM.Controllers
 {
     public class AttachmentSetController : BaseViewController
     {
-        public AttachmentSetController(IAttachmentSetService attachmentSetService, IMapper mapper)
+        public AttachmentSetController(IAttachmentSetService attachmentSetService, IVpnService vpnService, IMapper mapper)
         {
            AttachmentSetService = attachmentSetService;
+           VpnService = vpnService;
            Mapper = mapper;
         }
         private IAttachmentSetService AttachmentSetService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
@@ -299,13 +301,23 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await AttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == attachmentSet.AttachmentSetID, AsTrackable:false);
-                var currentAttachmentSet = dbResult.SingleOrDefault();
+                var currentAttachmentSet = await AttachmentSetService.GetByIDAsync(attachmentSet.AttachmentSetID);
 
                 if (currentAttachmentSet != null)
                 {
-                    await AttachmentSetService.DeleteAsync(Mapper.Map<AttachmentSet>(attachmentSet));
+                    var validationResult = await AttachmentSetService.ValidateDeleteAsync(currentAttachmentSet);
+                    if (validationResult.IsSuccess)
+                    {
+                        await AttachmentSetService.DeleteAsync(currentAttachmentSet);
+                    }
+                    else
+                    {
+                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+
+                        return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
+                    }
                 }
+
                 return RedirectToAction("GetAllByTenantID", new { id = currentAttachmentSet.TenantID });
             }
 
@@ -349,6 +361,7 @@ namespace SCM.Controllers
         {
             ViewBag.Tenant = await AttachmentSetService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
         }
+
         private async Task GetRegion(int regionID)
         {
             ViewBag.Region = await AttachmentSetService.UnitOfWork.RegionRepository.GetByIDAsync(regionID);
