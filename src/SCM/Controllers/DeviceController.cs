@@ -62,7 +62,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(id.Value);
+            var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(item);
             if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The device is synchronised with the network.";
@@ -70,7 +70,8 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
+                ViewData["ErrorMessage"] += checkSyncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 
@@ -92,7 +93,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var syncResult = await DeviceService.SyncToNetworkAsync(id.Value);
+            var syncResult = await DeviceService.SyncToNetworkAsync(item);
 
             if (syncResult.IsSuccess)
             {
@@ -268,21 +269,49 @@ namespace SCM.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(DeviceViewModel device)
-        {  
+        {
             try
             {
-                var dbResult = await DeviceService.UnitOfWork.DeviceRepository.GetAsync(filter: d => d.ID == device.ID, AsTrackable:false);
-                var currentDevice = dbResult.SingleOrDefault();
+                var currentDevice = await DeviceService.GetByIDAsync(device.ID);
 
-                if (currentDevice != null)
+                if (currentDevice == null)
                 {
-                    var result = await DeviceService.DeleteAsync(Mapper.Map<Device>(device));
+                    return NotFound();
+                }
+
+                var syncResult = await DeviceService.DeleteFromNetworkAsync(currentDevice);
+
+                // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
+                // because it probably means the resource was either previously deleted from the network or it was 
+                // never syncd to the network
+
+                var inSync = true;
+                if (!syncResult.IsSuccess)
+                {
+                    ViewData["ErrorMessage"] = string.Empty;
+                    foreach (var r in syncResult.NetworkSyncServiceResults)
+                    {
+                        if (r.StatusCode != NetworkSyncStatusCode.NotFound)
+                        {
+                            // Something went wrong, so flag for exit
+
+                            inSync = false;
+                            ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                        }
+                    }
+                }
+
+                if (inSync)
+                {
+                    var result = await DeviceService.DeleteAsync(currentDevice);
                     if (!result.IsSuccess)
                     {
                         ViewData["ErrorMessage"] = result.GetMessage();
+
                         return View(Mapper.Map<DeviceViewModel>(currentDevice));
                     }
                 }
+
                 return RedirectToAction("GetAll");
             }
 
@@ -309,7 +338,7 @@ namespace SCM.Controllers
                 return View("DeviceDeleted");
             }
 
-            var syncResult = await DeviceService.DeleteFromNetworkAsync(id.Value);
+            var syncResult = await DeviceService.DeleteFromNetworkAsync(device);
             if (syncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The device has been deleted from the network.";

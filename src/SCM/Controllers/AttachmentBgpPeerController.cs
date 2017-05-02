@@ -76,10 +76,18 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VrfID,IpAddress,AutonomousSystem,MaximumRoutes,IsBfdEnabled")] BgpPeerViewModel bgpPeer)
         {
+
+            var attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
             try
             {
                 if (ModelState.IsValid)
                 {
+                    await AttachmentService.UpdateRequiresSyncAsync(attachment.AttachmentID, true, false);
                     await BgpPeerService.AddAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                     return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -127,6 +135,12 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            var attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
             var dbResult = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(filter: d => d.BgpPeerID == id,
                 AsTrackable: false);
             var currentBgpPeer = dbResult.SingleOrDefault();
@@ -141,6 +155,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
+                        await AttachmentService.UpdateRequiresSyncAsync(attachment.AttachmentID, true, false);
                         await BgpPeerService.UpdateAsync(Mapper.Map<BgpPeer>(bgpPeer));
 
                         return RedirectToAction("GetAllByVrfID", new { id = bgpPeer.VrfID });
@@ -220,6 +235,12 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(BgpPeerViewModel bgpPeer)
         {
+            var attachment = await AttachmentService.GetByVrfIDAsync(bgpPeer.VrfID);
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
             try
             {
                 var dbResult = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(filter: d => d.BgpPeerID == bgpPeer.BgpPeerID, AsTrackable: false);
@@ -227,6 +248,7 @@ namespace SCM.Controllers
 
                 if (currentBgpPeer != null)
                 {
+                    await AttachmentService.UpdateRequiresSyncAsync(attachment.AttachmentID, true, false);
                     await BgpPeerService.DeleteAsync(Mapper.Map<BgpPeer>(bgpPeer));
                 }
 

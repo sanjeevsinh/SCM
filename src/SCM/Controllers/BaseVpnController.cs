@@ -113,6 +113,8 @@ namespace SCM.Controllers
                 {
                     ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
                 }
+
+                await VpnService.UpdateVpnRequiresSyncAsync(item, !syncResult.IsSuccess, true);
             }
 
             var mappedVpn = Mapper.Map<VpnViewModel>(item);
@@ -138,20 +140,26 @@ namespace SCM.Controllers
             if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The VPN is synchronised with the network.";
+                item.RequiresSync = false;
             }
             else
             {
-                if (checkSyncResult.IsSuccess)
+                if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
                     ViewData["ErrorMessage"] = "The VPN is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
-                else
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                }
+
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                item.RequiresSync = true;
             }
 
+            await VpnService.UpdateVpnRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
+
             var mappedVpn = Mapper.Map<VpnViewModel>(item);
+
+            // Check if AttachmentSetID property value is defined. If it is then retrieve the AttachmentSet context
+            // and append to the view model.
+
             if (vpn.AttachmentSetID != null)
             {
                 var attachmentSet = await AttachmentSetService.GetByIDAsync(vpn.AttachmentSetID.Value);

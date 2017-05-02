@@ -90,7 +90,6 @@ namespace SCM.Services.SCMServices
 
         public async Task<ServiceResult> AddAsync(Vpn vpn)
         {
-
             var result = new ServiceResult { IsSuccess = true };
             var vpnTopologyType = await UnitOfWork.VpnTopologyTypeRepository.GetByIDAsync(vpn.VpnTopologyTypeID);
 
@@ -244,24 +243,78 @@ namespace SCM.Services.SCMServices
             return validationResult;
         }
 
-        public async Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn)
+        /// <summary>
+        /// Perform shallow check of network sync state of a collection
+        /// of vpns by checking the 'RequiresSync' property.
+        /// </summary>
+        /// <param name="vpns"></param>
+        /// <returns></returns>
+        public ServiceResult ShallowCheckNetworkSync(IEnumerable<Vpn> vpns)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult { IsSuccess = true };
 
-            var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
-            var syncResult = await NetSync.CheckNetworkSyncAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
-
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
-
-            await UpdateVpnRequiresSyncAsync(vpn, !result.IsSuccess);
+            var vpnsRequireSync = vpns.Where(q => q.RequiresSync);
+            if (vpnsRequireSync.Count() > 0)
+            {
+                result.IsSuccess = false;
+                result.Add("The following VPNs require synchronisation with the network:");
+                vpnsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+            }
 
             return result;
         }
 
-        public async Task<ServiceResult> SyncToNetworkAsync(IEnumerable<Vpn> vpns)
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns)
         {
-            var result = new ServiceResult { IsSuccess = true };
+            var tasks = new List<Task<ServiceResult>>();
+
+            foreach (var vpn in vpns)
+            {
+                tasks.Add(CheckNetworkSyncAsync(vpn));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return tasks.Select(q => q.Result).ToList();
+        }
+
+        public async Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn)
+        {
+            var result = new ServiceResult {
+                IsSuccess = true,
+                Item = vpn
+            };
+
+            var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
+            var syncResult = await NetSync.CheckNetworkSyncAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+
+            result.NetworkSyncServiceResults.Add(syncResult);
+            var item = (IpVpnServiceNetModel)syncResult.Item;
+
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed and the VPN was tested for sync with the network
+
+                    result.Add($"VPN '{item.Name}' is not synchronised with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason
+
+                    result.Add($"There was an error checking status for VPN '{item.Name}'.");
+                    result.AddRange(syncResult.Messages);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns)
+        {
             var tasks = new List<Task<ServiceResult>>();
 
             foreach (var vpn in vpns)
@@ -271,30 +324,40 @@ namespace SCM.Services.SCMServices
 
             await Task.WhenAll(tasks);
 
-            foreach (var task in tasks)
-            {
-                if (!task.Result.IsSuccess)
-                {
-                    result.IsSuccess = false;
-                    result.AddRange(task.Result.GetMessageList());
-                    result.NetworkSyncServiceResults.AddRange(task.Result.NetworkSyncServiceResults);
-                }
-            }
-
-            return result;
+            return tasks.Select(q => q.Result).ToList();
         }
 
         public async Task<ServiceResult> SyncToNetworkAsync(Vpn vpn)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = vpn
+            };
 
             var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
             var syncResult = await NetSync.SyncNetworkAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+            result.NetworkSyncServiceResults.Add(syncResult);
+            var item = (IpVpnServiceNetModel)syncResult.Item;
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
-       
-            await UpdateVpnRequiresSyncAsync(vpn, !result.IsSuccess);
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed but synchronisation failed
+
+                    result.Add($"Failed to synchronise VPN '{item.Name}' with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason
+
+                    result.Add($"There was an error synchronising VPN '{item.Name}' with the network.");
+                    result.AddRange(syncResult.Messages);
+                }
+            }
 
             return result;
         }
@@ -355,10 +418,8 @@ namespace SCM.Services.SCMServices
             var tasks = new List<Task>();
             foreach (var vpn in vpns)
             {
-                tasks.Add(UpdateVpnRequiresSyncAsync(vpn.VpnID, requiresSync, saveChanges));
+                await UpdateVpnRequiresSyncAsync(vpn.VpnID, requiresSync, saveChanges);
             }
-
-            await Task.WhenAll(tasks);
 
             return;
         }

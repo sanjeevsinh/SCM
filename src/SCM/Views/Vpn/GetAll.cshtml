@@ -9,6 +9,16 @@
     <li class="breadcrumb-item active">VPNs</li>
 </ol>
 
+@if (@ViewData["ValidationSuccessMessage"] != null)
+{
+    <div class="alert alert-success">@Html.Raw(ViewData["ValidationSuccessMessage"])</div>
+}
+
+@if (@ViewData["ValidationErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@Html.Raw(ViewData["ValidationErrorMessage"])</div>
+}
+
 <h2>VPNs</h2>
 
 <p>

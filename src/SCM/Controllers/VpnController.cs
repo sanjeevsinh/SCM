@@ -32,6 +32,17 @@ namespace SCM.Controllers
         public async Task<IActionResult> GetAll()
         {
             var vpns = await VpnService.GetAllAsync();
+
+            var checkSyncResult = VpnService.ShallowCheckNetworkSync(vpns);
+            if (checkSyncResult.IsSuccess)
+            {
+                ViewData["ValidationSuccessMessage"] = "All VPNs appear to be synchronised with the network.";
+            }
+            else
+            {
+                ViewData["ValidationErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+            }
+
             return View(Mapper.Map<List<VpnViewModel>>(vpns));
         }
 
@@ -282,14 +293,15 @@ namespace SCM.Controllers
                 var inSync = true;
                 if (!syncResult.IsSuccess)
                 {
+                    ViewData["ErrorMessage"] = string.Empty;
                     foreach (var r in syncResult.NetworkSyncServiceResults)
                     {
-                        if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                        if (r.StatusCode != NetworkSyncStatusCode.NotFound)
                         {
                             // Something went wrong, so flag for exit
 
                             inSync = false;
-                            ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                            ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
                         }
                     }
                 }

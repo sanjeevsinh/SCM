@@ -227,14 +227,15 @@ namespace SCM.Controllers
                     var inSync = true;
                     if (!syncResult.IsSuccess)
                     {
+                        ViewData["ErrorMessage"] = string.Empty;
                         foreach (var r in syncResult.NetworkSyncServiceResults)
                         {
-                            if (r.HttpStatusCode != HttpStatusCode.NotFound)
+                            if (r.StatusCode != NetworkSyncStatusCode.NotFound)
                             {
                                 // Something went wrong, so flag for exit
 
                                 inSync = false;
-                                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                                ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
                             }
                         }
                     }
@@ -289,15 +290,8 @@ namespace SCM.Controllers
             }
             else
             {
-                if (!checkSyncResult.IsSuccess)
-                {
-                    ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                }
-                else
-                {
-                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
-                }
-
+                ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
+                ViewData["ErrorMessage"] += checkSyncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 

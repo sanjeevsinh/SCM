@@ -92,10 +92,24 @@ namespace SCM.Services.SCMServices
         {
             var result = await UnitOfWork.AttachmentRepository
                 .GetAsync(q => q.Vrf.AttachmentSetVrfs
-                .Where(r => r.AttachmentSet.VpnAttachmentSets
+                .SelectMany(r => r.AttachmentSet.VpnAttachmentSets)
                 .Where(s => s.VpnID == vpnID)
-                .Count() > 0)
-                .Count() > 0);
+                .Count() > 0,
+                includeProperties: "Tenant,"
+                + "Device.Location.SubRegion.Region,"
+                + "Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "AttachmentBandwidth,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Interfaces.Device,"
+                + "Interfaces.Ports.Device,"
+                + "Interfaces.Ports.PortBandwidth,"
+                + "Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Vifs.Vrf.BgpPeers,"
+                + "Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Vifs.ContractBandwidthPool.ContractBandwidth",
+                AsTrackable: false);
 
             return result.ToList();
         }

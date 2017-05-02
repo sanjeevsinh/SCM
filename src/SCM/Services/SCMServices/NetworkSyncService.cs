@@ -29,11 +29,9 @@ namespace SCM.Services.SCMServices
 
         public async Task<NetworkSyncServiceResult> SyncNetworkAsync(Object item, string resource, HttpMethod method)
         {
-            var syncResult = new NetworkSyncServiceResult();
-            syncResult.IsSuccess = true;
-
+            var syncResult = new NetworkSyncServiceResult { IsSuccess = true };
+ 
             var xmlStr = ObjectToXmlString(item);
-
             var request = new HttpRequestMessage()
             {
                 RequestUri = new Uri(NetworkBaseUri + resource),
@@ -43,9 +41,14 @@ namespace SCM.Services.SCMServices
 
             var networkResponse = await GetNetworkHttpResponse(request);
 
+            // Return item to sender for any further processing
+
+            syncResult.Item = item;
+
             if (!networkResponse.IsSuccess)
             {
                 syncResult.IsSuccess = false;
+                syncResult.StatusCode = networkResponse.StatusCode;
                 syncResult.Messages.AddRange(networkResponse.Messages);
             }
 
@@ -55,7 +58,6 @@ namespace SCM.Services.SCMServices
         public async Task<NetworkSyncServiceResult> CheckNetworkSyncAsync(Object item, string resource)
         {
             var checkSyncResult = new NetworkSyncServiceResult();
-
             var request = new HttpRequestMessage()
             {
                 RequestUri = new Uri(NetworkBaseUri + resource + "?deep"),
@@ -63,6 +65,10 @@ namespace SCM.Services.SCMServices
             };
 
             checkSyncResult =  await GetNetworkHttpResponse(request);
+
+            // Return item to sender for any further processing
+
+            checkSyncResult.Item = item;
 
             if (!checkSyncResult.IsSuccess)
             {
@@ -74,6 +80,9 @@ namespace SCM.Services.SCMServices
             // in order to check equality using deep-equals.
 
             var objectItem = XmlStringToObject(checkSyncResult.Content, item.GetType());
+
+            // Perform comparison
+
             var xmlTree = XElement.Parse(ObjectToXmlString(objectItem));
             var sortedXmlTree = Sort(xmlTree);
             var xmlTreeToCompare = XElement.Parse(ObjectToXmlString(item));
@@ -130,22 +139,26 @@ namespace SCM.Services.SCMServices
             {
                 var client = new HttpClient();
 
-                // Authorisation header here is statically set. Do NOT do this in production! Authentication 
-                // settings must be read from a secure location.
+                // Authorisation header here is statically set. Do NOT do this in production!
+                // Code published to repositories such as GIT will allow the auth settings to be visible. 
+                // Authentication settings must be sourced from a secure location.
 
                 client.DefaultRequestHeaders.Add("Authorization", "Basic YWRtaW46YWRtaW4=");
 
                 var httpResponse = await client.SendAsync(httpRequest);
-
-                result.HttpStatusCode = httpResponse.StatusCode;
                 result.Content = await httpResponse.Content.ReadAsStringAsync();
 
-                if (!httpResponse.IsSuccessStatusCode)
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    result.StatusCode = NetworkSyncStatusCode.Success;
+                }
+                else 
                 {
                     result.Messages.Add("The network request failed.");
 
                     if (httpResponse.StatusCode == HttpStatusCode.NotFound)
                     {
+                        result.StatusCode = NetworkSyncStatusCode.NotFound;
                         result.Messages.Add("The resource was not found.");
                     }
 
@@ -154,8 +167,9 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            catch (HttpRequestException /* ex */)
+            catch (HttpRequestException  /** ex **/ )
             {
+                result.StatusCode = NetworkSyncStatusCode.RequestFailed;
                 result.Messages.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details. ");
                 result.IsSuccess = false;
             }

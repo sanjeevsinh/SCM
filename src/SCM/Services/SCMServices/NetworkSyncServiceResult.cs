@@ -9,6 +9,12 @@ using System.Net;
 
 namespace SCM.Services.SCMServices
 {
+    public enum NetworkSyncStatusCode
+    {
+        NotFound = 404,
+        RequestFailed = 1000,
+        Success = 1001
+    }
     public class NetworkSyncServiceResult
     {
         public NetworkSyncServiceResult()
@@ -26,6 +32,8 @@ namespace SCM.Services.SCMServices
             return $"<ul>{message}</ul>";
         }
         public string Content { get; set; }
-        public HttpStatusCode HttpStatusCode { get; set; }
+        public object Item { get; set; }
+        public NetworkSyncStatusCode StatusCode { get; set; }
+     
     }
 }

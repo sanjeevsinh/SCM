@@ -62,95 +62,48 @@ namespace SCM.Services.SCMServices
         {
             var result = new ServiceResult { IsSuccess = true };
        
-            // Delete from the network first
-
-            var syncResult = await DeleteFromNetworkAsync(device.ID);
-
-            // Delete from network may return IsSuccess false if the resource was not found - this should be ignored
-
-            if (!syncResult.IsSuccess)
-            {
-                foreach (var r in syncResult.NetworkSyncServiceResults)
-                {
-                    if (r.HttpStatusCode != HttpStatusCode.NotFound)
-                    {
-                        result.IsSuccess = false;
-
-                        return result;
-                    }
-                }
-            }
-
-            // Now update the inventory
-
             this.UnitOfWork.DeviceRepository.Delete(device);
             await this.UnitOfWork.SaveAsync();
 
             return result;
         }
 
-        public async Task<ServiceResult> CheckNetworkSyncAsync(int deviceID)
+        public async Task<ServiceResult> CheckNetworkSyncAsync(Device device)
         {
             var result = new ServiceResult();
-            var device = await GetByIDAsync(deviceID);
+            var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
+            var syncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
 
-            if (device == null)
-            {
-                result.Add("The device was not found.");
-            }
-            else
-            {
-                var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
-                var syncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
-
-                result.AddRange(syncResult.Messages);
-                result.IsSuccess = syncResult.IsSuccess;
-            }
-
+            result.AddRange(syncResult.Messages);
+            result.IsSuccess = syncResult.IsSuccess;
+                    
             await UpdateDeviceRequiresSyncAsync(device, !result.IsSuccess);
 
             return result;
         }
 
-        public async Task<ServiceResult> SyncToNetworkAsync(int deviceID)
+        public async Task<ServiceResult> SyncToNetworkAsync(Device device)
         {
             var result = new ServiceResult();
-            var device = await GetByIDAsync(deviceID);
+            var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
+            var syncResult = await NetSync.SyncNetworkAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
 
-            if (device == null)
-            {
-                result.Add("The device was not found.");
-            }
-            else
-            {
-                var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
-                var syncResult = await NetSync.SyncNetworkAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
-
-                result.AddRange(syncResult.Messages);
-                result.IsSuccess = syncResult.IsSuccess;
-            }
-
+            result.AddRange(syncResult.Messages);
+            result.IsSuccess = syncResult.IsSuccess;
+        
             await UpdateDeviceRequiresSyncAsync(device, !result.IsSuccess);
 
             return result;
         }
 
-        public async Task<ServiceResult> DeleteFromNetworkAsync(int deviceID)
+        public async Task<ServiceResult> DeleteFromNetworkAsync(Device device)
         {
             var result = new ServiceResult();
-            var device = await GetByIDAsync(deviceID);
 
-            if (device == null)
-            {
-                result.Add("The Device was not found.");
-            }
-            else
-            {
-                var syncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" + device.Name);
+            var syncResult = await NetSync.DeleteFromNetworkAsync("/attachment/pe/" + device.Name);
 
-                result.AddRange(syncResult.Messages);
-                result.IsSuccess = syncResult.IsSuccess;
-            }
+            result.AddRange(syncResult.Messages);
+            result.IsSuccess = syncResult.IsSuccess;
 
             await UpdateDeviceRequiresSyncAsync(device, true);
 

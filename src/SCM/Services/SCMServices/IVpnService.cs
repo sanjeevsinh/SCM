@@ -20,9 +20,11 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> DeleteAsync(Vpn vpn);
         Task<ServiceResult> ValidateNewAsync(Vpn vpn);
         Task<ServiceResult> ValidateChangesAsync(Vpn vpn, Vpn currentVpn);
+        ServiceResult ShallowCheckNetworkSync(IEnumerable<Vpn> vpns);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns);
         Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn);
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn);
-        Task<ServiceResult> SyncToNetworkAsync(IEnumerable<Vpn> vpns);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns);
         Task<ServiceResult> DeleteFromNetworkAsync(Vpn vpn);
         Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
         Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);

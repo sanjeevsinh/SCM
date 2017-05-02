@@ -9,14 +9,9 @@ namespace SCM.Services.SCMServices
 {
     public class BgpPeerService : BaseService, IBgpPeerService
     {
-        public BgpPeerService(IUnitOfWork unitOfWork, IAttachmentService attachmentService, IVifService vifService) : base(unitOfWork)
+        public BgpPeerService(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
-            AttachmentService = attachmentService;
-            VifService = vifService;
         }
-
-        private IAttachmentService AttachmentService { get; set; }
-        private IVifService VifService { get; set; }
 
         public async Task<IEnumerable<BgpPeer>> GetAllAsync()
         {
