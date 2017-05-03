@@ -36,8 +36,6 @@ namespace SCM.Services.SCMServices
         public async Task<int> AddAsync(VpnTenantCommunity vpnTenantCommunity)
         {
             UnitOfWork.VpnTenantCommunityRepository.Insert(vpnTenantCommunity);
-            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
-            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
 
             return await this.UnitOfWork.SaveAsync();
         }
@@ -45,8 +43,6 @@ namespace SCM.Services.SCMServices
         public async Task<int> UpdateAsync(VpnTenantCommunity vpnTenantCommunity)
         {
             this.UnitOfWork.VpnTenantCommunityRepository.Update(vpnTenantCommunity);
-            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
-            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
 
             return await this.UnitOfWork.SaveAsync();
         }
@@ -54,8 +50,6 @@ namespace SCM.Services.SCMServices
         public async Task<int> DeleteAsync(VpnTenantCommunity vpnTenantCommunity)
         {
             this.UnitOfWork.VpnTenantCommunityRepository.Delete(vpnTenantCommunity);
-            var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(vpnTenantCommunity.VpnAttachmentSetID);
-            await VpnService.UpdateVpnRequiresSyncAsync(vpnAttachmentSet.VpnID, true, false);
 
             return await this.UnitOfWork.SaveAsync();
         }

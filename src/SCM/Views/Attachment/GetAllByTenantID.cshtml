@@ -7,8 +7,18 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item active">Attachments</li>
+    <li class="breadcrumb-item active">Attachments - [@ViewBag.Tenant.Name]</li>
 </ol>
+
+@if (@ViewData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
+}
+
+@if (@ViewData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
+}
 
 <h2>Attachments for Tenant '@ViewBag.Tenant.Name'</h2>
 
@@ -24,6 +34,12 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.Device)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Location)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.IsBundle)
             </th>
             <th>
@@ -34,12 +50,6 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsLayer3)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Device)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Vrf)
@@ -65,6 +75,12 @@
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.Device.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Location.SiteName)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.IsBundle)
                 </td>
                 <td>
@@ -75,12 +91,6 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.IsLayer3)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Location.SiteName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Device.Name)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Vrf.Name)
@@ -118,6 +128,32 @@
         }
     </tbody>
 </table>
-<div>
+<form asp-action="Sync">
+    <input type="hidden" name="id" value="@ViewBag.Tenant.TenantID" />
+    <input type="submit" id="CheckSync" asp-action="CheckSyncAllByTenantID" value="Check Sync All" class="btn btn-default" /> |
+    <input type="submit" id="Sync" asp-action="SyncAllByTenantID" value="Sync All" class="btn btn-default" /> |
     <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
-</div>
+</form>
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            var $sync = $('#Sync');
+            var $checkSync = $('#CheckSync');
+
+            $sync.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+            $checkSync.on('click', function (e) {
+
+                SCM.Utilities.showSpinner($('body')[0]);
+            });
+
+        }(jQuery));
+
+    </script>
+}

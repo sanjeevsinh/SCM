@@ -7,9 +7,9 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
-    <li class="breadcrumb-item"><a href="/AttachmentSetVrf/GetAllByAttachmentSetID/@ViewBag.AttachmentSet.AttachmentSetID">Attachment Set VRFs</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets - [@ViewBag.AttachmentSet.Tenant.Name]</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentSetVrf/GetAllByAttachmentSetID/@ViewBag.AttachmentSet.AttachmentSetID">Attachment Set VRFs - [@ViewBag.AttachmentSet.Name]</a></li>
+    <li class="breadcrumb-item active">Edit - [@Model.Vrf.Name]</li>
 </ol>
 
 <h2>Edit Attachment Set VRF '@Model.Vrf.Name'</h2>

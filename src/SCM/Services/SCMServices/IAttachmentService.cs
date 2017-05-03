@@ -14,11 +14,15 @@ namespace SCM.Services.SCMServices
         IUnitOfWork UnitOfWork { get; }
         Task<Attachment> GetByIDAsync(int id);
         Task<Attachment> GetByVrfIDAsync(int vrfID);
-        Task<List<Attachment>> GetAllByVpnIDAsync(int vpnID);
-        Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant);
+        Task<IEnumerable<Attachment>> GetAllByVpnIDAsync(int vpnID);
+        Task<IEnumerable<Attachment>> GetAllByTenantIDAsync(int tenantID);
+        Task<IEnumerable<Attachment>> GetAllByTenantAsync(Tenant tenant);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
+        ServiceResult ShallowCheckNetworkSync(IEnumerable<Attachment> attachments);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments);
         Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments);
         Task<ServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<ServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);

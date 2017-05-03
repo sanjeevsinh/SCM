@@ -108,6 +108,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            await PopulateTenantItem(id.Value);
             return View(Mapper.Map<TenantNetworkViewModel>(tenantNetwork));
         }
 
@@ -213,6 +214,7 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
+            await PopulateTenantItem(id.Value);
             return View(Mapper.Map<TenantNetworkViewModel>(tenantNetwork));
         }
 

@@ -55,13 +55,41 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<Attachment> GetByVrfIDAsync(int vrfID)
         {
-            var dbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "Attachments");
-            var vrf = dbResult.Single();
+            var dbResult = await UnitOfWork.AttachmentRepository.GetAsync(q => q.VrfID == vrfID, 
+                includeProperties: "Tenant,"
+                + "Device.Location.SubRegion.Region,"
+                + "Device.Plane,"
+                + "Vrf.BgpPeers,"
+                + "Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "AttachmentBandwidth,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Interfaces.Device,"
+                + "Interfaces.Ports.Device,"
+                + "Interfaces.Ports.PortBandwidth,"
+                + "Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Vifs.Vrf.BgpPeers,"
+                + "Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable:false);
 
-            return vrf.Attachments.SingleOrDefault();
+            return dbResult.SingleOrDefault();
         }
 
-        public async Task<List<Attachment>> GetAllByTenantAsync(Tenant tenant)
+        public async Task<IEnumerable<Attachment>> GetAllByTenantIDAsync(int tenantID)
+        {
+            var dbresult = await UnitOfWork.TenantRepository.GetAsync(q => q.TenantID == tenantID, AsTrackable:false);
+            var tenant = dbresult.SingleOrDefault();
+
+            if (tenant != null)
+            {
+                return await GetAllByTenantAsync(tenant);
+            }
+            else
+            {
+                return Enumerable.Empty<Attachment>();
+            }
+        }
+
+        public async Task<IEnumerable<Attachment>> GetAllByTenantAsync(Tenant tenant)
         {
             var attachments = await UnitOfWork.AttachmentRepository.GetAsync(q => q.TenantID == tenant.TenantID,
                 includeProperties: "Tenant,"
@@ -88,7 +116,7 @@ namespace SCM.Services.SCMServices
         /// </summary>
         /// <param name="attachmentID"></param>
         /// <returns></returns>
-        public async Task<List<Attachment>> GetAllByVpnIDAsync(int vpnID)
+        public async Task<IEnumerable<Attachment>> GetAllByVpnIDAsync(int vpnID)
         {
             var result = await UnitOfWork.AttachmentRepository
                 .GetAsync(q => q.Vrf.AttachmentSetVrfs
@@ -170,9 +198,35 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Perform shallow check of network sync state of a collection
+        /// of attachments by checking the 'RequiresSync' property.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        public ServiceResult ShallowCheckNetworkSync(IEnumerable<Attachment> attachments)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var attachmentsRequireSync = attachments.Where(q => q.RequiresSync);
+            if (attachmentsRequireSync.Count() > 0)
+            {
+                result.IsSuccess = false;
+                result.Add("The following Attachments require synchronisation with the network:");
+                attachmentsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+            }
+
+            return result;
+        }
+
         public async Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = attachment
+            };
+
             NetworkSyncServiceResult syncResult;
 
             if (attachment.IsTagged)
@@ -221,27 +275,89 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
+            result.NetworkSyncServiceResults.Add(syncResult);
 
-            await UpdateRequiresSyncAsync(attachment, !result.IsSuccess, true);
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed and the VPN was tested for sync with the network
+
+                    result.Add($"Attachment '{attachment.Name}' is not synchronised with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error checking status for Attachment '{attachment.Name}'.");
+                }
+            }
 
             return result;
         }
 
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments)
+        {
+            var tasks = new List<Task<ServiceResult>>();
+
+            foreach (var attachment in attachments)
+            {
+                tasks.Add(CheckNetworkSyncAsync(attachment));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return tasks.Select(q => q.Result).ToList();
+        }
+
         public async Task<ServiceResult> SyncToNetworkAsync(Attachment attachment)
         {
-            var result = new ServiceResult();
-            var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(attachment);
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = attachment
+            };
 
+            var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(attachment);
             var syncResult = await NetSync.SyncNetworkAsync(serviceModelData, $"/attachment/pe/{attachment.Device.Name}", new HttpMethod("PATCH"));
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
+            result.NetworkSyncServiceResults.Add(syncResult);
 
-            await UpdateRequiresSyncAsync(attachment, !result.IsSuccess, true);
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed but synchronisation failed
+
+                    result.Add($"Failed to synchronise Attachmnet '{attachment.Name}' with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error synchronising Attachment '{attachment.Name}' with the network.");
+                }
+            }
 
             return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments)
+        {
+            var tasks = new List<Task<ServiceResult>>();
+
+            foreach (var attachment in attachments)
+            {
+                tasks.Add(SyncToNetworkAsync(attachment));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return tasks.Select(q => q.Result).ToList();
         }
 
         /// <summary>
@@ -337,8 +453,6 @@ namespace SCM.Services.SCMServices
                     result.IsSuccess = false;
                 }
             }
-
-            await UpdateRequiresSyncAsync(attachment, true, true);
 
             return result;
         }

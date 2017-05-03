@@ -7,8 +7,8 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets</a></li>
-    <li class="breadcrumb-item active">VPNs</li>
+    <li class="breadcrumb-item"><a href="/AttachmentSet/GetAllByTenantID/@ViewBag.AttachmentSet.TenantID">Attachment Sets - [@ViewBag.AttachmentSet.Tenant.Name]</a></li>
+    <li class="breadcrumb-item active">VPNs - [@ViewBag.AttachmentSet.Name]</li>
 </ol>
 
 @if (@ViewData["SuccessMessage"] != null)

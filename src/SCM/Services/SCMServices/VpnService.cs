@@ -289,7 +289,6 @@ namespace SCM.Services.SCMServices
             var syncResult = await NetSync.CheckNetworkSyncAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
 
             result.NetworkSyncServiceResults.Add(syncResult);
-            var item = (IpVpnServiceNetModel)syncResult.Item;
 
             if (!syncResult.IsSuccess)
             {
@@ -299,14 +298,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed and the VPN was tested for sync with the network
 
-                    result.Add($"VPN '{item.Name}' is not synchronised with the network.");
+                    result.Add($"VPN '{vpn.Name}' is not synchronised with the network.");
                 }
                 else
                 {
-                    // Request failed to execute for some reason
+                    // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error checking status for VPN '{item.Name}'.");
-                    result.AddRange(syncResult.Messages);
+                    result.Add($"There was an error checking status for VPN '{vpn.Name}'.");
                 }
             }
 
@@ -337,8 +335,8 @@ namespace SCM.Services.SCMServices
 
             var vpnServiceModelData = Mapper.Map<IpVpnServiceNetModel>(vpn);
             var syncResult = await NetSync.SyncNetworkAsync(vpnServiceModelData, "/ip-vpn/vpn/" + vpn.Name);
+
             result.NetworkSyncServiceResults.Add(syncResult);
-            var item = (IpVpnServiceNetModel)syncResult.Item;
 
             if (!syncResult.IsSuccess)
             {
@@ -348,14 +346,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed but synchronisation failed
 
-                    result.Add($"Failed to synchronise VPN '{item.Name}' with the network.");
+                    result.Add($"Failed to synchronise VPN '{vpn.Name}' with the network.");
                 }
                 else
                 {
-                    // Request failed to execute for some reason
+                    // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error synchronising VPN '{item.Name}' with the network.");
-                    result.AddRange(syncResult.Messages);
+                    result.Add($"There was an error synchronising VPN '{vpn.Name}' with the network.");
                 }
             }
 
@@ -369,8 +366,6 @@ namespace SCM.Services.SCMServices
             var syncResult = await NetSync.DeleteFromNetworkAsync("/ip-vpn/vpn/" + vpn.Name);
             result.NetworkSyncServiceResults.Add(syncResult);
             result.IsSuccess = syncResult.IsSuccess;
-
-            await UpdateVpnRequiresSyncAsync(vpn, true);
 
             return result;
         }

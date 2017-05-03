@@ -39,21 +39,18 @@ namespace SCM.Services.SCMServices
         public async Task<int> AddAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Insert(attachmentSetVpn);
-            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> UpdateAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Update(attachmentSetVpn);
-            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 
         public async Task<int> DeleteAsync(VpnAttachmentSet attachmentSetVpn)
         {
             this.UnitOfWork.VpnAttachmentSetRepository.Delete(attachmentSetVpn);
-            await VpnService.UpdateVpnRequiresSyncAsync(attachmentSetVpn.VpnID, true, false);
             return await this.UnitOfWork.SaveAsync();
         }
 

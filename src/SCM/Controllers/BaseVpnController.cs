@@ -108,10 +108,12 @@ namespace SCM.Controllers
                 if (syncResult.IsSuccess)
                 {
                     ViewData["SuccessMessage"] = "The network is synchronised.";
+                    item.RequiresSync = false;
                 }
                 else
                 {
                     ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                    item.RequiresSync = true;
                 }
 
                 await VpnService.UpdateVpnRequiresSyncAsync(item, !syncResult.IsSuccess, true);
@@ -179,6 +181,8 @@ namespace SCM.Controllers
                 ViewData["VpnDeletedMessage"] = "The VPN has been deleted by another user. Return to the list.";
                 return View("VpnDeleted");
             }
+
+            await VpnService.UpdateVpnRequiresSyncAsync(item, true, false);
 
             var syncResult = await VpnService.DeleteFromNetworkAsync(item);
             if (syncResult.IsSuccess)

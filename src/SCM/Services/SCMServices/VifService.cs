@@ -62,10 +62,27 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<Vif> GetByVrfIDAsync(int vrfID)
         {
-            var dbResult = await UnitOfWork.VrfRepository.GetAsync(q => q.VrfID == vrfID, includeProperties: "Vifs");
-            var vrf = dbResult.Single();
+            var dbResult = await UnitOfWork.VifRepository.GetAsync(q => q.VrfID == vrfID, 
+                includeProperties: "Attachment.Tenant,"
+                + "Attachment.Device.Location.SubRegion.Region,"
+                + "Attachment.Device.Plane,"
+                + "Attachment.Vrf.BgpPeers,"
+                + "Attachment.Vrf.AttachmentSetVrfs.AttachmentSet,"
+                + "Attachment.AttachmentBandwidth,"
+                + "Attachment.ContractBandwidthPool.ContractBandwidth,"
+                + "Attachment.Interfaces.Device,"
+                + "Attachment.Interfaces.Ports.Device,"
+                + "Attachment.Interfaces.Ports.PortBandwidth,"
+                + "Attachment.Interfaces.Ports.Interface.Vlans.Vif,"
+                + "Attachment.Vifs.Vrf.BgpPeers,"
+                + "Attachment.Vifs.Vlans.Vif.ContractBandwidthPool,"
+                + "Attachment.Vifs.ContractBandwidthPool.ContractBandwidth,"
+                + "Vrf.BgpPeers,"
+                + "Vlans,"
+                + "ContractBandwidthPool.ContractBandwidth,"
+                + "Tenant", AsTrackable: false);
 
-            return vrf.Vifs.SingleOrDefault();
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<List<Vif>> GetAllByAttachmentIDAsync(int id)

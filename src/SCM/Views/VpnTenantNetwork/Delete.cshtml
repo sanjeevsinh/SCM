@@ -7,9 +7,9 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Vpn/GetAll">VPNs</a></li>
-    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@Model.VpnAttachmentSet.Vpn.VpnID">VPN Attachment Sets</a></li>
-    <li class="breadcrumb-item"><a href="/VpnTenantNetwork/GetAllByVpnAttachmentSetID/@Model.VpnAttachmentSet.VpnAttachmentSetID">VPN Tenant Networks</a></li>
-    <li class="breadcrumb-item active">Delete</li>
+    <li class="breadcrumb-item"><a href="/VpnAttachmentSet/GetAllByVpnID/@Model.VpnAttachmentSet.Vpn.VpnID">VPN Attachment Sets - [@Model.VpnAttachmentSet.Vpn.Name]</a></li>
+    <li class="breadcrumb-item"><a href="/VpnTenantNetwork/GetAllByVpnAttachmentSetID/@Model.VpnAttachmentSet.VpnAttachmentSetID">VPN Tenant Networks - [@Model.VpnAttachmentSet.AttachmentSet.Tenant.Name]</a></li>
+    <li class="breadcrumb-item active">Delete - [@Model.TenantNetwork.IpPrefix/@Model.TenantNetwork.Length]</li>
 </ol>
 
 <h2>Remove</h2>

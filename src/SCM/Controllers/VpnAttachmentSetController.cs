@@ -132,6 +132,7 @@ namespace SCM.Controllers
 
                     if (validationOk)
                     {
+                        await VpnService.UpdateVpnRequiresSyncAsync(mappedAttachmentSet.VpnID, true, false);
                         await VpnAttachmentSetService.AddAsync(mappedAttachmentSet);
 
                         return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
@@ -161,9 +162,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == id.Value, 
-                includeProperties:"AttachmentSet");
-            var vpnAttachmentSet = dbResult.SingleOrDefault();
+            var vpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(id.Value);
 
             if (vpnAttachmentSet == null)
             {
@@ -195,16 +194,14 @@ namespace SCM.Controllers
         {  
             try
             {
-                var dbResult = await VpnAttachmentSetService.UnitOfWork.VpnAttachmentSetRepository.GetAsync(q => q.VpnAttachmentSetID == vpnAttachmentSet.VpnAttachmentSetID, 
-                    AsTrackable:false);
-                var currentAttachmentSetVpn = dbResult.SingleOrDefault();
+                var currentVpnAttachmentSet = await VpnAttachmentSetService.GetByIDAsync(vpnAttachmentSet.VpnAttachmentSetID);
 
-                if (currentAttachmentSetVpn != null)
+                if (currentVpnAttachmentSet != null)
                 {
-                    await VpnAttachmentSetService.DeleteAsync(Mapper.Map<VpnAttachmentSet>(vpnAttachmentSet));
+                    await VpnService.UpdateVpnRequiresSyncAsync(currentVpnAttachmentSet.VpnID, true, false);
+                    await VpnAttachmentSetService.DeleteAsync(currentVpnAttachmentSet);
                 }
 
-                
                 return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
             }
 
@@ -224,7 +221,8 @@ namespace SCM.Controllers
             var layer3 = vpn.VpnTopologyType.VpnProtocolType.ProtocolType == "IP" ? true : false;
 
             var attachmentSets = await VpnAttachmentSetService.UnitOfWork.AttachmentSetRepository.GetAsync(q => 
-                        q.TenantID == vpnAttachmentSetRequest.TenantID && q.IsLayer3 == layer3);
+                        q.TenantID == vpnAttachmentSetRequest.TenantID 
+                        && q.IsLayer3 == layer3);
 
             if (vpn.RegionID != null)
             {

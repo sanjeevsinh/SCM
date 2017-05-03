@@ -7,9 +7,9 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments</a></li>
-    <li class="breadcrumb-item"><a href="/AttachmentBgpPeer/GetAllByVrfID/@ViewBag.Attachment.VrfID">BGP Peers</a></li>
-    <li class="breadcrumb-item active">Delete</li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Attachment.TenantID">Attachments - [@ViewBag.Attachment.Tenant.Name]</a></li>
+    <li class="breadcrumb-item"><a href="/AttachmentBgpPeer/GetAllByVrfID/@ViewBag.Attachment.VrfID">BGP Peers - [@ViewBag.Attachment.Vrf.Name]</a></li>
+    <li class="breadcrumb-item active">Delete - [@Model.IpAddress]</li>
 </ol>
 
 <h2>Delete</h2>
