@@ -20,11 +20,11 @@ namespace SCM.Services.SCMServices
 
         public async Task<AttachmentSet> GetByIDAsync(int id)
         {
-            var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id, 
+            var dbResult = await UnitOfWork.AttachmentSetRepository.GetAsync(q => q.AttachmentSetID == id,
                 includeProperties: "Tenant,"
                 + "SubRegion,"
                 + "Region,"
-                + "AttachmentRedundancy");
+                + "AttachmentRedundancy", AsTrackable: false);
 
             return dbResult.SingleOrDefault();
         }
@@ -36,7 +36,7 @@ namespace SCM.Services.SCMServices
                 .Count() > 0, includeProperties: "Tenant,"
                 + "SubRegion,"
                 + "Region,"
-                + "AttachmentRedundancy");
+                + "AttachmentRedundancy", AsTrackable: false);
         }
 
         public async Task<int> AddAsync(AttachmentSet attachmentSet)

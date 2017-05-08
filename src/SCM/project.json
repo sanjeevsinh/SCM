@@ -45,7 +45,9 @@
     "Microsoft.Extensions.DependencyModel": "1.1.0",
     "Microsoft.DotNet.InternalAbstractions": "1.0.500-preview2-1-003177",
     "System.Xml.XmlSerializer": "4.0.11",
-    "System.Xml.XmlDocument": "4.0.1"
+    "System.Xml.XmlDocument": "4.0.1",
+    "Microsoft.AspNetCore.SignalR.Server": "0.2.0-*",
+    "Microsoft.AspNetCore.WebSockets": "0.2.0-*"
   },
 
   "tools": {

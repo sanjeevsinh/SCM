@@ -48,7 +48,7 @@ namespace SCM.Controllers
             var checkSyncResult = AttachmentService.ShallowCheckNetworkSync(attachments);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "All Attachments appear to be synchronised with the network.";
+                ViewData["SuccessMessage"] = "All attachments appear to be synchronised with the network.";
             }
             else
             {
@@ -117,7 +117,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantItem(id.Value);
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Tenant = Mapper.Map<TenantViewModel>(tenant);
+
             await PopulatePlanesDropDownList();
             await PopulateRegionsDropDownList();
             await PopulateBandwidthsDropDownList();
@@ -159,13 +167,16 @@ namespace SCM.Controllers
                 }
             }
 
-            await PopulateTenantItem(request.TenantID);
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(request.TenantID);
+            ViewBag.Tenant = tenant;
+
             await PopulatePlanesDropDownList();
             await PopulateRegionsDropDownList(request.RegionID);
             await PopulateSubRegionsDropDownList(request.RegionID, request.SubRegionID);
             await PopulateLocationsDropDownList(request.SubRegionID, request.LocationID);
             await PopulateBandwidthsDropDownList();
             await PopulateContractBandwidthsDropDownList();
+
             return View(request);
         }
 
@@ -208,7 +219,9 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulateTenantItem(item.TenantID);
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+            ViewBag.Tenant = tenant;
+
             return View(Mapper.Map<AttachmentViewModel>(item));
         }
 
@@ -236,22 +249,18 @@ namespace SCM.Controllers
                     // never syncd to the network
 
                     var inSync = true;
+                    ViewData["ErrorMessage"] = String.Empty;
+
                     if (!syncResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = string.Empty;
-                        foreach (var r in syncResult.NetworkSyncServiceResults)
-                        {
-                            if (r.StatusCode != NetworkSyncStatusCode.NotFound)
-                            {
-                                // Something went wrong, so flag for exit
-
-                                inSync = false;
-                                ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
-                            }
-                        }
+                        syncResult.NetworkSyncServiceResults.ForEach(f => inSync = f.StatusCode != NetworkSyncStatusCode.NotFound ? false : inSync);
                     }
 
-                    if (inSync)
+                    if (!inSync)
+                    {
+                        ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                    }
+                    else
                     {
                         var result = await AttachmentService.DeleteAsync(item);
                         if (!result.IsSuccess)
@@ -265,7 +274,8 @@ namespace SCM.Controllers
                     }
                 }
 
-                await PopulateTenantItem(item.TenantID);
+                var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(item.TenantID);
+                ViewBag.Tenant = tenant;
 
                 return View(Mapper.Map<AttachmentViewModel>(item));
             }
@@ -295,14 +305,14 @@ namespace SCM.Controllers
             var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(item);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The Attachment is synchronised with the network.";
+                ViewData["SuccessMessage"] = "The attachment is synchronised with the network.";
                 item.RequiresSync = false;
             }
             else
             {
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    ViewData["ErrorMessage"] = "The Attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
                 }
 
                 ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
@@ -322,25 +332,35 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
             var attachments = await AttachmentService.GetAllByTenantIDAsync(id.Value);
 
-            var checkSyncResults = await AttachmentService.CheckNetworkSyncAsync(attachments);
-            if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+            if (attachments.Count() > 0)
             {
-                ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
-            }
-            else
-            {
-                checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                var checkSyncResults = await AttachmentService.CheckNetworkSyncAsync(attachments);
+
+                if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+                {
+                    ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
+                }
+                else
+                {
+                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                }
+
+                foreach (var r in checkSyncResults)
+                {
+                    var item = (Attachment)r.Item;
+                    await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                }
             }
 
-            foreach (var r in checkSyncResults)
-            {
-                var item = (Attachment)r.Item;
-                await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
-            }
-
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = tenant; 
 
             return View("GetAllByTenantID", Mapper.Map<List<AttachmentViewModel>>(attachments));
         }
@@ -385,25 +405,35 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var attachments = await AttachmentService.GetAllByTenantIDAsync(id.Value);  
-            var checkSyncResults = await AttachmentService.SyncToNetworkAsync(attachments);
-
-            if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+            if (tenant == null)
             {
-                ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
-            }
-            else
-            {
-                checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                return NotFound();
             }
 
-            foreach (var r in checkSyncResults)
+            var attachments = await AttachmentService.GetAllByTenantIDAsync(id.Value);
+
+            if (attachments.Count() > 0)
             {
-                var item = (Attachment)r.Item;
-                await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                var checkSyncResults = await AttachmentService.SyncToNetworkAsync(attachments);
+
+                if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+                {
+                    ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
+                }
+                else
+                {
+                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                }
+
+                foreach (var r in checkSyncResults)
+                {
+                    var item = (Attachment)r.Item;
+                    await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                }
             }
 
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = tenant;
 
             return View("GetAllByTenantID", Mapper.Map<List<AttachmentViewModel>>(attachments));
         }
@@ -436,7 +466,9 @@ namespace SCM.Controllers
 
             await AttachmentService.UpdateRequiresSyncAsync(item, true, true);
 
-            await PopulateTenantItem(item.TenantID);
+            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(item.TenantID);
+            ViewBag.Tenant = tenant;
+
             item.RequiresSync = true;
 
             return View("Delete", Mapper.Map<AttachmentViewModel>(item));
@@ -484,12 +516,6 @@ namespace SCM.Controllers
             }
 
             return result;
-        }
-
-        private async Task PopulateTenantItem(int tenantID)
-        {
-            var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
-            ViewBag.Tenant = Mapper.Map<TenantViewModel>(tenant);
         }
 
         private async Task PopulateRegionsDropDownList(object selectedRegion = null)

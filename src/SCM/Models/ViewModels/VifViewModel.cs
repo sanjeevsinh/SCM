@@ -31,5 +31,11 @@ namespace SCM.Models.ViewModels
         public ContractBandwidthPoolViewModel ContractBandwidthPool { get; set; }
         [Display(Name = "VRF")]
         public VrfViewModel Vrf { get; set; }
+        [Display(Name = "Plane")]
+        public PlaneViewModel Plane { get; set; }
+        [Display(Name = "Location")]
+        public LocationViewModel Location { get; set; }
+        [Display(Name = "Device")]
+        public DeviceViewModel Device { get; set; }
     }
 }

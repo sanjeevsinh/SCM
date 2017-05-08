@@ -21,7 +21,7 @@ namespace SCM.Services.SCMServices
         {
             return await this.UnitOfWork.DeviceRepository.GetAsync(includeProperties: "Vrfs,"
                                + "Interfaces.Ports,"
-                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports.Interface.Vlans,"
                                + "Attachments.AttachmentBandwidth,"
                                + "Attachments.Vrf.BgpPeers,"
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
@@ -35,7 +35,7 @@ namespace SCM.Services.SCMServices
             var result = await this.UnitOfWork.DeviceRepository.GetAsync(d => d.ID == id,
                 includeProperties: "Vrfs,"
                                + "Interfaces.Ports,"
-                               + "Attachments.Interfaces.Ports,"
+                               + "Attachments.Interfaces.Ports.Interface.Vlans,"
                                + "Attachments.AttachmentBandwidth,"
                                + "Attachments.Vrf.BgpPeers,"
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
@@ -67,6 +67,28 @@ namespace SCM.Services.SCMServices
 
             return result;
         }
+
+        /// <summary>
+        /// Perform shallow check of network sync state of a collection
+        /// of devices by checking the 'RequiresSync' property.
+        /// </summary>
+        /// <param name="devices"></param>
+        /// <returns></returns>
+        public ServiceResult ShallowCheckNetworkSync(IEnumerable<Device> devices)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var devicesRequireSync = devices.Where(q => q.RequiresSync);
+            if (devicesRequireSync.Count() > 0)
+            {
+                result.IsSuccess = false;
+                result.Add("The following devices require synchronisation with the network:");
+                devicesRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+            }
+
+            return result;
+        }
+
 
         public async Task<ServiceResult> CheckNetworkSyncAsync(Device device)
         {

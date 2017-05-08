@@ -18,8 +18,11 @@ namespace SCM.Services.SCMServices
         Task<List<Vif>> GetAllByVpnIDAsync(int vpnID);
         Task<ServiceResult> AddAsync(VifRequest request);
         Task<ServiceResult> DeleteAsync(Vif vif);
+        ServiceResult ShallowCheckNetworkSync(IEnumerable<Vif> vifs);
         Task<ServiceResult> CheckNetworkSyncAsync(Vif vif);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs);
         Task<ServiceResult> SyncToNetworkAsync(Vif vif);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs);
         Task<ServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateNewAsync(VifRequest request);
         Task<ServiceResult> ValidateAsync(Vpn vpn);

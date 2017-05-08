@@ -161,9 +161,35 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Perform shallow check of network sync state of a collection
+        /// of vifs by checking the 'RequiresSync' property.
+        /// </summary>
+        /// <param name="vifs"></param>
+        /// <returns></returns>
+        public ServiceResult ShallowCheckNetworkSync(IEnumerable<Vif> vifs)
+        {
+            var result = new ServiceResult { IsSuccess = true };
+
+            var vifsRequireSync = vifs.Where(q => q.RequiresSync);
+            if (vifsRequireSync.Count() > 0)
+            {
+                result.IsSuccess = false;
+                result.Add("The following vifs require synchronisation with the network:");
+                vifsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+            }
+
+            return result;
+        }
+
         public async Task<ServiceResult> CheckNetworkSyncAsync(Vif vif)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = vif
+            };
+
             NetworkSyncServiceResult syncResult;
 
             if (vif.Attachment.IsMultiPort)
@@ -175,25 +201,106 @@ namespace SCM.Services.SCMServices
                 syncResult = await CheckNetworkSyncAttachmentVifAsync(vif);
             }
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
+            result.NetworkSyncServiceResults.Add(syncResult);
+
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed and the vif was tested for sync with the network
+
+                    result.Add($"Attachment '{vif.Name}' is not synchronised with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error checking status for vif '{vif.Name}'.");
+                }
+            }
 
             return result; 
         }
 
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs)
+        {
+            List<Task<ServiceResult>> tasks = (from vif in vifs select CheckNetworkSyncAsync(vif)).ToList();
+            var results = new List<ServiceResult>();
+
+            while (tasks.Count() > 0)
+            {
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                var vif = (Vif)task.Result.Item;
+
+                // Do something with the vif
+
+            }
+
+            await Task.WhenAll(tasks);
+
+            return results;
+        }
+
         public async Task<ServiceResult> SyncToNetworkAsync(Vif vif)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = vif
+            };
+
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(vif);
 
             var syncResult = await NetSync.SyncNetworkAsync(serviceModelData, $"/attachment/pe/{vif.Attachment.Device.Name}", new HttpMethod("PATCH"));
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
+            result.NetworkSyncServiceResults.Add(syncResult);
 
-            await UpdateRequiresSyncAsync(vif.VifID, !result.IsSuccess, true);
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed but synchronisation failed
+
+                    result.Add($"Failed to synchronise vif '{vif.Name}' with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error synchronising vif '{vif.Name}' with the network.");
+                }
+            }
 
             return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs)
+        {
+            List<Task<ServiceResult>> tasks = (from vif in vifs select SyncToNetworkAsync(vif)).ToList();
+            var results = new List<ServiceResult>();
+
+            while (tasks.Count() > 0)
+            {
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                var vif = (Vif)task.Result.Item;
+
+                // Do something with the vif
+
+            }
+
+            await Task.WhenAll(tasks);
+
+            return results;
         }
 
         /// <summary>
@@ -378,8 +485,6 @@ namespace SCM.Services.SCMServices
                         result.IsSuccess = false;
                     }
                 }
-
-                await UpdateRequiresSyncAsync(vif, true, true);
             }
 
             catch ( Exception /** ex **/  )
@@ -711,8 +816,6 @@ namespace SCM.Services.SCMServices
                     $"/attachment/pe/{vif.Attachment.Device.Name}/tagged-attachment-interface/{data.InterfaceType},"
                     + $"{data.InterfaceName.Replace("/", "%2F")}/vif/{vif.VlanTag}");
             }
-    
-            await UpdateRequiresSyncAsync(vif, !result.IsSuccess, true);
 
             return result;
         }
@@ -755,8 +858,6 @@ namespace SCM.Services.SCMServices
                     result.IsSuccess = false;
                 }
             }
-
-            await UpdateRequiresSyncAsync(vif, !result.IsSuccess, true);
 
             return result;
         }

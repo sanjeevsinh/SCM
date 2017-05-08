@@ -4,5 +4,8 @@
   "description": "Sigma Cloud Manager",
   "devDependencies": {
     "typescript": "^2.1.4"
+  },
+  "dependencies": {
+    "signalr": "^2.2.1"
   }
 }

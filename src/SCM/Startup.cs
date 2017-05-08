@@ -69,6 +69,11 @@ namespace SCM
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddSignalR(options =>
+            {
+                options.Hubs.EnableDetailedErrors = true;
+            });
+
             services.AddMvc();
 
             // Add application services.
@@ -116,6 +121,8 @@ namespace SCM
             }
 
             app.UseStaticFiles();
+            app.UseWebSockets();
+            app.UseSignalR();
 
             app.UseIdentity();
 

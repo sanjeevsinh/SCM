@@ -15,26 +15,34 @@ namespace SCM.Controllers
 {
     public class TenantCommunityController : BaseViewController
     {
-        public TenantCommunityController(ITenantCommunityService tenantNetworkService, IMapper mapper)
+        public TenantCommunityController(ITenantCommunityService tenantCommunityService, IVpnService vpnService, IMapper mapper)
         {
-           TenantCommunityService = tenantNetworkService;
+           TenantCommunityService = tenantCommunityService;
+           VpnService = vpnService;
            Mapper = mapper;
         }
         private ITenantCommunityService TenantCommunityService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByTenantID(int? id)
+        public async Task<IActionResult> GetAllByTenantID(int? id, string warningMessage = "")
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var tenantNetworks = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == id);
-            await PopulateTenantItem(id.Value);
+            var tenantCommunities = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == id);
 
-            return View(Mapper.Map<List<TenantCommunityViewModel>>(tenantNetworks));
+            if (warningMessage.Length > 0)
+            {
+                ViewData["WarningMessage"] = warningMessage;
+            }
+
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
+            return View(Mapper.Map<List<TenantCommunityViewModel>>(tenantCommunities));
         }
 
         [HttpGet]
@@ -45,15 +53,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantCommunityID == id.Value, includeProperties:"Tenant");
-            var item = dbResult.SingleOrDefault();
+            var item = await TenantCommunityService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            await PopulateTenantItem(item.TenantID);
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(item.TenantID);
+
             return View(Mapper.Map<TenantCommunityViewModel>(item));
         }
 
@@ -65,20 +73,21 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TenantID,AutonomousSystemNumber,Number,AllowExtranet")] TenantCommunityViewModel tenantNetwork)
+        public async Task<IActionResult> Create([Bind("TenantID,AutonomousSystemNumber,Number,AllowExtranet")] TenantCommunityViewModel tenantCommunity)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await TenantCommunityService.AddAsync(Mapper.Map<TenantCommunity>(tenantNetwork));
-                    return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
+                    await TenantCommunityService.AddAsync(Mapper.Map<TenantCommunity>(tenantCommunity));
+                    return RedirectToAction("GetAllByTenantID", new { id = tenantCommunity.TenantID });
                 }
             }
             catch (DbUpdateException /* ex */)
@@ -89,8 +98,9 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateTenantItem(tenantNetwork.TenantID);
-            return View(Mapper.Map<TenantCommunityViewModel>(tenantNetwork));
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(tenantCommunity.TenantID);
+
+            return View(Mapper.Map<TenantCommunityViewModel>(tenantCommunity));
         }
 
         [HttpGet]
@@ -101,29 +111,28 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            TenantCommunity tenantNetwork = await TenantCommunityService.GetByIDAsync(id.Value);
+            var tenantCommunity = await TenantCommunityService.GetByIDAsync(id.Value);
 
-            if (tenantNetwork == null)
+            if (tenantCommunity == null)
             {
                 return NotFound();
             }
 
-            await PopulateTenantItem(id.Value);
-            return View(Mapper.Map<TenantCommunityViewModel>(tenantNetwork));
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
+            return View(Mapper.Map<TenantCommunityViewModel>(tenantCommunity));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, [Bind("TenantCommunityID,TenantID,AutonomousSystemNumber,Number,AllowExtranet,RowVersion")] TenantCommunityViewModel tenantNetwork)
+        public async Task<ActionResult> Edit(int id, [Bind("TenantCommunityID,TenantID,AutonomousSystemNumber,Number,AllowExtranet,RowVersion")] TenantCommunityViewModel tenantCommunity)
         {
-            if (id != tenantNetwork.TenantCommunityID)
+            if (id != tenantCommunity.TenantCommunityID)
             {
                 return NotFound();
             }
 
-            var dbResult = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(filter: d => d.TenantCommunityID == id,
-                AsTrackable: false);
-            var currentTenantCommunity = dbResult.SingleOrDefault();
+            var currentTenantCommunity = await TenantCommunityService.GetByIDAsync(id);
 
             try
             {
@@ -132,11 +141,25 @@ namespace SCM.Controllers
                     if (currentTenantCommunity == null)
                     {
                         ModelState.AddModelError(string.Empty, "Unable to save changes. The tenant community was deleted by another user.");
-                        return View(tenantNetwork);
+                        return View(tenantCommunity);
                     }
 
-                    await TenantCommunityService.UpdateAsync(Mapper.Map<TenantCommunity>(tenantNetwork));
-                    return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
+                    await TenantCommunityService.UpdateAsync(Mapper.Map<TenantCommunity>(tenantCommunity));
+
+                    // Update the requiresSync state for all VPNs which the tenant community is associated with 
+
+                    var vpns = await VpnService.GetAllByTenantCommunityIDAsync(tenantCommunity.TenantCommunityID);
+                    var warningMessage = string.Empty;
+
+                    if (vpns.Count() > 0)
+                    {
+
+                        await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+                        warningMessage = $"VPNs require synchronisation with the network as a result of this update. "
+                            + "Follow this <a href = '/Vpn/GetAll'>link</a> to the VPNs page.";
+                    }
+
+                    return RedirectToAction("GetAllByTenantID", new { id = tenantCommunity.TenantID, warningMessage = warningMessage });
                 }
             }
 
@@ -180,6 +203,8 @@ namespace SCM.Controllers
 
             }
 
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(currentTenantCommunity.TenantID);
+
             return View(Mapper.Map<TenantCommunityViewModel>(currentTenantCommunity));
         }
 
@@ -191,14 +216,13 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantCommunityID == id.Value, includeProperties: "Tenant");
-            var tenantNetwork = dbResult.SingleOrDefault();
+            var tenantCommunity = await TenantCommunityService.GetByIDAsync(id.Value);
 
-            if (tenantNetwork == null)
+            if (tenantCommunity == null)
             {
                 if (concurrencyError.GetValueOrDefault())
                 {
-                    return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
+                    return RedirectToAction("GetAllByTenantID", new { id = tenantCommunity.TenantID });
                 }
 
                 return NotFound();
@@ -214,36 +238,31 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulateTenantItem(id.Value);
-            return View(Mapper.Map<TenantCommunityViewModel>(tenantNetwork));
+            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
+            return View(Mapper.Map<TenantCommunityViewModel>(tenantCommunity));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(TenantCommunityViewModel tenantNetwork)
+        public async Task<IActionResult> Delete(TenantCommunityViewModel tenantCommunity)
         {
             try
             {
-                var dbResult = await TenantCommunityService.UnitOfWork.TenantCommunityRepository.GetAsync(filter: d => d.TenantCommunityID == tenantNetwork.TenantCommunityID, AsTrackable: false);
-                var currentTenantCommunity = dbResult.SingleOrDefault();
+                var currentTenantCommunity = await TenantCommunityService.GetByIDAsync(tenantCommunity.TenantCommunityID);
 
                 if (currentTenantCommunity != null)
                 {
-                    await TenantCommunityService.DeleteAsync(Mapper.Map<TenantCommunity>(tenantNetwork));
+                    await TenantCommunityService.DeleteAsync(Mapper.Map<TenantCommunity>(tenantCommunity));
                 }
-                return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
+                return RedirectToAction("GetAllByTenantID", new { id = tenantCommunity.TenantID });
             }
 
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = tenantNetwork.TenantCommunityID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = tenantCommunity.TenantCommunityID });
             }
-        }
-
-        private async Task PopulateTenantItem(int tenantID)
-        {
-            ViewBag.Tenant = await TenantCommunityService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
         }
     }
 }

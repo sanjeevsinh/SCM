@@ -10,6 +10,12 @@
     <li class="breadcrumb-item active">Communities - [@ViewBag.Tenant.Name]</li>
 </ol>
 
+@if (@ViewData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning">@Html.Raw(ViewData["WarningMessage"])</div>
+}
+
+
 <h2>Communities for Tenant '@ViewBag.Tenant.Name'</h2>
 
 <p>

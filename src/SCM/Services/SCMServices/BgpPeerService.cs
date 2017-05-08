@@ -18,9 +18,20 @@ namespace SCM.Services.SCMServices
             return await this.UnitOfWork.BgpPeerRepository.GetAsync();
         }
 
+        public async Task<IEnumerable<BgpPeer>> GetAllByVrfIDAsync(int id)
+        {
+            return await this.UnitOfWork.BgpPeerRepository.GetAsync(q => q.VrfID == id, 
+                includeProperties:"Vrf.Tenant",
+                AsTrackable:false);
+        }
+
         public async Task<BgpPeer> GetByIDAsync(int id)
         {
-            return await this.UnitOfWork.BgpPeerRepository.GetByIDAsync(id);
+            var dbResult = await this.UnitOfWork.BgpPeerRepository.GetAsync(q => q.BgpPeerID == id, 
+                includeProperties:"Vrf.Tenant", 
+                AsTrackable:false);
+
+            return dbResult.SingleOrDefault();
         }
 
         public async Task<int> AddAsync(BgpPeer bgpPeer)

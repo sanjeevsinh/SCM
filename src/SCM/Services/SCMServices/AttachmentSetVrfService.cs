@@ -33,12 +33,12 @@ namespace SCM.Services.SCMServices
                + "Vrf.Attachments.ContractBandwidthPool,"
                + "Vrf.Attachments.Interfaces.Ports,"
                + "Vrf.Vifs.ContractBandwidthPool,"
-               + "Vrf.Vifs.Attachment.Interfaces.Ports");
+               + "Vrf.Vifs.Attachment.Interfaces.Ports", AsTrackable: false);
         }
 
         public async Task<AttachmentSetVrf> GetByIDAsync(int id)
         {
-            var dbResult = await UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id, 
+            var dbResult = await UnitOfWork.AttachmentSetVrfRepository.GetAsync(q => q.AttachmentSetVrfID == id,
                 includeProperties: "AttachmentSet,"
                + "Vrf.Device.Location.SubRegion.Region,"
                + "Vrf.Device.Plane,"
@@ -46,7 +46,7 @@ namespace SCM.Services.SCMServices
                + "Vrf.Attachments.ContractBandwidthPool,"
                + "Vrf.Attachments.Interfaces.Ports,"
                + "Vrf.Vifs.ContractBandwidthPool,"
-               + "Vrf.Vifs.Attachment.Interfaces.Ports");
+               + "Vrf.Vifs.Attachment.Interfaces.Ports", AsTrackable: false);
 
             return dbResult.SingleOrDefault();
         }

@@ -84,7 +84,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var attachmentSet = await AttachmentSetVrfService.UnitOfWork.AttachmentSetRepository.GetByIDAsync(id.Value);
+            var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
             await PopulateLocationsDropDownList(attachmentSet);
             await PopulatePlanesDropDownList();
             ViewBag.AttachmentSet = attachmentSet;

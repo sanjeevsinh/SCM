@@ -20,7 +20,10 @@ namespace SCM.Services.SCMServices
 
         public async Task<TenantNetwork> GetByIDAsync(int id)
         {
-            return await this.UnitOfWork.TenantNetworkRepository.GetByIDAsync(id);
+            var dbResult = await this.UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantNetworkID == id, 
+                includeProperties: "Tenant",
+                AsTrackable: false);
+            return dbResult.SingleOrDefault();
         }
 
         /// <summary>
@@ -32,7 +35,7 @@ namespace SCM.Services.SCMServices
         public async Task<IEnumerable<TenantNetwork>> GetAllByVpnAttachmentSetIDAsync(int id)
         {
             var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(id);
-            return await UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID);
+            return await UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID, AsTrackable: false);
         }
 
         public async Task<int> AddAsync(TenantNetwork tenantNetwork)

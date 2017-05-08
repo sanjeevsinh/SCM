@@ -14,6 +14,8 @@ namespace SCM.Services.SCMServices
         Task<IEnumerable<Vpn>> GetAllAsync();
         Task<IEnumerable<Vpn>> GetAllByVrfIDAsync(int id);
         Task<IEnumerable<Vpn>> GetAllByAttachmentSetIDAsync(int id);
+        Task<IEnumerable<Vpn>> GetAllByTenantNetworkIDAsync(int id);
+        Task<IEnumerable<Vpn>> GetAllByTenantCommunityIDAsync(int id);
         Task<Vpn> GetByIDAsync(int id);
         Task<ServiceResult> AddAsync(Vpn vpn);
         Task<int> UpdateAsync(Vpn vpn);
@@ -21,10 +23,10 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> ValidateNewAsync(Vpn vpn);
         Task<ServiceResult> ValidateChangesAsync(Vpn vpn, Vpn currentVpn);
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Vpn> vpns);
-        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, IProgress<ServiceResult> progress);
         Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn);
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn);
-        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns, IProgress<ServiceResult> progress);
         Task<ServiceResult> DeleteFromNetworkAsync(Vpn vpn);
         Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
         Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);

@@ -29,6 +29,17 @@ namespace SCM.Controllers
         public async Task<IActionResult> GetAll()
         {
             var devices = await DeviceService.GetAllAsync();
+
+            var checkSyncResult = DeviceService.ShallowCheckNetworkSync(devices);
+            if (checkSyncResult.IsSuccess)
+            {
+                ViewData["SuccessMessage"] = "All devices appear to be synchronised with the network.";
+            }
+            else
+            {
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+            }
+
             return View(Mapper.Map<List<DeviceViewModel>>(devices));
         }
 
@@ -286,22 +297,18 @@ namespace SCM.Controllers
                 // never syncd to the network
 
                 var inSync = true;
+                ViewData["ErrorMessage"] = String.Empty;
+
                 if (!syncResult.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = string.Empty;
-                    foreach (var r in syncResult.NetworkSyncServiceResults)
-                    {
-                        if (r.StatusCode != NetworkSyncStatusCode.NotFound)
-                        {
-                            // Something went wrong, so flag for exit
-
-                            inSync = false;
-                            ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
-                        }
-                    }
+                    syncResult.NetworkSyncServiceResults.ForEach(f => inSync = f.StatusCode != NetworkSyncStatusCode.NotFound ? false : inSync);
                 }
 
-                if (inSync)
+                if (!inSync)
+                {
+                    ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                }
+                else
                 {
                     var result = await DeviceService.DeleteAsync(currentDevice);
                     if (!result.IsSuccess)

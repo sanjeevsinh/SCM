@@ -20,7 +20,10 @@ namespace SCM.Services.SCMServices
 
         public async Task<TenantCommunity> GetByIDAsync(int id)
         {
-            return await this.UnitOfWork.TenantCommunityRepository.GetByIDAsync(id);
+            var dbResult = await this.UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantCommunityID == id, 
+                includeProperties: "Tenant",
+                AsTrackable: false);
+            return dbResult.SingleOrDefault();
         }
 
         /// <summary>
@@ -33,7 +36,7 @@ namespace SCM.Services.SCMServices
         {
 
             var vpnAttachmentSet = await UnitOfWork.VpnAttachmentSetRepository.GetByIDAsync(id);
-            return await UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID);
+            return await UnitOfWork.TenantCommunityRepository.GetAsync(q => q.TenantID == vpnAttachmentSet.AttachmentSet.TenantID, AsTrackable:false);
         }
 
         public async Task<int> AddAsync(TenantCommunity tenantCommunity)

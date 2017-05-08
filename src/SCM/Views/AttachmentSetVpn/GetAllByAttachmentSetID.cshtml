@@ -13,12 +13,12 @@
 
 @if (@ViewData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
+    <div id="successMessage" class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
 }
 
 @if (@ViewData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
+    <div id="errorMessage" class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 }
 
 <h2>VPNs for Attachment Set '@ViewBag.AttachmentSet.Name'</h2>
@@ -51,11 +51,12 @@
                 @Html.DisplayNameFor(model => model.RequiresSync)
             </th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        <tr id="@item.VpnID">
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
@@ -80,6 +81,8 @@
             <td>
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
+            <td class="row-spinner spinner-element" id="spinner_@item.VpnID">
+            </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { VpnID = item.VpnID, AttachmentSetID = ViewBag.AttachmentSet.AttachmentSetID } )
             </td>
@@ -87,24 +90,68 @@
 }
     </tbody>
 </table>
-<form asp-action="Sync">
-    <input type="hidden" name="id" value="@ViewBag.AttachmentSet.AttachmentSetID"/>
-    <input type="submit" id="CheckSync" asp-action="CheckSyncAllByAttachmentSetID" value="Check Sync All" class="btn btn-default" /> |
-    <input type="submit" id="Sync" asp-action="SyncAllByAttachmentSetID" value="Sync All" class="btn btn-default" /> |
-    <a asp-action="GetAllByTenantID" asp-controller="AttachmentSet" asp-route-id="@ViewBag.AttachmentSet.TenantID">Back to Attachment Sets</a>
-</form>
+<input type="hidden" name="AttachmentSetID" id="AttachmentSetID" value="@ViewBag.AttachmentSet.AttachmentSetID" />
+<input type="submit" id="CheckSync" asp-action="CheckSyncAllByAttachmentSetID" value="Check Sync All" class="btn btn-default" /> |
+<input type="submit" id="Sync" asp-action="SyncAllByAttachmentSetID" value="Sync All" class="btn btn-default" /> |
+<a asp-action="GetAllByTenantID" asp-controller="AttachmentSet" asp-route-id="@ViewBag.AttachmentSet.TenantID">Back to Attachment Sets</a>
+
 @section Scripts {
 
     <script type="text/javascript">
 
         (function ($) {
 
+            // Reference the auto-generated proxy for the hub.
+            var vpnHub = $.connection.vpnHub;
+
+            // Create a function that the hub can call back to display messages.
+            vpnHub.client.updateSyncProgress = function (vpn) {
+
+                $('#spinner_' + vpn.VpnID).data('spinner').stop();
+            };
+
+            vpnHub.client.syncAllComplete = function (message, success) {
+
+                if (success) {
+
+                    $('#successMessage').html(message);
+                }
+                else {
+
+                    $('#errorMessage').html(message);
+                }
+            };
+
             var $sync = $('#Sync');
             var $checkSync = $('#CheckSync');
 
-            $sync.on('click', function (e) {
+            var opts = {
+                lines: 13,
+                length: 28,
+                width: 14,
+                radius: 42,
+                scale: 0.15
+            };
 
-                SCM.Utilities.showSpinner($('body')[0]);
+            // Start the connection.
+
+            $.connection.hub.start().done(function () {
+
+                $sync.on('click', function (e) {
+
+                    var $spinnerElems = $(".row-spinner");
+                    $spinnerElems.each(function () {
+
+                        var spinner = new Spinner(opts).spin(this);
+                        $(this).data('spinner', spinner);
+                    });
+
+                    var $attachmentSetID = $('#AttachmentSetID');
+                    var val = $attachmentSetID[0].value;
+
+                    $.post("/AttachmentSetVpn/SyncAllByAttachmentSetID", { id: val });
+
+                });
             });
 
             $checkSync.on('click', function (e) {

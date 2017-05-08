@@ -8,9 +8,9 @@
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
     <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@ViewBag.Vif.TenantID">Attachments - [@ViewBag.Vif.Attachment.Tenant.Name]</a></li>
-    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID">VIFs</a></li>
-    <li class="breadcrumb-item"><a href="/VifBgpPeer/GetAllByVrfID/@ViewBag.Vif.VrfID">BGP Peers</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li class="breadcrumb-item"><a href="/Vif/GetAllByAttachmentID/@ViewBag.Vif.AttachmentID">VIFs - [@ViewBag.Vif.Attachment.Name]</a></li>
+    <li class="breadcrumb-item"><a href="/VifBgpPeer/GetAllByVrfID/@ViewBag.Vif.VrfID">BGP Peers - [@ViewBag.Vif.Name]</a></li>
+    <li class="breadcrumb-item active">Edit - [@Model.IpAddress]</li>
 </ol>
 
 <h2>Edit</h2>

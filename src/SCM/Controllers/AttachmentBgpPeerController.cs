@@ -34,7 +34,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var bgpPeers = await BgpPeerService.UnitOfWork.BgpPeerRepository.GetAsync(q => q.VrfID == id);
+            var bgpPeers = await BgpPeerService.GetAllByVrfIDAsync(id.Value);
             ViewBag.Attachment = await AttachmentService.GetByVrfIDAsync(id.Value);
 
             return View(Mapper.Map<List<BgpPeerViewModel>>(bgpPeers));

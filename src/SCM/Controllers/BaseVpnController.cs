@@ -12,15 +12,20 @@ using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
+using SCM.Hubs;
+using Microsoft.AspNetCore.SignalR.Infrastructure;
 
 namespace SCM.Controllers
 {
     public abstract class BaseVpnController : BaseViewController
     {
-        public BaseVpnController(IVpnService vpnService, IRouteTargetService routeTargetService,
+        public BaseVpnController(IVpnService vpnService, 
+                           IRouteTargetService routeTargetService,
                            IAttachmentSetService attachmentSetService,
                            IAttachmentSetVrfService attachmentSetVrfService,
-                           IAttachmentService attachmentService, IVifService vifService, IMapper mapper)
+                           IAttachmentService attachmentService, 
+                           IVifService vifService,
+                           IMapper mapper)
         {
             VpnService = vpnService;
             RouteTargetService = routeTargetService;
@@ -108,15 +113,13 @@ namespace SCM.Controllers
                 if (syncResult.IsSuccess)
                 {
                     ViewData["SuccessMessage"] = "The network is synchronised.";
-                    item.RequiresSync = false;
                 }
                 else
                 {
                     ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
-                    item.RequiresSync = true;
                 }
 
-                await VpnService.UpdateVpnRequiresSyncAsync(item, !syncResult.IsSuccess, true);
+                await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
             }
 
             var mappedVpn = Mapper.Map<VpnViewModel>(item);
@@ -142,7 +145,6 @@ namespace SCM.Controllers
             if (checkSyncResult.IsSuccess)
             {
                 ViewData["SuccessMessage"] = "The VPN is synchronised with the network.";
-                item.RequiresSync = false;
             }
             else
             {
@@ -152,10 +154,9 @@ namespace SCM.Controllers
                 }
 
                 ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
             }
 
-            await VpnService.UpdateVpnRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
+            await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !checkSyncResult.IsSuccess, true);
 
             var mappedVpn = Mapper.Map<VpnViewModel>(item);
 
@@ -177,8 +178,8 @@ namespace SCM.Controllers
             var item = await VpnService.GetByIDAsync(vpn.VpnID);
             if (item == null)
             {
-
                 ViewData["VpnDeletedMessage"] = "The VPN has been deleted by another user. Return to the list.";
+
                 return View("VpnDeleted");
             }
 

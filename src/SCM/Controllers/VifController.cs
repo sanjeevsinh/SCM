@@ -56,8 +56,19 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
+
+            var checkSyncResult = VifService.ShallowCheckNetworkSync(vifs);
+            if (checkSyncResult.IsSuccess)
+            {
+                ViewData["SuccessMessage"] = "All vifs appear to be synchronised with the network.";
+            }
+            else
+            {
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+            }
+
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
         }
@@ -255,22 +266,18 @@ namespace SCM.Controllers
                     // never syncd to the network
 
                     var inSync = true;
+                    ViewData["ErrorMessage"] = string.Empty;
+
                     if (!syncResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = string.Empty;
-                        foreach (var r in syncResult.NetworkSyncServiceResults)
-                        {
-                            if (r.StatusCode != NetworkSyncStatusCode.NotFound)
-                            {
-                                // Something went wrong, so flag for exit
-
-                                inSync = false;
-                                ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
-                            }
-                        }
+                        syncResult.NetworkSyncServiceResults.ForEach(f => inSync = f.StatusCode != NetworkSyncStatusCode.NotFound ? false : inSync);
                     }
 
-                    if (inSync)
+                    if (!inSync)
+                    {
+                        ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                    }
+                    else 
                     {
                         var result = await VifService.DeleteAsync(item);
                         if (!result.IsSuccess)
@@ -326,20 +333,63 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
-                ViewData["ErrorMessage"] += checkSyncResult.GetHtmlListMessage();
+                if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
+                }
+
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
                 item.RequiresSync = true;
             }
 
+            await VifService.UpdateRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
+
             var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
+
+            return View("Details", Mapper.Map<VifViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckSyncAllByAttachmentID(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
+
             if (attachment == null)
             {
                 return NotFound();
             }
 
+            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
+
+            if (vifs.Count() > 0)
+            {
+
+                var checkSyncResults = await VifService.CheckNetworkSyncAsync(vifs);
+                if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+                {
+                    ViewData["SuccessMessage"] = "All VIFs are synchronised with the network.";
+                }
+                else
+                {
+                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                }
+
+                foreach (var r in checkSyncResults)
+                {
+                    var item = (Vif)r.Item;
+                    await VifService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                }
+            }
+
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
-            return View("Details", Mapper.Map<VifViewModel>(item));
+            return View("GetAllByAttachmentID", Mapper.Map<List<VifViewModel>>(vifs));
         }
 
         [HttpPost]
@@ -369,14 +419,54 @@ namespace SCM.Controllers
                 item.RequiresSync = true;
             }
 
+            await VifService.UpdateRequiresSyncAsync(item, !syncResult.IsSuccess, true);
+
             var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
+            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
+
+            return View("Details", Mapper.Map<VifViewModel>(item));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SyncAllByAttachmentID(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var attachment = await AttachmentService.GetByIDAsync(id.Value);
+
             if (attachment == null)
             {
                 return NotFound();
             }
+
+            var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
+
+            if (vifs.Count() > 0)
+            {
+                var checkSyncResults = await VifService.SyncToNetworkAsync(vifs);
+
+                if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+                {
+                    ViewData["SuccessMessage"] = "All VIFs are synchronised with the network.";
+                }
+                else
+                {
+                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                }
+
+                foreach (var r in checkSyncResults)
+                {
+                    var item = (Vif)r.Item;
+                    await VifService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                }
+            }
+
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
-            return View("Details", Mapper.Map<VifViewModel>(item));
+            return View("GetAllByAttachmentID", Mapper.Map<List<VifViewModel>>(vifs));
         }
 
         [HttpPost]
@@ -412,6 +502,8 @@ namespace SCM.Controllers
                     ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
                 }
             }
+
+            await VifService.UpdateRequiresSyncAsync(item, true, true);
 
             var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);

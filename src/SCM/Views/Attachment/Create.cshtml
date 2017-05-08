@@ -65,27 +65,35 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="BundleRequired" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="BundleRequired" class="checkbox" />
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-2">
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="BundleRequired"> <label asp-for="BundleRequired"></label>
+                </label>
+            </div>
+            <div class="col-md-2">
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="MultiPortRequired"> <label asp-for="MultiPortRequired"></label>
+                </label>
+            </div>
+            <div class="col-md-6">
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="MultiPortRequired" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="MultiPortRequired" class="checkbox" />
+            <div class="col-md-2">
             </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="IsTagged" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IsTagged" class="checkbox" />
+            <div class="col-md-2">
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="IsTagged" data-toggle="tooltip" title="Enable IEEE802.1Q Vlan Tagging"> <label asp-for="IsTagged"></label>
+                </label>
             </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="IsLayer3" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IsLayer3" class="checkbox" />
+            <div class="col-md-2">
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="IsLayer3" data-toggle="tooltip" title="Enable for Layer 3"> <label asp-for="IsLayer3"></label>
+                </label>
+            </div>
+            <div class="col-md-6">
             </div>
         </div>
         <div class="form-group">
@@ -98,9 +106,12 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="TrustReceivedCosDscp" class="col-md-2 control-label"></label>
+            <div class="col-md-2">
+            </div>
             <div class="col-md-10">
-                <input asp-for="TrustReceivedCosDscp" class="checkbox" />
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="TrustReceivedCosDscp"> <label asp-for="TrustReceivedCosDscp"></label>
+                </label>
             </div>
         </div>
         <div id="L3Components1">
@@ -207,6 +218,10 @@
             $l3Components1 = $('#L3Components1'),
             $l3Components2 = $('#L3Components2'),
             $l3Components4 = $('#L3Components4');
+
+            // Initialise all tool-tips
+
+            $('[data-toggle="tooltip"]').tooltip();
 
             if (location.value == null || location.value == "" || region.value == null || region.value == "") {
 

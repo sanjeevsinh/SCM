@@ -62,6 +62,9 @@ namespace SCM.Models.ViewModels
             CreateMap<Vif, VifViewModel>()
                 .ForMember(dest => dest.IpAddress, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().IpAddress : null))
                 .ForMember(dest => dest.SubnetMask, conf => conf.MapFrom(src => src.Vlans.Count == 1 ? src.Vlans.Single().SubnetMask : null))
+                .ForMember(dest => dest.Device, conf => conf.MapFrom(src => src.Attachment.Device))
+                .ForMember(dest => dest.Location, conf => conf.MapFrom(src => src.Attachment.Device.Location))
+                .ForMember(dest => dest.Plane, conf => conf.MapFrom(src => src.Attachment.Device.Plane))
                 .ReverseMap();
             CreateMap<AttachmentRequestViewModel, AttachmentRequest>();
             CreateMap<VifRequestViewModel, VifRequest>();

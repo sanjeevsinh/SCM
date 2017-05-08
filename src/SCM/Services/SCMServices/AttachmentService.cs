@@ -283,7 +283,7 @@ namespace SCM.Services.SCMServices
 
                 if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    // Request was successfully executed and the VPN was tested for sync with the network
+                    // Request was successfully executed and the Attachment was tested for sync with the network
 
                     result.Add($"Attachment '{attachment.Name}' is not synchronised with the network.");
                 }
@@ -291,7 +291,7 @@ namespace SCM.Services.SCMServices
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error checking status for Attachment '{attachment.Name}'.");
+                    result.Add($"There was an error checking status for attachment '{attachment.Name}'.");
                 }
             }
 
@@ -300,16 +300,24 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments)
         {
-            var tasks = new List<Task<ServiceResult>>();
+            List<Task<ServiceResult>> tasks = (from attachment in attachments select SyncToNetworkAsync(attachment)).ToList();
+            var results = new List<ServiceResult>();
 
-            foreach (var attachment in attachments)
+            while (tasks.Count() > 0)
             {
-                tasks.Add(CheckNetworkSyncAsync(attachment));
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                var attachment = (Attachment)task.Result.Item;
+
+                // Do something with the attachment
+
             }
 
             await Task.WhenAll(tasks);
 
-            return tasks.Select(q => q.Result).ToList();
+            return results;
         }
 
         public async Task<ServiceResult> SyncToNetworkAsync(Attachment attachment)
@@ -333,13 +341,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed but synchronisation failed
 
-                    result.Add($"Failed to synchronise Attachmnet '{attachment.Name}' with the network.");
+                    result.Add($"Failed to synchronise attachmnet '{attachment.Name}' with the network.");
                 }
                 else
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error synchronising Attachment '{attachment.Name}' with the network.");
+                    result.Add($"There was an error synchronising attachment '{attachment.Name}' with the network.");
                 }
             }
 
@@ -348,16 +356,24 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments)
         {
-            var tasks = new List<Task<ServiceResult>>();
+            List<Task<ServiceResult>> tasks = (from attachment in attachments select CheckNetworkSyncAsync(attachment)).ToList();
+            var results = new List<ServiceResult>();
 
-            foreach (var attachment in attachments)
+            while (tasks.Count() > 0)
             {
-                tasks.Add(SyncToNetworkAsync(attachment));
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                var attachment = (Attachment)task.Result.Item;
+
+                // Do something with the attachment
+
             }
 
             await Task.WhenAll(tasks);
 
-            return tasks.Select(q => q.Result).ToList();
+            return results;
         }
 
         /// <summary>

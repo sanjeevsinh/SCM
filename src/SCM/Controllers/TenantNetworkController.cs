@@ -15,16 +15,18 @@ namespace SCM.Controllers
 {
     public class TenantNetworkController : BaseViewController
     {
-        public TenantNetworkController(ITenantNetworkService tenantNetworkService, IMapper mapper)
+        public TenantNetworkController(ITenantNetworkService tenantNetworkService, IVpnService vpnService, IMapper mapper)
         {
            TenantNetworkService = tenantNetworkService;
+           VpnService = vpnService;
            Mapper = mapper;
         }
         private ITenantNetworkService TenantNetworkService { get; set; }
+        private IVpnService VpnService { get; set; }
         private IMapper Mapper { get; set; }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllByTenantID(int? id)
+        public async Task<IActionResult> GetAllByTenantID(int? id, string warningMessage = "")
         {
             if (id == null)
             {
@@ -32,7 +34,13 @@ namespace SCM.Controllers
             }
 
             var tenantNetworks = await TenantNetworkService.UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantID == id);
-            await PopulateTenantItem(id.Value);
+
+            if (warningMessage.Length > 0)
+            {
+                ViewData["WarningMessage"] = warningMessage;
+            }
+
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
 
             return View(Mapper.Map<List<TenantNetworkViewModel>>(tenantNetworks));
         }
@@ -45,15 +53,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await TenantNetworkService.UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantNetworkID == id.Value, includeProperties:"Tenant");
-            var item = dbResult.SingleOrDefault();
+            var item = await TenantNetworkService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
                 return NotFound();
             }
 
-            await PopulateTenantItem(item.TenantID);
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(item.TenantID);
+
             return View(Mapper.Map<TenantNetworkViewModel>(item));
         }
 
@@ -65,7 +73,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
             return View();
         }
 
@@ -89,7 +97,8 @@ namespace SCM.Controllers
                     "see your system administrator.");
             }
 
-            await PopulateTenantItem(tenantNetwork.TenantID);
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(tenantNetwork.TenantID);
+
             return View(Mapper.Map<TenantNetworkViewModel>(tenantNetwork));
         }
 
@@ -101,14 +110,15 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            TenantNetwork tenantNetwork = await TenantNetworkService.GetByIDAsync(id.Value);
+            var tenantNetwork = await TenantNetworkService.GetByIDAsync(id.Value);
 
             if (tenantNetwork == null)
             {
                 return NotFound();
             }
 
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
             return View(Mapper.Map<TenantNetworkViewModel>(tenantNetwork));
         }
 
@@ -121,9 +131,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await TenantNetworkService.UnitOfWork.TenantNetworkRepository.GetAsync(filter: d => d.TenantNetworkID == id,
-                AsTrackable: false);
-            var currentTenantNetwork = dbResult.SingleOrDefault();
+            var currentTenantNetwork = await TenantNetworkService.GetByIDAsync(id);
 
             try
             {
@@ -136,7 +144,20 @@ namespace SCM.Controllers
                     }
 
                     await TenantNetworkService.UpdateAsync(Mapper.Map<TenantNetwork>(tenantNetwork));
-                    return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID });
+
+                    // Update the requiresSync state for all VPNs which the tenant network is associated with 
+
+                    var vpns = await VpnService.GetAllByTenantNetworkIDAsync(tenantNetwork.TenantNetworkID);
+
+                    var warningMessage = string.Empty;
+                    if (vpns.Count() > 0) {
+
+                        await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+                        warningMessage = $"VPNs require synchronisation with the network as a result of this update. "
+                            + "Follow this <a href = '/Vpn/GetAll'>link</a> to the VPNs page.";
+                    }
+
+                    return RedirectToAction("GetAllByTenantID", new { id = tenantNetwork.TenantID, warningMessage = warningMessage });
                 }
             }
 
@@ -180,6 +201,8 @@ namespace SCM.Controllers
 
             }
 
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(currentTenantNetwork.TenantID);
+
             return View(Mapper.Map<TenantNetworkViewModel>(currentTenantNetwork));
         }
 
@@ -191,8 +214,7 @@ namespace SCM.Controllers
                 return NotFound();
             }
 
-            var dbResult = await TenantNetworkService.UnitOfWork.TenantNetworkRepository.GetAsync(q => q.TenantNetworkID == id.Value, includeProperties: "Tenant");
-            var tenantNetwork = dbResult.SingleOrDefault();
+            var tenantNetwork = await TenantNetworkService.GetByIDAsync(id.Value);
 
             if (tenantNetwork == null)
             {
@@ -214,7 +236,8 @@ namespace SCM.Controllers
                     + "click the Back to List hyperlink.";
             }
 
-            await PopulateTenantItem(id.Value);
+            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
             return View(Mapper.Map<TenantNetworkViewModel>(tenantNetwork));
         }
 
@@ -224,8 +247,7 @@ namespace SCM.Controllers
         {
             try
             {
-                var dbResult = await TenantNetworkService.UnitOfWork.TenantNetworkRepository.GetAsync(filter: d => d.TenantNetworkID == tenantNetwork.TenantNetworkID, AsTrackable: false);
-                var currentTenantNetwork = dbResult.SingleOrDefault();
+                var currentTenantNetwork = await TenantNetworkService.GetByIDAsync(tenantNetwork.TenantNetworkID);
 
                 if (currentTenantNetwork != null)
                 {
@@ -239,11 +261,6 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = tenantNetwork.TenantNetworkID });
             }
-        }
-
-        private async Task PopulateTenantItem(int tenantID)
-        {
-            ViewBag.Tenant = await TenantNetworkService.UnitOfWork.TenantRepository.GetByIDAsync(tenantID);
         }
     }
 }

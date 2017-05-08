@@ -11,6 +11,7 @@ namespace SCM.Services.SCMServices
     {
         IUnitOfWork UnitOfWork { get; }
         Task<IEnumerable<BgpPeer>> GetAllAsync();
+        Task<IEnumerable<BgpPeer>> GetAllByVrfIDAsync(int id);
         Task<BgpPeer> GetByIDAsync(int id);
         Task<int> AddAsync(BgpPeer bgpPeer);
         Task<int> UpdateAsync(BgpPeer bgpPeer);

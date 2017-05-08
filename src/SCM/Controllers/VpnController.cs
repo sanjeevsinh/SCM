@@ -291,22 +291,18 @@ namespace SCM.Controllers
                 // never syncd to the network
 
                 var inSync = true;
+                ViewData["ErrorMessage"] = String.Empty;
+
                 if (!syncResult.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = string.Empty;
-                    foreach (var r in syncResult.NetworkSyncServiceResults)
-                    {
-                        if (r.StatusCode != NetworkSyncStatusCode.NotFound)
-                        {
-                            // Something went wrong, so flag for exit
-
-                            inSync = false;
-                            ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
-                        }
-                    }
+                    syncResult.NetworkSyncServiceResults.ForEach(f => inSync = f.StatusCode != NetworkSyncStatusCode.NotFound ? false : inSync);
                 }
 
-                if (inSync)
+                if (!inSync)
+                {
+                    ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                }
+                else
                 {
                     var result = await VpnService.DeleteAsync(item);
                     if (result.IsSuccess)
