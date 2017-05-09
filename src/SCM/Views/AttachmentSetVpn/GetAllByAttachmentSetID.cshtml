@@ -11,15 +11,8 @@
     <li class="breadcrumb-item active">VPNs - [@ViewBag.AttachmentSet.Name]</li>
 </ol>
 
-@if (@ViewData["SuccessMessage"] != null)
-{
-    <div id="successMessage" class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
-}
-
-@if (@ViewData["ErrorMessage"] != null)
-{
-    <div id="errorMessage" class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
-}
+<div id="successMessage" class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
+<div id="errorMessage" class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
 
 <h2>VPNs for Attachment Set '@ViewBag.AttachmentSet.Name'</h2>
 
@@ -78,10 +71,10 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Tenant.Name)
             </td>
-            <td>
+            <td id="requiresSync_@item.VpnID">
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
-            <td class="row-spinner spinner-element" id="spinner_@item.VpnID">
+            <td class="row-spinner spinner-element" id="syncStatus_@item.VpnID">
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { VpnID = item.VpnID, AttachmentSetID = ViewBag.AttachmentSet.AttachmentSetID } )
@@ -101,63 +94,143 @@
 
         (function ($) {
 
-            // Reference the auto-generated proxy for the hub.
-            var vpnHub = $.connection.vpnHub;
+            var $successMessage = $('#successMessage');
+            var $errorMessage = $('#errorMessage');
+            var $attachmentSetID = $('#AttachmentSetID');
+            var attachmentSetVal = $attachmentSetID[0].value;
 
-            // Create a function that the hub can call back to display messages.
-            vpnHub.client.updateSyncProgress = function (vpn) {
+            var onConnectionSuccess = function (vpnHub) {
 
-                $('#spinner_' + vpn.VpnID).data('spinner').stop();
+                // Join the hub group for the current Attachment Set
+
+                vpnHub.server.joinGroup('AttachmentSet_' + attachmentSetVal);
+
+                var $sync = $('#Sync');
+                var $checkSync = $('#CheckSync');
+
+                handleButtonClick($sync, '/AttachmentSetVpn/SyncAllByAttachmentSetID');
+                handleButtonClick($checkSync, '/AttachmentSetVpn/CheckSyncAllByAttachmentSetID');
             };
 
-            vpnHub.client.syncAllComplete = function (message, success) {
+            main();
 
-                if (success) {
+            function main() {
 
-                    $('#successMessage').html(message);
+                initMessaging();
+                initHub();
+            };
+
+            function initMessaging() {
+
+                if ($successMessage.html().length == 0) {
+                    $successMessage.hide();
                 }
-                else {
 
-                    $('#errorMessage').html(message);
+                if ($errorMessage.html().length == 0) {
+                    $errorMessage.hide();
                 }
             };
 
-            var $sync = $('#Sync');
-            var $checkSync = $('#CheckSync');
+            function initHub() {
 
-            var opts = {
-                lines: 13,
-                length: 28,
-                width: 14,
-                radius: 42,
-                scale: 0.15
+                // Reference the auto-generated proxy for the hub.
+
+                var vpnHub = $.connection.vpnHub;
+
+                // Start the connection.
+
+                $.connection.hub.start()
+                    .done(function() {
+                        onConnectionSuccess(vpnHub)
+                    })
+                    .fail(function () {
+                        showErrorMessage("Failed to establish a connection to the server.");
+                    });
+
+                // Create a method that the hub calls when processing of all VPNs is complete
+
+                vpnHub.client.onAllComplete = function (message, success) {
+
+                    // Enable submit buttons
+
+                    $('.btn').prop('disabled', false);
+
+                    if (success) {
+                        showSuccessMessage(message);
+                    }
+                    else {
+                        showErrorMessage(message);
+                    }
+                };
+
+                // Create a method that the hub calls when processing of a single vpn has completed
+
+                vpnHub.client.onSingleComplete = function (vpn, success) {
+
+                    var $syncStatus = $('#syncStatus_' + vpn.VpnID);
+
+                    // Set requiresSync checkbox state
+
+                    $('#requiresSync_' + vpn.VpnID + ' > input').prop('checked', !success);
+
+                    $syncStatus.data('spinner').stop();
+
+                    if (success) {
+                        $syncStatus.text('Success');
+                    }
+                    else {
+                        $syncStatus.text('Error - check logs');
+                    }
+                }
             };
 
-            // Start the connection.
+            function handleButtonClick($button, url) {
 
-            $.connection.hub.start().done(function () {
+                $button.on('click', function (e) {
 
-                $sync.on('click', function (e) {
+                    // Prevent double-click
+
+                    $('.btn').prop('disabled', true);
 
                     var $spinnerElems = $(".row-spinner");
                     $spinnerElems.each(function () {
 
-                        var spinner = new Spinner(opts).spin(this);
-                        $(this).data('spinner', spinner);
+                        var $this = $(this);
+                        $this.empty();
+
+                        var spinnerOpts = {
+                            lines: 13,
+                            length: 28,
+                            width: 14,
+                            radius: 42,
+                            scale: 0.15
+                        };
+
+                        var spinner = new Spinner(spinnerOpts).spin(this);
+                        $this.data('spinner', spinner);
                     });
 
-                    var $attachmentSetID = $('#AttachmentSetID');
-                    var val = $attachmentSetID[0].value;
+                    // Call the server
 
-                    $.post("/AttachmentSetVpn/SyncAllByAttachmentSetID", { id: val });
-
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: { id: attachmentSetVal }
+                    });
                 });
-            });
+            };
 
-            $checkSync.on('click', function (e) {
+            function showSuccessMessage(message) {
 
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
+                $successMessage.html(message).show();
+                $errorMessage.empty().hide();
+            };
+
+            function showErrorMessage(message) {
+
+                $errorMessage.html(message).show();
+                $successMessage.empty().hide();
+            };
 
         }(jQuery));
 

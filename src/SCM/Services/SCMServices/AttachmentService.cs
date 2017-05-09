@@ -224,7 +224,8 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult
             {
                 IsSuccess = true,
-                Item = attachment
+                Item = attachment,
+                Context = attachment.Tenant
             };
 
             NetworkSyncServiceResult syncResult;
@@ -298,7 +299,8 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments)
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments, 
+            IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from attachment in attachments select SyncToNetworkAsync(attachment)).ToList();
             var results = new List<ServiceResult>();
@@ -309,10 +311,7 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
-                var attachment = (Attachment)task.Result.Item;
-
-                // Do something with the attachment
-
+                progress.Report(task.Result);
             }
 
             await Task.WhenAll(tasks);
@@ -325,7 +324,8 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult
             {
                 IsSuccess = true,
-                Item = attachment
+                Item = attachment,
+                Context = attachment.Tenant
             };
 
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(attachment);
@@ -354,7 +354,8 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments)
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments, 
+            IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from attachment in attachments select CheckNetworkSyncAsync(attachment)).ToList();
             var results = new List<ServiceResult>();
@@ -365,10 +366,7 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
-                var attachment = (Attachment)task.Result.Item;
-
-                // Do something with the attachment
-
+                progress.Report(task.Result);
             }
 
             await Task.WhenAll(tasks);

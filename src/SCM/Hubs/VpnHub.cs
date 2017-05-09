@@ -3,26 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
-using SCM.Services.SCMServices;
-using SCM.Models;
-using AutoMapper;
-using SCM.Models.ViewModels;
 
 namespace SCM.Hubs
 {
-    public class VpnHub : Hub<IVpnHub>
+    public class NetworkSyncHub : Hub
     {
-        private VpnHub(IMapper mapper)
+        public Task JoinGroup(string groupName)
         {
-            Mapper = mapper;
+            return Groups.Add(Context.ConnectionId, groupName);
         }
 
-        private readonly IMapper Mapper;
-
-        public override Task OnConnected()
+        public Task LeaveGroup(string groupName)
         {
-            // Set connection id for just connected client only
-            return Clients.Client(Context.ConnectionId).SetConnectionId(Context.ConnectionId);
-        } 
+            return Groups.Remove(Context.ConnectionId, groupName);
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace SCM.Controllers
                 vifService, 
                 mapper)
         {
-            HubContext = signalRConnectionManager.GetHubContext<VpnHub>();
+            HubContext = signalRConnectionManager.GetHubContext<NetworkSyncHub>();
         }
 
         private IHubContext HubContext { get; set; }
@@ -66,27 +66,38 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSyncAllByAttachmentSetID(int? id)
+        public async Task CheckSyncAllByAttachmentSetID(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return;
+            }
+
+            var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
+
+            if (attachmentSet == null)
+            {
+                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set was not found.", false);
+                return;
             }
 
             var vpns = await VpnService.GetAllByAttachmentSetIDAsync(id.Value);
 
             if (vpns.Count() > 0)
             {
-                var progress = new Progress<ServiceResult>(VpnCheckSyncUpdateClientsProgress);
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var message = string.Empty;
 
-                var checkSyncResults = await VpnService.CheckNetworkSyncAsync(vpns, progress);
+                var checkSyncResults = await VpnService.CheckNetworkSyncAsync(vpns, attachmentSet, progress);
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
-                    ViewData["SuccessMessage"] = "All VPNs are synchronised with the network.";
+                    message = "All VPNs are synchronised with the network.";
+                    HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                    HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -95,18 +106,26 @@ namespace SCM.Controllers
                     await VpnService.UpdateVpnRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
-
-            ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
-
-            return View("GetAllByAttachmentSetID", Mapper.Map<List<VpnViewModel>>(vpns));
+            else
+            {
+                HubContext.Clients.All.onAllComplete("No VPNs were found", true);
+            }
         }
-
 
         [HttpPost]
         public async Task SyncAllByAttachmentSetID(int? id)
         {
             if (id == null)
             {
+                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set ID cannot be null.", false);
+                return;
+            }
+
+            var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
+
+            if (attachmentSet == null)
+            {
+                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set was not found.", false);
                 return;
             }
 
@@ -114,19 +133,19 @@ namespace SCM.Controllers
 
             if (vpns.Count() > 0)
             {
-                var progress = new Progress<ServiceResult>(VpnSyncUpdateClientsProgress);
-                var results = await VpnService.SyncToNetworkAsync(vpns, progress);
-                string message = string.Empty;
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var results = await VpnService.SyncToNetworkAsync(vpns, attachmentSet, progress);
+                var message = string.Empty;
 
                 if (results.Where(q => q.IsSuccess).Count() == results.Count())
                 {
                     message = "All VPNs are synchronised with the network.";
-                    HubContext.Clients.All.syncAllComplete(message, true);
+                    HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
                     results.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.All.syncAllComplete(message, false);
+                    HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in results)
@@ -135,17 +154,19 @@ namespace SCM.Controllers
                     await VpnService.UpdateVpnRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
+            else
+            {
+                HubContext.Clients.All.onAllComplete("No VPNs were found", true);
+            }
         }
 
-        void VpnSyncUpdateClientsProgress(ServiceResult result)
+        void UpdateClientProgress(ServiceResult result)
         {
             var vpn = (Vpn)result.Item;
-            HubContext.Clients.All.updateSyncProgress(Mapper.Map<VpnViewModel>(vpn));
-        }
-        void VpnCheckSyncUpdateClientsProgress(ServiceResult result)
-        {
-            var vpn = (Vpn)result.Item;
-            HubContext.Clients.All.updateCheckSyncProgress(Mapper.Map<VpnViewModel>(vpn));
+            var attachmentSet = (AttachmentSet)result.Context;
+
+            HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
+                .onSingleComplete(Mapper.Map<VpnViewModel>(vpn), result.IsSuccess);
         }
     }
 }

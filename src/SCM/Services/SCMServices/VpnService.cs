@@ -307,9 +307,11 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, IProgress<ServiceResult> progress)
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, 
+            AttachmentSet attachmentSetContext, 
+            IProgress<ServiceResult> progress)
         {
-            List<Task<ServiceResult>> tasks = (from vpn in vpns select CheckNetworkSyncAsync(vpn)).ToList();
+            List<Task<ServiceResult>> tasks = (from vpn in vpns select CheckNetworkSyncAsync(vpn, attachmentSetContext)).ToList();
             var results = new List<ServiceResult>();
 
             while (tasks.Count() > 0)
@@ -364,9 +366,19 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns, IProgress<ServiceResult> progress)
+        public async Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn, AttachmentSet attachmentSetContext)
         {
-            List<Task<ServiceResult>> tasks = (from vpn in vpns select SyncToNetworkAsync(vpn)).ToList();
+            var result = await CheckNetworkSyncAsync(vpn);
+            result.Context = attachmentSetContext;
+
+            return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns, 
+            AttachmentSet attachmentSetContext, 
+            IProgress<ServiceResult> progress)
+        {
+            List<Task<ServiceResult>> tasks = (from vpn in vpns select SyncToNetworkAsync(vpn, attachmentSetContext)).ToList();
             var results = new List<ServiceResult>();
 
             while (tasks.Count() > 0)
@@ -419,6 +431,14 @@ namespace SCM.Services.SCMServices
             {
                 vpn.RequiresSync = false;
             }
+
+            return result;
+        }
+    
+        public async Task<ServiceResult> SyncToNetworkAsync(Vpn vpn, AttachmentSet attachmentSetContext)
+        {
+            var result = await SyncToNetworkAsync(vpn);
+            result.Context = attachmentSetContext;
 
             return result;
         }

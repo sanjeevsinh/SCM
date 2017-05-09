@@ -20,9 +20,9 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Attachment> attachments);
-        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments, IProgress<ServiceResult> progress);
         Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment);
-        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments, IProgress<ServiceResult> progress);
         Task<ServiceResult> SyncToNetworkAsync(Attachment attachment);
         Task<ServiceResult> DeleteFromNetworkAsync(Attachment attachment);
         Task<ServiceResult> ValidateNewAsync(AttachmentRequest request);

@@ -14,20 +14,29 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.SignalR.Infrastructure;
+using SCM.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SCM.Controllers
 {
     public class AttachmentController : BaseViewController
     {
-        public AttachmentController(IAttachmentService attachmentService, IVrfService vrfService, IMapper mapper)
+        public AttachmentController(IAttachmentService attachmentService, 
+            IVrfService vrfService, 
+            IMapper mapper,
+            IConnectionManager signalRConnectionManager)
         {
             AttachmentService = attachmentService;
             VrfService = vrfService;
             Mapper = mapper;
+            HubContext = signalRConnectionManager.GetHubContext<NetworkSyncHub>();
         }
+
         private IAttachmentService AttachmentService { get; set; }
         private IVrfService VrfService { get; set; }
         private IMapper Mapper { get; set; }
+        private IHubContext HubContext { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> GetAllByTenantID(int? id)
@@ -325,44 +334,52 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSyncAllByTenantID(int? id)
+        public async Task CheckSyncAllByTenantID(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The Tenant ID cannot be null.", false);
+                return;
             }
 
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
             if (tenant == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The Tenant was not found.", false);
+                return;
             }
-
+            
             var attachments = await AttachmentService.GetAllByTenantIDAsync(id.Value);
 
             if (attachments.Count() > 0)
             {
-                var checkSyncResults = await AttachmentService.CheckNetworkSyncAsync(attachments);
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var message = string.Empty;
 
-                if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+                var results = await AttachmentService.CheckNetworkSyncAsync(attachments, progress);
+
+                if (results.Where(q => q.IsSuccess).Count() == results.Count())
                 {
-                    ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
+                    message = "All attachments are synchronised with the network.";
+                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                    results.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, false);
                 }
 
-                foreach (var r in checkSyncResults)
+                foreach (var r in results)
                 {
                     var item = (Attachment)r.Item;
                     await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
-
-            ViewBag.Tenant = tenant; 
-
-            return View("GetAllByTenantID", Mapper.Map<List<AttachmentViewModel>>(attachments));
+            else
+            {
+                HubContext.Clients.All.onAllComplete("No attachments were found", true);
+            }
         }
 
         [HttpPost]
@@ -415,7 +432,10 @@ namespace SCM.Controllers
 
             if (attachments.Count() > 0)
             {
-                var checkSyncResults = await AttachmentService.SyncToNetworkAsync(attachments);
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var message = string.Empty;
+
+                var checkSyncResults = await AttachmentService.SyncToNetworkAsync(attachments, progress);
 
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
@@ -550,6 +570,15 @@ namespace SCM.Controllers
         {
             var contractBandwidths = await AttachmentService.UnitOfWork.ContractBandwidthRepository.GetAsync();
             ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(b => b.BandwidthMbps), "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
+        }
+
+        void UpdateClientProgress(ServiceResult result)
+        {
+            var attachment = (Attachment)result.Item;
+            var tenant = (Tenant)result.Context;
+
+            HubContext.Clients.Group($"Attachment_{attachment.AttachmentID}")
+                .onSingleComplete(Mapper.Map<AttachmentViewModel>(attachment), result.IsSuccess);
         }
     }
 }
