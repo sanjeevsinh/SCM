@@ -187,7 +187,8 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult
             {
                 IsSuccess = true,
-                Item = vif
+                Item = vif,
+                Context = vif.Attachment
             };
 
             NetworkSyncServiceResult syncResult;
@@ -224,7 +225,7 @@ namespace SCM.Services.SCMServices
             return result; 
         }
 
-        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs)
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs, IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from vif in vifs select CheckNetworkSyncAsync(vif)).ToList();
             var results = new List<ServiceResult>();
@@ -235,10 +236,9 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
-                var vif = (Vif)task.Result.Item;
+                // Update caller with progress
 
-                // Do something with the vif
-
+                progress.Report(task.Result);
             }
 
             await Task.WhenAll(tasks);
@@ -251,7 +251,8 @@ namespace SCM.Services.SCMServices
             var result = new ServiceResult
             {
                 IsSuccess = true,
-                Item = vif
+                Item = vif,
+                Context = vif.Attachment
             };
 
             var serviceModelData = Mapper.Map<AttachmentServiceNetModel>(vif);
@@ -281,7 +282,7 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs)
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs, IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from vif in vifs select SyncToNetworkAsync(vif)).ToList();
             var results = new List<ServiceResult>();
@@ -292,9 +293,9 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
-                var vif = (Vif)task.Result.Item;
+                // Update caller with progress
 
-                // Do something with the vif
+                progress.Report(task.Result);
 
             }
 

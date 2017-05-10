@@ -311,6 +311,8 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
+                // Update caller with progress
+
                 progress.Report(task.Result);
             }
 
@@ -357,7 +359,7 @@ namespace SCM.Services.SCMServices
         public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments, 
             IProgress<ServiceResult> progress)
         {
-            List<Task<ServiceResult>> tasks = (from attachment in attachments select CheckNetworkSyncAsync(attachment)).ToList();
+            List<Task<ServiceResult>> tasks = (from attachment in attachments select SyncToNetworkAsync(attachment)).ToList();
             var results = new List<ServiceResult>();
 
             while (tasks.Count() > 0)
@@ -365,6 +367,8 @@ namespace SCM.Services.SCMServices
                 Task<ServiceResult> task = await Task.WhenAny(tasks);
                 results.Add(task.Result);
                 tasks.Remove(task);
+
+                // Update caller with progress
 
                 progress.Report(task.Result);
             }
@@ -1011,7 +1015,10 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         private async Task<ServiceResult> DeleteAttachmentAsync(Attachment attachment)
         {
-            var result = new ServiceResult { IsSuccess = true };
+            var result = new ServiceResult
+            {
+                IsSuccess = true
+            };
 
             try
             {

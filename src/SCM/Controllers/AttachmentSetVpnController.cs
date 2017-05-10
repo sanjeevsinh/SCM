@@ -70,14 +70,14 @@ namespace SCM.Controllers
         {
             if (id == null)
             {
-                return;
+                RedirectToAction("PageNotFound");
             }
 
             var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
 
             if (attachmentSet == null)
             {
-                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set was not found.", false);
+                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The attachment set was not found.", false);
                 return;
             }
 
@@ -117,15 +117,14 @@ namespace SCM.Controllers
         {
             if (id == null)
             {
-                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set ID cannot be null.", false);
-                return;
+                RedirectToAction("PageNotFound");
             }
 
             var attachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
 
             if (attachmentSet == null)
             {
-                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The Attachment Set was not found.", false);
+                HubContext.Clients.Group($"AttachmentSet_{id.Value}").onAllComplete("The attachment set was not found.", false);
                 return;
             }
 
@@ -160,10 +159,18 @@ namespace SCM.Controllers
             }
         }
 
-        void UpdateClientProgress(ServiceResult result)
+        /// <summary>
+        /// Delegate method which is called when sync or checksync of an 
+        /// individual VPN has completed.
+        /// </summary>
+        /// <param name="result"></param>
+        private void UpdateClientProgress(ServiceResult result)
         {
             var vpn = (Vpn)result.Item;
             var attachmentSet = (AttachmentSet)result.Context;
+
+            // Update all clients which are subscribed to the Attachment Set context
+            // supplied in the result object
 
             HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
                 .onSingleComplete(Mapper.Map<VpnViewModel>(vpn), result.IsSuccess);

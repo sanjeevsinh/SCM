@@ -7,7 +7,7 @@
 <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/Home">Home</a></li>
     <li class="breadcrumb-item"><a href="/Tenant/GetAll">Tenants</a></li>
-    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.TenantID">Attachments - [@ViewBag.Tenant.Name]</a></li>
+    <li class="breadcrumb-item"><a href="/Attachment/GetAllByTenantID/@Model.TenantID">Attachments - [@Model.Tenant.Name]</a></li>
     <li class="breadcrumb-item active">Delete - [@Model.Name]</li>
 </ol>
 
@@ -71,7 +71,7 @@
         <div class="form-actions no-color">
             <input type="submit" id="DeleteFromNetwork" asp-action="DeleteFromNetwork" asp-route-tenantID="@Context.Request.Query["tenantID"]" value="Delete Network Only" class="btn btn-default" /> |
             <input type="submit" id ="Delete" asp-action="Delete" value="Delete" asp-route-tenantID="@Context.Request.Query["tenantID"]" class="btn btn-default" /> |
-            <a asp-action="GetAllByTenantID" asp-route-id="@ViewBag.Tenant.TenantID">Back to Attachments List</a>
+            <a asp-action="GetAllByTenantID" asp-route-id="@Model.Tenant.TenantID">Back to Attachments List</a>
         </div>
     </form>
 </div>

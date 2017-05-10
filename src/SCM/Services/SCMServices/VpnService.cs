@@ -320,6 +320,8 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
+                // Update caller with progress
+
                 progress.Report(task.Result);
             }
 
@@ -387,7 +389,8 @@ namespace SCM.Services.SCMServices
                 results.Add(task.Result);
                 tasks.Remove(task);
 
-                // Do something with the VPN
+                // Update caller with progress
+
                 progress.Report(task.Result);
             }
 

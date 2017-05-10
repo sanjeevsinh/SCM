@@ -69,12 +69,14 @@
             </div>
             <div class="col-md-2">
                 <label class="checkbox-inline">
-                    <input type="checkbox" asp-for="BundleRequired"> <label asp-for="BundleRequired"></label>
+                    <input type="checkbox" asp-for="BundleRequired" data-toggle="tooltip" title="Request a bundle attachment"> 
+                    <label asp-for="BundleRequired"></label>
                 </label>
             </div>
             <div class="col-md-2">
                 <label class="checkbox-inline">
-                    <input type="checkbox" asp-for="MultiPortRequired"> <label asp-for="MultiPortRequired"></label>
+                    <input type="checkbox" asp-for="MultiPortRequired" data-toggle="tooltip" title="Request a multi-port attachment"> 
+                    <label asp-for="MultiPortRequired"></label>
                 </label>
             </div>
             <div class="col-md-6">
@@ -85,12 +87,14 @@
             </div>
             <div class="col-md-2">
                 <label class="checkbox-inline">
-                    <input type="checkbox" asp-for="IsTagged" data-toggle="tooltip" title="Enable IEEE802.1Q Vlan Tagging"> <label asp-for="IsTagged"></label>
+                    <input type="checkbox" asp-for="IsTagged" data-toggle="tooltip" title="Enable for IEEE802.1Q vlan tagging"> 
+                    <label asp-for="IsTagged"></label>
                 </label>
             </div>
             <div class="col-md-2">
                 <label class="checkbox-inline">
-                    <input type="checkbox" asp-for="IsLayer3" data-toggle="tooltip" title="Enable for Layer 3"> <label asp-for="IsLayer3"></label>
+                    <input type="checkbox" asp-for="IsLayer3" data-toggle="tooltip" title="Enable for layer 3"> 
+                    <label asp-for="IsLayer3"></label>
                 </label>
             </div>
             <div class="col-md-6">
@@ -110,7 +114,7 @@
             </div>
             <div class="col-md-10">
                 <label class="checkbox-inline">
-                    <input type="checkbox" asp-for="TrustReceivedCosDscp"> <label asp-for="TrustReceivedCosDscp"></label>
+                    <input type="checkbox" asp-for="TrustReceivedCosDscp" data-toggle="tooltip" title="Trust the COS and DSCP markings received in packets on this attachment"> <label asp-for="TrustReceivedCosDscp"></label>
                 </label>
             </div>
         </div>

@@ -20,9 +20,9 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> DeleteAsync(Vif vif);
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Vif> vifs);
         Task<ServiceResult> CheckNetworkSyncAsync(Vif vif);
-        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vif> vifs, IProgress<ServiceResult> progress);
         Task<ServiceResult> SyncToNetworkAsync(Vif vif);
-        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs);
+        Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vif> vifs, IProgress<ServiceResult> progress);
         Task<ServiceResult> DeleteFromNetworkAsync(Vif vif);
         Task<ServiceResult> ValidateNewAsync(VifRequest request);
         Task<ServiceResult> ValidateAsync(Vpn vpn);

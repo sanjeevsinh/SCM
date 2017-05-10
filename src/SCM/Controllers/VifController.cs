@@ -13,23 +13,32 @@ using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
+using Microsoft.AspNetCore.SignalR.Infrastructure;
+using SCM.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SCM.Controllers
 {
     public class VifController : BaseViewController
     {
-        public VifController(IVifService vifService, IAttachmentService attachmentService, IVrfService vrfService, IMapper mapper)
+        public VifController(IVifService vifService, 
+            IAttachmentService attachmentService, 
+            IVrfService vrfService, 
+            IMapper mapper,
+            IConnectionManager signalRConnectionManager)
         {
             VifService = vifService;
             AttachmentService = attachmentService;
             VrfService = vrfService;
             Mapper = mapper;
+            HubContext = signalRConnectionManager.GetHubContext<NetworkSyncHub>();
         }
         
         private IAttachmentService AttachmentService { get; set; } 
         private IVifService VifService { get; set; }
         private IVrfService VrfService { get; set; }
         private IMapper Mapper { get; set; }
+        private IHubContext HubContext { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> GetByID(int id)
@@ -39,6 +48,7 @@ namespace SCM.Controllers
             {
                 return NotFound();
             }
+
             return View(Mapper.Map<VifViewModel>(item));
         }
 
@@ -351,18 +361,19 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSyncAllByAttachmentID(int? id)
+        public async Task CheckSyncAllByAttachmentID(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
             }
 
             var attachment = await AttachmentService.GetByIDAsync(id.Value);
 
             if (attachment == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete("The attachment was not found.", false);
+                return;
             }
 
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
@@ -370,14 +381,19 @@ namespace SCM.Controllers
             if (vifs.Count() > 0)
             {
 
-                var checkSyncResults = await VifService.CheckNetworkSyncAsync(vifs);
+                var message = String.Empty;
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var checkSyncResults = await VifService.CheckNetworkSyncAsync(vifs, progress);
+
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
-                    ViewData["SuccessMessage"] = "All VIFs are synchronised with the network.";
+                    message = "All VIFs are synchronised with the network.";
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -386,10 +402,10 @@ namespace SCM.Controllers
                     await VifService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
-
-            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
-
-            return View("GetAllByAttachmentID", Mapper.Map<List<VifViewModel>>(vifs));
+            else
+            {
+                HubContext.Clients.All.onAllComplete("No vifs were found", true);
+            }
         }
 
         [HttpPost]
@@ -428,33 +444,38 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SyncAllByAttachmentID(int? id)
+        public async Task SyncAllByAttachmentID(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
             }
 
             var attachment = await AttachmentService.GetByIDAsync(id.Value);
 
             if (attachment == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete("The attachment was not found.", false);
+                return;
             }
 
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
 
             if (vifs.Count() > 0)
             {
-                var checkSyncResults = await VifService.SyncToNetworkAsync(vifs);
+                var message = string.Empty;
+                var progress = new Progress<ServiceResult>(UpdateClientProgress);
+                var checkSyncResults = await VifService.SyncToNetworkAsync(vifs, progress);
 
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
-                    ViewData["SuccessMessage"] = "All VIFs are synchronised with the network.";
+                    message = "All VIFs are synchronised with the network.";
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -463,10 +484,10 @@ namespace SCM.Controllers
                     await VifService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
-
-            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
-
-            return View("GetAllByAttachmentID", Mapper.Map<List<VifViewModel>>(vifs));
+            else
+            {
+                HubContext.Clients.All.onAllComplete("No vifs were found", true);
+            }
         }
 
         [HttpPost]
@@ -543,7 +564,25 @@ namespace SCM.Controllers
         private async Task PopulateContractBandwidthsDropDownList(object selectedContractBandwidth = null)
         {
             var contractBandwidths = await AttachmentService.UnitOfWork.ContractBandwidthRepository.GetAsync();
-            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(b => b.BandwidthMbps), "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
+            ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(b => b.BandwidthMbps), 
+                "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
+        }
+
+        /// <summary>
+        /// Delegate method which is called when sync or checksync of an 
+        /// individual vif has completed.
+        /// </summary>
+        /// <param name="result"></param>
+        private void UpdateClientProgress(ServiceResult result)
+        {
+            var vif = (Vif)result.Item;
+            var attachment = (Attachment)result.Context;
+
+            // Update all clients which are subscribed to the Tenant context
+            // supplied in the result object
+
+            HubContext.Clients.Group($"Attachment_{attachment.AttachmentID}")
+                .onSingleComplete(Mapper.Map<VifViewModel>(vif), result.IsSuccess);
         }
     }
 }

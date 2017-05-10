@@ -10,15 +10,17 @@
     <li class="breadcrumb-item active">Attachments - [@ViewBag.Tenant.Name]</li>
 </ol>
 
-@if (@ViewData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
-}
+<div id="successMessageContainer" class="alert alert-success" role="alert">
+    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+    <span class="sr-only">Success:</span>
+    <span id="successMessage">@Html.Raw(ViewData["SuccessMessage"])</span>
+</div>
 
-@if (@ViewData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
-}
+<div id="errorMessageContainer" class="alert alert-danger" role="alert">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+    <span id="errorMessage">@Html.Raw(ViewData["ErrorMessage"])</span>
+</div>
 
 <h2>Attachments for Tenant '@ViewBag.Tenant.Name'</h2>
 
@@ -35,9 +37,6 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Device)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsBundle)
@@ -64,6 +63,7 @@
                 @Html.DisplayNameFor(model => model.RequiresSync)
             </th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
 
@@ -76,9 +76,6 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Device.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Location.SiteName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.IsBundle)
@@ -101,9 +98,10 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
                 </td>
-                <td>
+                <td id="requiresSync_@item.AttachmentID">
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
+                <td class="row-spinner spinner-element" id="syncStatus_@item.AttachmentID"></td>
                 <td>
                     @Html.ActionLink("Details", "Details", new { id = item.AttachmentID, tenantID = item.TenantID }) |
                     @Html.ActionLink("Delete", "Delete", new { id = item.AttachmentID, tenantID = item.TenantID })
@@ -128,29 +126,26 @@
         }
     </tbody>
 </table>
-<form asp-action="Sync">
-    <input type="hidden" name="id" value="@ViewBag.Tenant.TenantID" />
-    <input type="submit" id="CheckSync" asp-action="CheckSyncAllByTenantID" value="Check Sync All" class="btn btn-default" /> |
-    <input type="submit" id="Sync" asp-action="SyncAllByTenantID" value="Sync All" class="btn btn-default" /> |
-    <a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
-</form>
+<input type="hidden" name="TenantID" id="TenantID" value="@ViewBag.Tenant.TenantID" />
+<input type="submit" id="CheckSync" value="Check Sync All" class="btn btn-default" /> |
+<input type="submit" id="Sync" value="Sync All" class="btn btn-default" /> |
+<a asp-controller="Tenant" asp-action="GetAll">Back to Tenants</a>
+
 @section Scripts {
 
     <script type="text/javascript">
 
         (function ($) {
 
-            var $sync = $('#Sync');
-            var $checkSync = $('#CheckSync');
+            var $tenantID = $('#TenantID'),
+                tenantVal = $tenantID[0].value;
 
-            $sync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-            $checkSync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
+            SCM.Utilities.connectToNetworkSyncHub({
+                checkSyncUrl: '/Attachment/CheckSyncAllByTenantID',
+                syncUrl: '/Attachment/SyncAllByTenantID',
+                contextVal: tenantVal,
+                groupName: 'Tenant_' + tenantVal,
+                itemKey: 'AttachmentID'
             });
 
         }(jQuery));

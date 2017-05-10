@@ -36,11 +36,11 @@ namespace SCM.Controllers
             var checkSyncResult = VpnService.ShallowCheckNetworkSync(vpns);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["ValidationSuccessMessage"] = "All VPNs appear to be synchronised with the network.";
+                ViewData["SuccessMessage"] = "All VPNs appear to be synchronised with the network.";
             }
             else
             {
-                ViewData["ValidationErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
             }
 
             return View(Mapper.Map<List<VpnViewModel>>(vpns));

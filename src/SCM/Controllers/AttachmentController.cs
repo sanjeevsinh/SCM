@@ -236,17 +236,20 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Attachment attachment)
+        public async Task<IActionResult> Delete(AttachmentViewModel attachment)
         {
+
+            var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
             try
             {
-                var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
-                if (item == null)
-                {
-                    return NotFound();
-                }
-
                 var validationResult = await ValidateDelete(item);
+
                 if (validationResult)
                 {
                     // Delete resource from the network first
@@ -292,7 +295,7 @@ namespace SCM.Controllers
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = attachment.ID });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = item.AttachmentID });
             }
         }
 
@@ -321,7 +324,8 @@ namespace SCM.Controllers
             {
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. " 
+                        + "Press the 'Sync' button to update the network.";
                 }
 
                 ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
@@ -338,15 +342,14 @@ namespace SCM.Controllers
         {
             if (id == null)
             {
-                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The Tenant ID cannot be null.", false);
-                return;
+                RedirectToAction("PageNotFound");
             }
 
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
 
             if (tenant == null)
             {
-                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The Tenant was not found.", false);
+                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The tenant was not found.", false);
                 return;
             }
             
@@ -415,17 +418,19 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SyncAllByTenantID(int? id)
+        public async Task SyncAllByTenantID(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
             }
 
             var tenant = await AttachmentService.UnitOfWork.TenantRepository.GetByIDAsync(id.Value);
+
             if (tenant == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The tenant was not found.", false);
+                return;
             }
 
             var attachments = await AttachmentService.GetAllByTenantIDAsync(id.Value);
@@ -439,11 +444,13 @@ namespace SCM.Controllers
 
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
-                    ViewData["SuccessMessage"] = "All Attachments are synchronised with the network.";
+                    message = "All attachments are synchronised with the network.";
+                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => ViewData["ErrorMessage"] += q.GetHtmlListMessage());
+                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -452,10 +459,10 @@ namespace SCM.Controllers
                     await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
                 }
             }
-
-            ViewBag.Tenant = tenant;
-
-            return View("GetAllByTenantID", Mapper.Map<List<AttachmentViewModel>>(attachments));
+            else
+            {
+                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("No attachments were found", true);
+            }
         }
 
         [HttpPost]
@@ -572,12 +579,20 @@ namespace SCM.Controllers
             ViewBag.ContractBandwidthID = new SelectList(contractBandwidths.OrderBy(b => b.BandwidthMbps), "ContractBandwidthID", "BandwidthMbps", selectedContractBandwidth);
         }
 
-        void UpdateClientProgress(ServiceResult result)
+        /// <summary>
+        /// Delegate method which is called when sync or checksync of an 
+        /// individual Attachment has completed.
+        /// </summary>
+        /// <param name="result"></param>
+        private void UpdateClientProgress(ServiceResult result)
         {
             var attachment = (Attachment)result.Item;
             var tenant = (Tenant)result.Context;
 
-            HubContext.Clients.Group($"Attachment_{attachment.AttachmentID}")
+            // Update all clients which are subscribed to the Tenant context
+            // supplied in the result object
+
+            HubContext.Clients.Group($"Tenant_{tenant.TenantID}")
                 .onSingleComplete(Mapper.Map<AttachmentViewModel>(attachment), result.IsSuccess);
         }
     }
