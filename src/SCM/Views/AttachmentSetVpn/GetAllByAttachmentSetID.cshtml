@@ -54,6 +54,7 @@
             </th>
             <th></th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -83,6 +84,10 @@
             <td id="requiresSync_@item.VpnID">
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
+            <td>
+                <input type="submit" id="Sync_@item.VpnID" value="Sync" data-item-val="@item.VpnID" class="btn btn-default btn-sync" />
+                <input type="submit" id="CheckSync_@item.VpnID" value="Check Sync" data-item-val="@item.VpnID" class="btn btn-default btn-checksync" />
+            </td>
             <td class="row-spinner spinner-element" id="syncStatus_@item.VpnID">
             </td>
             <td>
@@ -93,8 +98,8 @@
     </tbody>
 </table>
 <input type="hidden" name="AttachmentSetID" id="AttachmentSetID" value="@ViewBag.AttachmentSet.AttachmentSetID" />
-<input type="submit" id="CheckSync" asp-action="CheckSyncAllByAttachmentSetID" value="Check Sync All" class="btn btn-default" /> |
-<input type="submit" id="Sync" asp-action="SyncAllByAttachmentSetID" value="Sync All" class="btn btn-default" /> |
+<input type="submit" id="CheckSync" value="Check Sync All" class="btn btn-default" /> |
+<input type="submit" id="Sync" value="Sync All" class="btn btn-default" /> |
 <a asp-action="GetAllByTenantID" asp-controller="AttachmentSet" asp-route-id="@ViewBag.AttachmentSet.TenantID">Back to Attachment Sets</a>
 
 @section Scripts {

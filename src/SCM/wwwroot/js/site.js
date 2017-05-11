@@ -48,9 +48,9 @@ SCM.Utilities = (function () {
     var connectToNetworkSyncHub = function (args) {
 
         var $successMessage = $('#successMessage'),
-                   $errorMessage = $('#errorMessage'),
-                   $successMessageContainer = $('#successMessageContainer'),
-                   $errorMessageContainer = $('#errorMessageContainer');
+            $errorMessage = $('#errorMessage'),
+            $successMessageContainer = $('#successMessageContainer'),
+            $errorMessageContainer = $('#errorMessageContainer');
 
         var errorGlyph = '<div class="alert alert-danger" role="alert">'
           + '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>'
@@ -62,17 +62,72 @@ SCM.Utilities = (function () {
           + '<span class="sr-only">Success:</span>'
           + '</div>';
 
+
         var onConnectionSuccess = function (hub) {
 
             // Join the hub group for the current Attachment Set
 
             hub.server.joinGroup(args.groupName);
 
-            var $sync = $('#Sync'),
-                $checkSync = $('#CheckSync');
+            // Handle Sync All and Check Sync All button click events
 
-            handleButtonClick($sync, args.syncUrl);
-            handleButtonClick($checkSync, args.checkSyncUrl);
+            handleButtonClick({
+                $button: $('#Sync'),
+                $spinnerContainer: $('.row-spinner'),
+                url: args.syncAllUrl,
+                val: args.contextVal,
+                fdisableButtons: function () {
+                    // Disable all buttons, including row buttons, whilst SyncAll executes
+
+                    $('.btn').prop('disabled', true);
+                }
+            });
+
+            handleButtonClick({
+                $button: $('#CheckSync'),
+                $spinnerContainer: $('.row-spinner'),
+                url: args.checkSyncAllUrl,
+                val: args.contextVal,
+                fdisableButtons: function () {
+                    // Disable all buttons, including row buttons, whilst CheckSyncAll executes
+
+                    $('.btn').prop('disabled', true);
+                }
+            });
+
+            // Handle click events for buttons in each table row
+
+            $('.table .btn-checksync').each(function () {
+
+                var $this = $(this);
+
+                handleButtonClick({
+                    $button: $this,
+                    $spinnerContainer: $this.parents('tr').children('.row-spinner'),
+                    url: args.checkSyncUrl,
+                    val: $this.data('item-val'),
+                    fdisableButtons: function () {
+                        var $buttons = $this.parents('td').children('.btn');
+                        $buttons.prop('disabled', true);
+                    }
+                });
+            });
+
+            $('.table .btn-sync').each(function () {
+
+                var $this = $(this);
+
+                handleButtonClick({
+                    $button: $this,
+                    $spinnerContainer: $this.parents('tr').children('.row-spinner'),
+                    url: args.syncUrl,
+                    val: $this.data('item-val'),
+                    fdisableButtons: function () {
+                        var $buttons = $this.parents('td').children('.btn');
+                        $buttons.prop('disabled', true);
+                    }
+                });
+            });
         };
 
         initMessaging();
@@ -105,11 +160,11 @@ SCM.Utilities = (function () {
                     showErrorMessage("Failed to establish a connection to the server.");
                 });
 
-            // Create a method that the hub calls when processing of all VPNs is complete
+            // Create a method that the hub calls when processing of all items is complete
 
             hub.client.onAllComplete = function (message, success) {
 
-                // Enable submit buttons
+                // Enable all buttons
 
                 $('.btn').prop('disabled', false);
 
@@ -121,60 +176,75 @@ SCM.Utilities = (function () {
                 }
             };
 
-            // Create a method that the hub calls when processing of a single vpn has completed
+            // Create a method that the hub calls when processing of a single item has completed
 
-            hub.client.onSingleComplete = function (item, success) {
+            hub.client.onSingleComplete = function (item, success, message) {
+
+                // Stop the spinner
 
                 var $syncStatus = $('#syncStatus_' + item[args.itemKey]);
+                $syncStatus.data('spinner').stop();
 
                 // Set requiresSync checkbox state
 
                 $('#requiresSync_' + item[args.itemKey] + ' > input').prop('checked', !success);
 
-                $syncStatus.data('spinner').stop();
+                // Enable buttons
+
+                $syncStatus.parents('tr').find('.btn').prop('disabled', false);
+
+                // Show success or error glyph
 
                 if (success) {
                     $syncStatus.html(successGlyph);
+                    if (message) showSuccessMessage(message);
                 }
                 else {
                     $syncStatus.html(errorGlyph);
+                    if (message) showErrorMessage(message);
                 }
             };
         }
 
-        function handleButtonClick($button, url) {
+        function handleButtonClick(args) {
 
-            $button.on('click', function (e) {
+            args.$button.on('click', function (e) {
 
                 // Prevent double-click
 
-                $('.btn').prop('disabled', true);
+                args.fdisableButtons();
 
-                var $spinnerElems = $(".row-spinner");
-                $spinnerElems.each(function () {
+                // Show spinners
 
-                    var $this = $(this);
-                    $this.empty();
-
-                    var spinnerOpts = {
-                        lines: 13,
-                        length: 28,
-                        width: 14,
-                        radius: 42,
-                        scale: 0.15
-                    };
-
-                    var spinner = new Spinner(spinnerOpts).spin(this);
-                    $this.data('spinner', spinner);
-                });
+                initSpinners(args.$spinnerContainer);
 
                 // Call the server
 
                 $.ajax({
-                    url: url,
+                    url: args.url,
                     method: 'POST',
-                    data: { id: args.contextVal }
+                    data: { id: args.val }
                 });
+            });
+        }
+
+        function initSpinners($item) {
+
+            $item.each(function () {
+
+                var $this = $(this);
+                $this.empty();
+
+                var spinnerOpts = {
+                    lines: 13,
+                    length: 28,
+                    width: 14,
+                    radius: 42,
+                    scale: 0.15
+                };
+
+                var spinner = new Spinner(spinnerOpts).spin(this);
+                $this.data('spinner', spinner);
             });
         }
 

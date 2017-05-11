@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
 using SCM.Hubs;
 using Microsoft.AspNetCore.SignalR.Infrastructure;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SCM.Controllers
 {
@@ -25,7 +26,8 @@ namespace SCM.Controllers
                            IAttachmentSetVrfService attachmentSetVrfService,
                            IAttachmentService attachmentService, 
                            IVifService vifService,
-                           IMapper mapper)
+                           IMapper mapper,
+                           IConnectionManager signalRConnectionManager)
         {
             VpnService = vpnService;
             RouteTargetService = routeTargetService;
@@ -33,8 +35,10 @@ namespace SCM.Controllers
             VifService = vifService;
             AttachmentSetVrfService = attachmentSetVrfService;
             AttachmentSetService = attachmentSetService;
+            HubContext = signalRConnectionManager.GetHubContext<NetworkSyncHub>();
             Mapper = mapper;
         }
+
         internal IVpnService VpnService { get; set; }
         internal IAttachmentService AttachmentService { get; set; }
         internal IVifService VifService { get; set; }
@@ -42,6 +46,7 @@ namespace SCM.Controllers
         internal IAttachmentSetService AttachmentSetService { get; set; }
         internal IAttachmentSetVrfService AttachmentSetVrfService { get; set; }
         internal IMapper Mapper { get; set; }
+        private IHubContext HubContext { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> Details(VpnViewModel vpn)
@@ -64,14 +69,25 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(VpnViewModel vpn)
+        public async Task Sync(int? id)
         {
-            var item = await VpnService.GetByIDAsync(vpn.VpnID);
-            if (item == null)
+            if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+
+                return;
             }
 
+            var item = await VpnService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                HubContext.Clients.Group($"Tenant_{item.TenantID}")
+                    .onSingleComplete(null, false, "The vpn was not found.");
+
+                return;
+            }
+
+            var mappedItem = Mapper.Map<VpnViewModel>(item);
             var validationOk = true;
             var validationMessage = "You must resolve the following issues first: ";
 
@@ -105,31 +121,26 @@ namespace SCM.Controllers
 
             if (!validationOk)
             {
-                ViewData["ErrorMessage"] += validationMessage;
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(mappedItem, false, validationMessage);
             }
             else
             {
                 var syncResult = await VpnService.SyncToNetworkAsync(item);
+
                 if (syncResult.IsSuccess)
                 {
-                    ViewData["SuccessMessage"] = "The network is synchronised.";
+                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                        .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the metwork.");
                 }
                 else
                 {
-                    ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                        .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
                 }
 
                 await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
             }
-
-            var mappedVpn = Mapper.Map<VpnViewModel>(item);
-            if (vpn.AttachmentSetID != null)
-            {
-                var attachmentSet = await AttachmentSetService.GetByIDAsync(vpn.AttachmentSetID.Value);
-                mappedVpn.AttachmentSet = Mapper.Map<AttachmentSetViewModel>(attachmentSet);
-            }
-
-            return View("Details", mappedVpn);
         }
 
         [HttpPost]

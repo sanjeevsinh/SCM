@@ -238,7 +238,6 @@ namespace SCM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(AttachmentViewModel attachment)
         {
-
             var item = await AttachmentService.GetByIDAsync(attachment.AttachmentID);
 
             if (item == null)
@@ -300,41 +299,49 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(int? id)
+        public async Task CheckSync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+
+                return;
             }
 
             var item = await AttachmentService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(null, false, "The attachment was not found.");
+
+                return;
             }
 
             var checkSyncResult = await AttachmentService.CheckNetworkSyncAsync(item);
+            var mappedItem = Mapper.Map<AttachmentViewModel>(item);
+
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The attachment is synchronised with the network.";
-                item.RequiresSync = false;
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(mappedItem, true, "The attachment is synchronised with the network.");
             }
             else
             {
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    ViewData["ErrorMessage"] = "The attachment is not synchronised with the network. " 
-                        + "Press the 'Sync' button to update the network.";
+                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                        .onSingleComplete(mappedItem, false, "The attachment is not synchronised with the network. "
+                        + "Press the 'Sync' button to update the network.");
                 }
-
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
+                else
+                {
+                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                        .onSingleComplete(mappedItem, false, checkSyncResult.GetHtmlListMessage());
+                }
             }
 
             await AttachmentService.UpdateRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
-
-            return View("Details", Mapper.Map<AttachmentViewModel>(item));
         }
 
         [HttpPost]
@@ -386,35 +393,40 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(int? id)
+        public async Task Sync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+
+                return;
             }
 
             var item = await AttachmentService.GetByIDAsync(id.Value);
+
             if (item == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(null, false, "The attachment was not found.");
+
+                return;
             }
 
-            var syncResult = await AttachmentService.SyncToNetworkAsync(item);
+            var result = await AttachmentService.SyncToNetworkAsync(item);
+            var mappedItem = Mapper.Map<AttachmentViewModel>(item);
 
-            if (syncResult.IsSuccess)
+            if (result.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The network is synchronised.";
-                item.RequiresSync = false;
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(mappedItem, true, "The attachment is synchronised with the network.");
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
+                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
             }
 
-            await AttachmentService.UpdateRequiresSyncAsync(item, !syncResult.IsSuccess, true);
-
-            return View("Details", Mapper.Map<AttachmentViewModel>(item));
+            await AttachmentService.UpdateRequiresSyncAsync(item, !result.IsSuccess, true);
         }
 
         [HttpPost]

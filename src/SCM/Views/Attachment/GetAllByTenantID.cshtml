@@ -29,7 +29,7 @@
 </p>
 
 
-<table class="table">
+<table class="table" id="attachmentsTable">
     <thead>
         <tr>
             <th>
@@ -54,14 +54,9 @@
                 @Html.DisplayNameFor(model => model.Vrf)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AttachmentBandwidth)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContractBandwidthPool)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.RequiresSync)
             </th>
+            <th></th>
             <th></th>
             <th></th>
         </tr>
@@ -92,14 +87,12 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Vrf.Name)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.AttachmentBandwidth.BandwidthGbps)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
-                </td>
                 <td id="requiresSync_@item.AttachmentID">
                     @Html.DisplayFor(modelItem => item.RequiresSync)
+                </td>
+                <td>
+                    <input type="submit" id="Sync_@item.AttachmentID" value="Sync" data-item-val="@item.AttachmentID" class="btn btn-default btn-sync" />
+                    <input type="submit" id="CheckSync_@item.AttachmentID" value="Check Sync" data-item-val="@item.AttachmentID" class="btn btn-default btn-checksync" />
                 </td>
                 <td class="row-spinner spinner-element" id="syncStatus_@item.AttachmentID"></td>
                 <td>
@@ -141,8 +134,10 @@
                 tenantVal = $tenantID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Attachment/CheckSyncAllByTenantID',
-                syncUrl: '/Attachment/SyncAllByTenantID',
+                checkSyncUrl: '/Attachment/CheckSync',
+                syncUrl: '/Attachment/Sync',
+                checkSyncAllUrl: '/Attachment/CheckSyncAllByTenantID',
+                syncAllUrl: '/Attachment/SyncAllByTenantID',
                 contextVal: tenantVal,
                 groupName: 'Tenant_' + tenantVal,
                 itemKey: 'AttachmentID'
