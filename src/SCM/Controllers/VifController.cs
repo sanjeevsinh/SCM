@@ -320,44 +320,45 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(int? id)
+        public async Task CheckSync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("NotFound");
             }
 
             var item = await VifService.GetByIDAsync(id.Value);
 
             if (item == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Attachment_{id.Value}")
+                    .onSingleComplete(null, false, "The vpn was not found.");
+
+                return;
             }
 
+            var mappedItem = Mapper.Map<VifViewModel>(item);
             var checkSyncResult = await VifService.CheckNetworkSyncAsync(item);
-
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The vif is synchronised with the network.";
-                item.RequiresSync = false;
+                HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
+                    .onSingleComplete(mappedItem, true, $"Vif {mappedItem.Name} is synchronised with the network.");
             }
             else
             {
+                var message = String.Empty;
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    ViewData["ErrorMessage"] = "The vif is not synchronised with the network. Press the 'Sync' button to update the network.";
+                    HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
+                        .onSingleComplete(mappedItem, true, $"Vif {mappedItem.Name} is not synchronised with the network. "
+                        + "Press the 'Sync' button to update the network.");
                 }
 
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
+                HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
+                    .onSingleComplete(mappedItem, true, checkSyncResult.GetHtmlListMessage());
             }
 
             await VifService.UpdateRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
-
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
-            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
-
-            return View("Details", Mapper.Map<VifViewModel>(item));
         }
 
         [HttpPost]

@@ -91,8 +91,12 @@
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
-                    <input type="submit" id="Sync_@item.AttachmentID" value="Sync" data-item-val="@item.AttachmentID" class="btn btn-default btn-sync" />
-                    <input type="submit" id="CheckSync_@item.AttachmentID" value="Check Sync" data-item-val="@item.AttachmentID" class="btn btn-default btn-checksync" />
+                    <input type="submit" id="Sync_@item.AttachmentID" value="Sync"
+                           data-item='{"id" : "@item.AttachmentID"}'
+                           class="btn btn-default btn-sync" />
+                    <input type="submit" id="CheckSync_@item.AttachmentID" value="Check Sync"
+                           data-item='{"id" : "@item.AttachmentID"}'
+                           class="btn btn-default btn-checksync" />
                 </td>
                 <td class="row-spinner spinner-element" id="syncStatus_@item.AttachmentID"></td>
                 <td>
@@ -139,7 +143,7 @@
                 checkSyncAllUrl: '/Attachment/CheckSyncAllByTenantID',
                 syncAllUrl: '/Attachment/SyncAllByTenantID',
                 contextVal: tenantVal,
-                groupName: 'Tenant_' + tenantVal,
+                groupName: 'TenantAttachment_' + tenantVal,
                 itemKey: 'AttachmentID'
             });
 

@@ -79,6 +79,14 @@
                 <td id="requiresSync_@item.VifID">
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
+                <td>
+                    <input type="submit" id="Sync_@item.VifID" value="Sync"
+                           data-item='{"id" : "@item.VifID"}'
+                           class="btn btn-default btn-sync" />
+                    <input type="submit" id="CheckSync_@item.VifID" value="Check Sync"
+                           data-item='{"id" : "@item.VifID"}'
+                           class="btn btn-default btn-checksync" />
+                </td>
                 <td class="row-spinner spinner-element" id="syncStatus_@item.VifID">
                 </td>
                 <td>
@@ -116,8 +124,10 @@
                 attachmentVal = $attachmentID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Vif/CheckSyncAllByAttachmentID',
-                syncUrl: '/Vif/SyncAllByAttachmentID',
+                checkSyncUrl: '/Vif/CheckSync',
+                syncUrl: '/Vif/SyncAll',
+                checkSyncAllUrl: '/Vif/CheckSyncAllByAttachmentID',
+                syncAllUrl: '/Vif/SyncAllByAttachmentID',
                 contextVal: attachmentVal,
                 groupName: 'Attachment_' + attachmentVal,
                 itemKey: 'VifID'

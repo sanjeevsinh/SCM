@@ -67,27 +67,3 @@
         <a asp-action="GetAll">Back to List</a>
     </div>
 </form>
-
-@section Scripts {
-
-    <script type="text/javascript">
-
-        (function ($) {
-
-            var $sync = $('#Sync');
-            var $checkSync = $('#CheckSync');
-
-            $sync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-            $checkSync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-        }(jQuery));
-
-</script>
-}

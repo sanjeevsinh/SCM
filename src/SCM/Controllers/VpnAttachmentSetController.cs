@@ -16,8 +16,11 @@ namespace SCM.Controllers
 {
     public class VpnAttachmentSetController : BaseViewController
     {
-        public VpnAttachmentSetController(IVpnAttachmentSetService vpnAttachmentSetService, IVpnService vpnService, 
-            IAttachmentSetService attachmentSetService, IAttachmentSetVrfService attachmentSetVrfService, IMapper mapper)
+        public VpnAttachmentSetController(IVpnAttachmentSetService vpnAttachmentSetService, 
+            IVpnService vpnService, 
+            IAttachmentSetService attachmentSetService, 
+            IAttachmentSetVrfService attachmentSetVrfService, 
+            IMapper mapper)
         {
            VpnAttachmentSetService = vpnAttachmentSetService;
            VpnService = vpnService;

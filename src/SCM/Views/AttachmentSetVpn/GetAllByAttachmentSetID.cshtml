@@ -85,8 +85,12 @@
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
-                <input type="submit" id="Sync_@item.VpnID" value="Sync" data-item-val="@item.VpnID" class="btn btn-default btn-sync" />
-                <input type="submit" id="CheckSync_@item.VpnID" value="Check Sync" data-item-val="@item.VpnID" class="btn btn-default btn-checksync" />
+                <input type="submit" id="Sync_@item.VpnID" value="Sync" 
+                       data-item='{"AttachmentSetID" : "@ViewBag.AttachmentSet.AttachmentSetID", "VpnID" : "@item.VpnID"}' 
+                       class="btn btn-default btn-sync" />
+                <input type="submit" id="CheckSync_@item.VpnID" value="Check Sync" 
+                       data-item='{"AttachmentSetID" : "@ViewBag.AttachmentSet.AttachmentSetID", "VpnID" : "@item.VpnID"}' 
+                       class="btn btn-default btn-checksync" />
             </td>
             <td class="row-spinner spinner-element" id="syncStatus_@item.VpnID">
             </td>
@@ -109,11 +113,13 @@
         (function ($) {
 
             var $attachmentSetID = $('#AttachmentSetID'),
-                attachmentSetVal = $attachmentSetID[0].value;
+            attachmentSetVal = $attachmentSetID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/AttachmentSetVpn/CheckSyncAllByAttachmentSetID',
-                syncUrl: '/AttachmentSetVpn/SyncAllByAttachmentSetID',
+                checkSyncUrl: '/AttachmentSetVpn/CheckSync',
+                syncUrl: '/AttachmentSetVpn/Sync',
+                checkSyncAllUrl: '/AttachmentSetVpn/CheckSyncAllByAttachmentSetID',
+                syncAllUrl: '/AttachmentSetVpn/SyncAllByAttachmentSetID',
                 contextVal: attachmentSetVal,
                 groupName: 'AttachmentSet_' + attachmentSetVal,
                 itemKey: 'VpnID'

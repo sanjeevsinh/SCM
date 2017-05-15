@@ -139,31 +139,6 @@
 <form asp-action="">
     <input type="hidden" asp-for="AttachmentID" name="id" />
     <div class="form-actions no-color">
-        <input type="submit" id="CheckSync" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" id="Sync" asp-action="Sync" value="Sync" class="btn btn-default" /> |
         <a asp-action="GetAllByTenantID" asp-route-id="@Model.TenantID">Back to Attachments List</a>
     </div>
 </form>
-@section Scripts {
-
-    <script type="text/javascript">
-
-        (function ($) {
-
-            var $sync = $('#Sync');
-            var $checkSync = $('#CheckSync');
-
-            $sync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-            $checkSync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-        }(jQuery));
-
-    </script>
- }

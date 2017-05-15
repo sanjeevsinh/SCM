@@ -12,6 +12,7 @@ using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
+using Microsoft.AspNetCore.SignalR.Infrastructure;
 
 namespace SCM.Controllers
 {
@@ -23,8 +24,16 @@ namespace SCM.Controllers
             IAttachmentSetVrfService attachmentSetVrfService, 
             IAttachmentService attachmentService, 
             IVifService vifService, 
-            IMapper mapper) :
-            base(vpnService, routeTargetService, attachmentSetService, attachmentSetVrfService, attachmentService, vifService, mapper)
+            IMapper mapper,
+            IConnectionManager signalRConnectionManager) :
+            base(vpnService, 
+                routeTargetService, 
+                attachmentSetService, 
+                attachmentSetVrfService, 
+                attachmentService, 
+                vifService, 
+                mapper,
+                signalRConnectionManager)
         {
         }
 
@@ -323,6 +332,122 @@ namespace SCM.Controllers
                 //Log the error (uncomment ex variable name and write a log.)
                 return RedirectToAction("Delete", new { concurrencyError = true, id = id });
             }
+        }
+        [HttpPost]
+        public async Task Sync(int? id)
+        {
+            if (id == null)
+            {
+                RedirectToAction("PageNotFound");
+                return;
+            }
+
+            var item = await VpnService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                HubContext.Clients.Group($"TenantVpn_{id.Value}")
+                    .onSingleComplete(null, false, "The vpn was not found.");
+
+                return;
+            }
+
+            var mappedItem = Mapper.Map<VpnViewModel>(item);
+            var validationOk = true;
+            var validationMessage = "You must resolve the following issues first: ";
+
+            var attachmentValidationResult = await AttachmentService.ValidateAsync(item);
+            if (!attachmentValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += attachmentValidationResult.GetHtmlListMessage();
+            }
+
+            var vifValidationResult = await VifService.ValidateAsync(item);
+            if (!vifValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += vifValidationResult.GetHtmlListMessage();
+            }
+
+            var routeTargetsValidationResult = RouteTargetService.Validate(item);
+            if (!routeTargetsValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += routeTargetsValidationResult.GetHtmlListMessage();
+            }
+
+            var attachmentSetVrfsValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(item);
+            if (!attachmentSetVrfsValidationResult.IsSuccess)
+            {
+                validationOk = false;
+                validationMessage += attachmentSetVrfsValidationResult.GetHtmlListMessage();
+            }
+
+            if (!validationOk)
+            {
+                HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    .onSingleComplete(mappedItem, false, validationMessage);
+            }
+            else
+            {
+                var syncResult = await VpnService.SyncToNetworkAsync(item);
+
+                if (syncResult.IsSuccess)
+                {
+                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                        .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the network.");
+                }
+                else
+                {
+                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                        .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
+                }
+
+                await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
+            }
+        }
+
+        [HttpPost]
+        public async Task CheckSync(int? id)
+        {
+            if (id == null)
+            {
+                RedirectToAction("PageNotFound");
+                return;
+            }
+
+            var item = await VpnService.GetByIDAsync(id.Value);
+            if (item == null)
+            {
+                HubContext.Clients.Group($"TenantVpn_{id.Value}")
+                    .onSingleComplete(null, false, "The vpn was not found.");
+
+                return;
+            }
+
+            var mappedItem = Mapper.Map<VpnViewModel>(item);
+            var result = await VpnService.CheckNetworkSyncAsync(item);
+            if (result.IsSuccess)
+            {
+                HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the network.");
+            }
+            else
+            {
+                if (result.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                        .onSingleComplete(mappedItem, false,
+                        $"VPN {item.Name} is not synchronised with the network. Press the 'Sync' button to update the network.");
+                }
+                else
+                {
+                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                        .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                }
+            }
+
+            await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !result.IsSuccess, true);
         }
 
         private async Task PopulatePlanesDropDownList(object selectedPlane = null)

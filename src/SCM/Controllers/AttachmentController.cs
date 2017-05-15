@@ -312,7 +312,7 @@ namespace SCM.Controllers
 
             if (item == null)
             {
-                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                     .onSingleComplete(null, false, "The attachment was not found.");
 
                 return;
@@ -323,20 +323,20 @@ namespace SCM.Controllers
 
             if (checkSyncResult.IsSuccess)
             {
-                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                     .onSingleComplete(mappedItem, true, "The attachment is synchronised with the network.");
             }
             else
             {
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                         .onSingleComplete(mappedItem, false, "The attachment is not synchronised with the network. "
                         + "Press the 'Sync' button to update the network.");
                 }
                 else
                 {
-                    HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                    HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                         .onSingleComplete(mappedItem, false, checkSyncResult.GetHtmlListMessage());
                 }
             }
@@ -356,7 +356,7 @@ namespace SCM.Controllers
 
             if (tenant == null)
             {
-                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The tenant was not found.", false);
+                HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete("The tenant was not found.", false);
                 return;
             }
             
@@ -372,12 +372,12 @@ namespace SCM.Controllers
                 if (results.Where(q => q.IsSuccess).Count() == results.Count())
                 {
                     message = "All attachments are synchronised with the network.";
-                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
                     results.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, false);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in results)
@@ -406,7 +406,7 @@ namespace SCM.Controllers
 
             if (item == null)
             {
-                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                     .onSingleComplete(null, false, "The attachment was not found.");
 
                 return;
@@ -417,12 +417,12 @@ namespace SCM.Controllers
 
             if (result.IsSuccess)
             {
-                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                     .onSingleComplete(mappedItem, true, "The attachment is synchronised with the network.");
             }
             else
             {
-                HubContext.Clients.Group($"Tenant_{item.Tenant.TenantID}")
+                HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
                     .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
             }
 
@@ -441,7 +441,7 @@ namespace SCM.Controllers
 
             if (tenant == null)
             {
-                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("The tenant was not found.", false);
+                HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete("The tenant was not found.", false);
                 return;
             }
 
@@ -457,12 +457,12 @@ namespace SCM.Controllers
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
                     message = "All attachments are synchronised with the network.";
-                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, true);
                 }
                 else
                 {
                     checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete(message, false);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -473,7 +473,7 @@ namespace SCM.Controllers
             }
             else
             {
-                HubContext.Clients.Group($"Tenant_{id.Value}").onAllComplete("No attachments were found", true);
+                HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete("No attachments were found", true);
             }
         }
 
@@ -604,7 +604,7 @@ namespace SCM.Controllers
             // Update all clients which are subscribed to the Tenant context
             // supplied in the result object
 
-            HubContext.Clients.Group($"Tenant_{tenant.TenantID}")
+            HubContext.Clients.Group($"TenantAttachment_{tenant.TenantID}")
                 .onSingleComplete(Mapper.Map<AttachmentViewModel>(attachment), result.IsSuccess);
         }
     }

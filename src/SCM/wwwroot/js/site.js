@@ -75,7 +75,7 @@ SCM.Utilities = (function () {
                 $button: $('#Sync'),
                 $spinnerContainer: $('.row-spinner'),
                 url: args.syncAllUrl,
-                val: args.contextVal,
+                data: { id: args.contextVal },
                 fdisableButtons: function () {
                     // Disable all buttons, including row buttons, whilst SyncAll executes
 
@@ -87,7 +87,7 @@ SCM.Utilities = (function () {
                 $button: $('#CheckSync'),
                 $spinnerContainer: $('.row-spinner'),
                 url: args.checkSyncAllUrl,
-                val: args.contextVal,
+                data: { id: args.contextVal },
                 fdisableButtons: function () {
                     // Disable all buttons, including row buttons, whilst CheckSyncAll executes
 
@@ -105,7 +105,7 @@ SCM.Utilities = (function () {
                     $button: $this,
                     $spinnerContainer: $this.parents('tr').children('.row-spinner'),
                     url: args.checkSyncUrl,
-                    val: $this.data('item-val'),
+                    data: $this.data('item'),
                     fdisableButtons: function () {
                         var $buttons = $this.parents('td').children('.btn');
                         $buttons.prop('disabled', true);
@@ -121,7 +121,7 @@ SCM.Utilities = (function () {
                     $button: $this,
                     $spinnerContainer: $this.parents('tr').children('.row-spinner'),
                     url: args.syncUrl,
-                    val: $this.data('item-val'),
+                    data: $this.data('item'),
                     fdisableButtons: function () {
                         var $buttons = $this.parents('td').children('.btn');
                         $buttons.prop('disabled', true);
@@ -164,6 +164,10 @@ SCM.Utilities = (function () {
 
             hub.client.onAllComplete = function (message, success) {
 
+                // Stop all spinners
+
+                $('.row-spinner').data('spinner').stop();
+
                 // Enable all buttons
 
                 $('.btn').prop('disabled', false);
@@ -193,7 +197,7 @@ SCM.Utilities = (function () {
 
                 $syncStatus.parents('tr').find('.btn').prop('disabled', false);
 
-                // Show success or error glyph
+                // Show success or error glyph and message
 
                 if (success) {
                     $syncStatus.html(successGlyph);
@@ -223,7 +227,7 @@ SCM.Utilities = (function () {
                 $.ajax({
                     url: args.url,
                     method: 'POST',
-                    data: { id: args.val }
+                    data: args.data
                 });
             });
         }
