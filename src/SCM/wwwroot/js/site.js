@@ -71,29 +71,35 @@ SCM.Utilities = (function () {
 
             // Handle Sync All and Check Sync All button click events
 
-            handleButtonClick({
-                $button: $('#Sync'),
-                $spinnerContainer: $('.row-spinner'),
-                url: args.syncAllUrl,
-                data: { id: args.contextVal },
-                fdisableButtons: function () {
-                    // Disable all buttons, including row buttons, whilst SyncAll executes
+            if (args.SyncAllUrl) {
 
-                    $('.btn').prop('disabled', true);
-                }
-            });
+                handleButtonClick({
+                    $button: $('#Sync'),
+                    $spinnerContainer: $('.row-spinner'),
+                    url: args.syncAllUrl,
+                    data: { id: args.contextVal },
+                    fdisableButtons: function () {
+                        // Disable all buttons, including row buttons, whilst SyncAll executes
 
-            handleButtonClick({
-                $button: $('#CheckSync'),
-                $spinnerContainer: $('.row-spinner'),
-                url: args.checkSyncAllUrl,
-                data: { id: args.contextVal },
-                fdisableButtons: function () {
-                    // Disable all buttons, including row buttons, whilst CheckSyncAll executes
+                        $('.btn').prop('disabled', true);
+                    }
+                });
+            }
 
-                    $('.btn').prop('disabled', true);
-                }
-            });
+            if (args.checkSyncAllUrl) {
+
+                handleButtonClick({
+                    $button: $('#CheckSync'),
+                    $spinnerContainer: $('.row-spinner'),
+                    url: args.checkSyncAllUrl,
+                    data: { id: args.contextVal },
+                    fdisableButtons: function () {
+                        // Disable all buttons, including row buttons, whilst CheckSyncAll executes
+
+                        $('.btn').prop('disabled', true);
+                    }
+                });
+            }
 
             // Handle click events for buttons in each table row
 

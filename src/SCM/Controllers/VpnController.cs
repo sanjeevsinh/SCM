@@ -345,9 +345,7 @@ namespace SCM.Controllers
             var item = await VpnService.GetByIDAsync(id.Value);
             if (item == null)
             {
-                HubContext.Clients.Group($"TenantVpn_{id.Value}")
-                    .onSingleComplete(null, false, "The vpn was not found.");
-
+                RedirectToAction("PageNotFound");
                 return;
             }
 
@@ -419,9 +417,7 @@ namespace SCM.Controllers
             var item = await VpnService.GetByIDAsync(id.Value);
             if (item == null)
             {
-                HubContext.Clients.Group($"TenantVpn_{id.Value}")
-                    .onSingleComplete(null, false, "The vpn was not found.");
-
+                RedirectToAction("PageNotFound");
                 return;
             }
 

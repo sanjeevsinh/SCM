@@ -87,31 +87,6 @@
 <form asp-action="Sync">
     <input type="hidden" asp-for="VpnID" name="VpnID" />
     <input type="hidden" asp-for="AttachmentSetID" name="AttachmentSetID" />
-    <input type="submit" id="CheckSync" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-    <input type="submit" id="Sync" asp-action="Sync" value="Sync" class="btn btn-default" /> |
     @Html.ActionLink("Edit", "Edit", new { id = Model.VpnID }) |
     <a asp-action="GetAll">Back to List</a>
 </form>
-@section Scripts {
-
-    <script type="text/javascript">
-
-        (function ($) {
-
-            var $sync = $('#Sync');
-            var $checkSync = $('#CheckSync');
-
-            $sync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-            $checkSync.on('click', function (e) {
-
-                SCM.Utilities.showSpinner($('body')[0]);
-            });
-
-        }(jQuery));
-
-    </script>
- }

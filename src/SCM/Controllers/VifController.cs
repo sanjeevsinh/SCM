@@ -350,12 +350,12 @@ namespace SCM.Controllers
                 if (checkSyncResult.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
                     HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
-                        .onSingleComplete(mappedItem, true, $"Vif {mappedItem.Name} is not synchronised with the network. "
+                        .onSingleComplete(mappedItem, false, $"Vif {mappedItem.Name} is not synchronised with the network. "
                         + "Press the 'Sync' button to update the network.");
                 }
 
                 HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
-                    .onSingleComplete(mappedItem, true, checkSyncResult.GetHtmlListMessage());
+                    .onSingleComplete(mappedItem, false, checkSyncResult.GetHtmlListMessage());
             }
 
             await VifService.UpdateRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
@@ -410,38 +410,38 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sync(int? id)
+        public async Task Sync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("NotFound");
             }
 
             var item = await VifService.GetByIDAsync(id.Value);
+
             if (item == null)
             {
-                return NotFound();
+                HubContext.Clients.Group($"Attachment_{id.Value}")
+                    .onSingleComplete(null, false, "The vpn was not found.");
+
+                return;
             }
 
+            var mappedItem = Mapper.Map<VifViewModel>(item);
             var syncResult = await VifService.SyncToNetworkAsync(item);
-
             if (syncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The network is synchronised.";
-                item.RequiresSync = false;
+                HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
+                    .onSingleComplete(mappedItem, true, $"Vif {mappedItem.Name} is synchronised with the network.");
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
+                HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
+                    .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
             }
 
             await VifService.UpdateRequiresSyncAsync(item, !syncResult.IsSuccess, true);
 
-            var attachment = await AttachmentService.GetByIDAsync(item.AttachmentID);
-            ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
-
-            return View("Details", Mapper.Map<VifViewModel>(item));
         }
 
         [HttpPost]
