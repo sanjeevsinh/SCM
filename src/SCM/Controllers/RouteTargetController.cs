@@ -45,11 +45,11 @@ namespace SCM.Controllers
 
             if (!validateResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty,validateResult.GetMessage());
+                ViewData["ErrorMessage"] = validateResult.GetHtmlListMessage();
             }
             else
             {
-                ViewData["ValidationSuccessMessage"] = "The Route Targets for this VPN are configured correctly!";
+                ViewData["SuccessMessage"] = "The Route Targets for this VPN are configured correctly!";
             }
 
             var routeTargets = await RouteTargetService.GetAllByVpnIDAsync(id.Value);

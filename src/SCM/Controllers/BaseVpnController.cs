@@ -102,5 +102,19 @@ namespace SCM.Controllers
 
             return View("Details", mappedVpn);
         }
+        internal async Task<IEnumerable<ServiceResult>> GetFailedValidationResultsAsync(Vpn vpn)
+        {
+            var tasks = new List<Task<ServiceResult>>();
+
+            tasks.Add(AttachmentService.ValidateAsync(vpn));
+            tasks.Add(VifService.ValidateAsync(vpn));
+            tasks.Add(AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(vpn));
+
+            var results = new List<ServiceResult>();
+            results.AddRange(await Task.WhenAll(tasks));
+            results.Add(RouteTargetService.Validate(vpn));
+
+            return results.Where(q => !q.IsSuccess);
+        }
     }
 }

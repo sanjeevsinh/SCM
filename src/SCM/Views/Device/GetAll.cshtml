@@ -9,15 +9,17 @@
     <li class="breadcrumb-item active">Devices</li>
 </ol>
 
-@if (@ViewData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@Html.Raw(ViewData["SuccessMessage"])</div>
-}
+<div id="successMessageContainer" class="alert alert-success" role="alert">
+    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+    <span class="sr-only">Success:</span>
+    <span id="successMessage">@Html.Raw(ViewData["SuccessMessage"])</span>
+</div>
 
-@if (@ViewData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@Html.Raw(ViewData["ErrorMessage"])</div>
-}
+<div id="errorMessageContainer" class="alert alert-danger" role="alert">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+    <span id="errorMessage">@Html.Raw(ViewData["ErrorMessage"])</span>
+</div>
 
 
 <h2>Devices</h2>
@@ -61,9 +63,18 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Location.SiteName)
             </td>
-            <td>
+            <td id="requiresSync_@item.ID">
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
+            <td>
+                <input type="submit" id="Sync_@item.ID" value="Sync"
+                       data-item='{"id" : "@item.ID"}'
+                       class="btn btn-default btn-sync" />
+                <input type="submit" id="CheckSync_@item.ID" value="Check Sync"
+                       data-item='{"id" : "@item.ID"}'
+                       class="btn btn-default btn-checksync" />
+            </td>
+            <td class="row-spinner spinner-element" id="syncStatus_@item.ID"></td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
                 @Html.ActionLink("Details", "Details", new { id = item.ID } ) |
@@ -74,3 +85,20 @@
 }
     </tbody>
 </table>
+@section Scripts {
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            SCM.Utilities.connectToNetworkSyncHub({
+                checkSyncUrl: '/Device/CheckSync',
+                syncUrl: '/Device/Sync',
+                groupName: 'Devices',
+                itemKey: 'ID'
+            });
+
+        }(jQuery));
+
+    </script>
+}

@@ -280,11 +280,11 @@ namespace SCM.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(Vpn vpn)
         {
             try
             {
-                var item = await VpnService.UnitOfWork.VpnRepository.GetByIDAsync(id);
+                var item = await VpnService.UnitOfWork.VpnRepository.GetByIDAsync(vpn.VpnID);
 
                 if (item == null)
                 {
@@ -330,7 +330,7 @@ namespace SCM.Controllers
             catch (DbUpdateConcurrencyException /* ex */)
             {
                 //Log the error (uncomment ex variable name and write a log.)
-                return RedirectToAction("Delete", new { concurrencyError = true, id = id });
+                return RedirectToAction("Delete", new { concurrencyError = true, id = vpn.VpnID });
             }
         }
         [HttpPost]
@@ -350,41 +350,14 @@ namespace SCM.Controllers
             }
 
             var mappedItem = Mapper.Map<VpnViewModel>(item);
-            var validationOk = true;
-            var validationMessage = "You must resolve the following issues first: ";
+            var failedValidationResults = await GetFailedValidationResultsAsync(item);
 
-            var attachmentValidationResult = await AttachmentService.ValidateAsync(item);
-            if (!attachmentValidationResult.IsSuccess)
+            if (failedValidationResults.Count() > 0)
             {
-                validationOk = false;
-                validationMessage += attachmentValidationResult.GetHtmlListMessage();
-            }
-
-            var vifValidationResult = await VifService.ValidateAsync(item);
-            if (!vifValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += vifValidationResult.GetHtmlListMessage();
-            }
-
-            var routeTargetsValidationResult = RouteTargetService.Validate(item);
-            if (!routeTargetsValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += routeTargetsValidationResult.GetHtmlListMessage();
-            }
-
-            var attachmentSetVrfsValidationResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(item);
-            if (!attachmentSetVrfsValidationResult.IsSuccess)
-            {
-                validationOk = false;
-                validationMessage += attachmentSetVrfsValidationResult.GetHtmlListMessage();
-            }
-
-            if (!validationOk)
-            {
-                HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
-                    .onSingleComplete(mappedItem, false, validationMessage);
+                var message = "You must resolve the following issues first: ";
+                failedValidationResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                HubContext.Clients.Group("Vpns")
+                    .onSingleComplete(mappedItem, false, message);
             }
             else
             {
@@ -392,12 +365,12 @@ namespace SCM.Controllers
 
                 if (syncResult.IsSuccess)
                 {
-                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    HubContext.Clients.Group("Vpns")
                         .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the network.");
                 }
                 else
                 {
-                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    HubContext.Clients.Group("Vpns")
                         .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
                 }
 
@@ -425,20 +398,20 @@ namespace SCM.Controllers
             var result = await VpnService.CheckNetworkSyncAsync(item);
             if (result.IsSuccess)
             {
-                HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                HubContext.Clients.Group("Vpns")
                     .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the network.");
             }
             else
             {
                 if (result.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
                 {
-                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    HubContext.Clients.Group("Vpns")
                         .onSingleComplete(mappedItem, false,
                         $"VPN {item.Name} is not synchronised with the network. Press the 'Sync' button to update the network.");
                 }
                 else
                 {
-                    HubContext.Clients.Group($"TenantVpn_{item.TenantID}")
+                    HubContext.Clients.Group("Vpns")
                         .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
                 }
             }

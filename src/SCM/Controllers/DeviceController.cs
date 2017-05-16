@@ -12,18 +12,25 @@ using SCM.Services.SCMServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net;
+using Microsoft.AspNetCore.SignalR.Infrastructure;
+using Microsoft.AspNetCore.SignalR;
+using SCM.Hubs;
 
 namespace SCM.Controllers
 {
     public class DeviceController : BaseViewController
     {
-        public DeviceController(IDeviceService deviceService, IMapper mapper)
+        public DeviceController(IDeviceService deviceService, 
+            IMapper mapper,
+            IConnectionManager signalRConnectionManager)
         {
            DeviceService = deviceService;
            Mapper = mapper;
+           HubContext = signalRConnectionManager.GetHubContext<NetworkSyncHub>();
         }
         private IDeviceService DeviceService { get; set; }
         private IMapper Mapper { get; set; }
+        private IHubContext HubContext { get; set; }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -60,64 +67,78 @@ namespace SCM.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckSync(int? id)
+        public async Task CheckSync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+                return;
             }
 
             var item = await DeviceService.GetByIDAsync(id.Value);
             if (item == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+                return;
             }
 
-            var checkSyncResult = await DeviceService.CheckNetworkSyncAsync(item);
-            if (checkSyncResult.IsSuccess)
+            var mappedItem = Mapper.Map<DeviceViewModel>(item);
+            var result = await DeviceService.CheckNetworkSyncAsync(item);
+            if (result.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The device is synchronised with the network.";
-                item.RequiresSync = false;
+                HubContext.Clients.Group("Devices")
+                    .onSingleComplete(mappedItem, true, $"Device {item.Name} is synchronised with the network.");
             }
             else
             {
-                ViewData["ErrorMessage"] = "The device is not synchronised with the network. Press the 'Sync' button to update the network.";
-                ViewData["ErrorMessage"] += checkSyncResult.GetHtmlListMessage();
-                item.RequiresSync = true;
+                if (result.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    HubContext.Clients.Group("Devices")
+                        .onSingleComplete(mappedItem, false,
+                        $"Device {item.Name} is not synchronised with the network. Press the 'Sync' button to update the network.");
+                }
+                else
+                {
+                    HubContext.Clients.Group("Devices")
+                        .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                }
             }
 
-            return View("Details", Mapper.Map<DeviceViewModel>(item));
+            await DeviceService.UpdateDeviceRequiresSyncAsync(item.ID, !result.IsSuccess, true);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> Sync(int? id)
+        public async Task Sync(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+                return;
             }
 
             var item = await DeviceService.GetByIDAsync(id.Value);
             if (item == null)
             {
-                return NotFound();
+                RedirectToAction("PageNotFound");
+                return;
             }
 
+            var mappedItem = Mapper.Map<DeviceViewModel>(item);
             var syncResult = await DeviceService.SyncToNetworkAsync(item);
 
             if (syncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "The network is synchronised.";
+                HubContext.Clients.Group("Devices")
+                    .onSingleComplete(mappedItem, true, $"Device {item.Name} is synchronised with the network.");
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                HubContext.Clients.Group("Devices")
+                    .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
             }
 
-            item.RequiresSync = !syncResult.IsSuccess;
-
-            return View("Details", Mapper.Map<DeviceViewModel>(item));
+            await DeviceService.UpdateDeviceRequiresSyncAsync(item.ID, !syncResult.IsSuccess, true);
         }
 
         [HttpGet]
@@ -344,6 +365,8 @@ namespace SCM.Controllers
                 ViewData["DeviceDeletedMessage"] = "The device has been deleted by another user. Return to the list.";
                 return View("DeviceDeleted");
             }
+
+            await DeviceService.UpdateDeviceRequiresSyncAsync(device.ID, true, false);
 
             var syncResult = await DeviceService.DeleteFromNetworkAsync(device);
             if (syncResult.IsSuccess)

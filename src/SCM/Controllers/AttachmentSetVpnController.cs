@@ -284,21 +284,6 @@ namespace SCM.Controllers
             return results;
         }
 
-        private async Task<IEnumerable<ServiceResult>> GetFailedValidationResultsAsync(Vpn vpn)
-        {
-            var tasks = new List<Task<ServiceResult>>();
-
-            tasks.Add(AttachmentService.ValidateAsync(vpn));
-            tasks.Add(VifService.ValidateAsync(vpn));
-            tasks.Add(AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(vpn));
-
-            var results = await Task.WhenAll(tasks);
-            results.Append(RouteTargetService.Validate(vpn));
-
-            return results.Where(q => !q.IsSuccess);
-        }
-
-
         /// <summary>
         /// Delegate method which is called when sync or checksync of an 
         /// individual VPN has completed.

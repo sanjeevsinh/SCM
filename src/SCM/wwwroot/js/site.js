@@ -71,7 +71,7 @@ SCM.Utilities = (function () {
 
             // Handle Sync All and Check Sync All button click events
 
-            if (args.SyncAllUrl) {
+            if (args.syncAllUrl) {
 
                 handleButtonClick({
                     $button: $('#Sync'),
@@ -172,7 +172,9 @@ SCM.Utilities = (function () {
 
                 // Stop all spinners
 
-                $('.row-spinner').data('spinner').stop();
+                
+                var spinners = $('.row-spinner').data('spinner');
+                if (spinners) spinners.stop();
 
                 // Enable all buttons
 

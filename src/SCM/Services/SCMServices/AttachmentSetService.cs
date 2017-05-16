@@ -24,7 +24,8 @@ namespace SCM.Services.SCMServices
                 includeProperties: "Tenant,"
                 + "SubRegion,"
                 + "Region,"
-                + "AttachmentRedundancy", AsTrackable: false);
+                + "AttachmentRedundancy,"
+                + "AttachmentSetVrfs.Vrf.Device.Plane", AsTrackable: false);
 
             return dbResult.SingleOrDefault();
         }

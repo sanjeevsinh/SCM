@@ -20,5 +20,7 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> CheckNetworkSyncAsync(Device device);
         Task<ServiceResult> SyncToNetworkAsync(Device device);
         Task<ServiceResult> DeleteFromNetworkAsync(Device device);
+        Task UpdateDeviceRequiresSyncAsync(int deviceID, bool requiresSync, bool saveChanges = true);
+        Task UpdateDeviceRequiresSyncAsync(Device device, bool requiresSync, bool saveChanges = true);
     }
 }

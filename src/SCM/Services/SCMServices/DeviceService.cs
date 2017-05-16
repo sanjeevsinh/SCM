@@ -27,7 +27,9 @@ namespace SCM.Services.SCMServices
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
                                + "Attachments.Vifs.Vlans,"
                                + "Attachments.Vifs.Vrf.BgpPeers,"
-                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable: false);
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth,"
+                               + "Plane,"
+                               + "Location", AsTrackable: false);
         }
 
         public async Task<Device> GetByIDAsync(int id)
@@ -41,7 +43,9 @@ namespace SCM.Services.SCMServices
                                + "Attachments.ContractBandwidthPool.ContractBandwidth,"
                                + "Attachments.Vifs.Vlans,"
                                + "Attachments.Vifs.Vrf.BgpPeers,"
-                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable: false);
+                               + "Attachments.Vifs.ContractBandwidthPool.ContractBandwidth,"
+                               + "Plane,"
+                               + "Location", AsTrackable: false);
 
             return result.SingleOrDefault();
         }
@@ -92,28 +96,79 @@ namespace SCM.Services.SCMServices
 
         public async Task<ServiceResult> CheckNetworkSyncAsync(Device device)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = device
+            };
+
             var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
             var syncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
-                    
-            await UpdateDeviceRequiresSyncAsync(device, !result.IsSuccess);
+
+            result.NetworkSyncServiceResults.Add(syncResult);
+
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+                device.RequiresSync = true;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed and the device was tested for sync with the network
+
+                    result.Add($"Device '{device.Name}' is not synchronised with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error checking status for device '{device.Name}'.");
+                }
+            }
+            else
+            {
+                device.RequiresSync = false;
+            }
 
             return result;
         }
 
         public async Task<ServiceResult> SyncToNetworkAsync(Device device)
         {
-            var result = new ServiceResult();
+            var result = new ServiceResult
+            {
+                IsSuccess = true,
+                Item = device
+            };
+
             var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
             var syncResult = await NetSync.SyncNetworkAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
 
-            result.AddRange(syncResult.Messages);
-            result.IsSuccess = syncResult.IsSuccess;
-        
-            await UpdateDeviceRequiresSyncAsync(device, !result.IsSuccess);
+            result.NetworkSyncServiceResults.Add(syncResult);
+
+            if (!syncResult.IsSuccess)
+            {
+                result.IsSuccess = false;
+                device.RequiresSync = true;
+
+                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                {
+                    // Request was successfully executed but synchronisation failed
+
+                    result.Add($"Failed to synchronise device '{device.Name}' with the network.");
+                }
+                else
+                {
+                    // Request failed to execute for some reason - e.g server down, no network etc
+
+                    result.Add($"There was an error synchronising device '{device.Name}' with the network.");
+                }
+            }
+            else
+            {
+                device.RequiresSync = false;
+            }
 
             return result;
         }
@@ -127,23 +182,39 @@ namespace SCM.Services.SCMServices
             result.AddRange(syncResult.Messages);
             result.IsSuccess = syncResult.IsSuccess;
 
-            await UpdateDeviceRequiresSyncAsync(device, true);
-
             return result;
         }
 
         /// <summary>
-        /// Helper to update the RequiresSync property of a vpn record.
+        /// Helper to update the RequiresSync property of a device record.
         /// </summary>
-        /// <param name="vpn"></param>
+        /// <param name="device"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        private async Task<int> UpdateDeviceRequiresSyncAsync(Device device, bool requiresSync)
+        public async Task UpdateDeviceRequiresSyncAsync(Device device, bool requiresSync, bool saveChanges = true)
         {
             device.RequiresSync = requiresSync;
             UnitOfWork.DeviceRepository.Update(device);
+            if (saveChanges)
+            {
+                await UnitOfWork.SaveAsync();
+            }
 
-            return await UnitOfWork.SaveAsync();
+            return;
+        }
+
+        /// <summary>
+        /// Helper to update the RequiresSync property of a device record.
+        /// </summary>
+        /// <param name="deviceID"></param>
+        /// <param name="requiresSync"></param>
+        /// <returns></returns>
+        public async Task UpdateDeviceRequiresSyncAsync(int deviceID, bool requiresSync, bool saveChanges = true)
+        {
+            var device = await GetByIDAsync(deviceID);
+            await UpdateDeviceRequiresSyncAsync(device, requiresSync, saveChanges);
+
+            return;
         }
     }
 }

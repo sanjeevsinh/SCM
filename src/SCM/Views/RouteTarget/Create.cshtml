@@ -26,10 +26,13 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="AutoAllocateAssignedNumberSubField" class="col-md-2 control-label"></label>
+            <div class="col-md-2">
+            </div>
             <div class="col-md-10">
-                <input asp-for="AutoAllocateAssignedNumberSubField" class="checkbox" />
-                <span asp-validation-for="AutoAllocateAssignedNumberSubField" class="text-danger" />
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="AutoAllocateAssignedNumberSubField" data-toggle="tooltip" title="Check to request an automatically allocated route target"> 
+                    <label asp-for="AutoAllocateAssignedNumberSubField"></label>
+                </label>
             </div>
         </div>
         <div class="form-group">
@@ -42,9 +45,13 @@
 @if (ViewBag.Vpn.VpnTopologyType.TopologyType == "Hub-and-Spoke")
 {
         <div class="form-group">
-            <label asp-for="IsHubExport" class="col-md-2 control-label"></label>
+            <div class="col-md-2">
+            </div>
             <div class="col-md-10">
-                <input asp-for="IsHubExport" class="checkbox" />
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="IsHubExport" data-toggle="tooltip" title="Check to designate the route target as hub export">
+                    <label asp-for="IsHubExport"></label>
+                </label>
             </div>
         </div>
 }
@@ -66,6 +73,10 @@
 <script type="text/javascript">
 
     (function ($) {
+
+        // Initialise all tool-tips
+
+        $('[data-toggle="tooltip"]').tooltip();
 
         var $autoAllocateAssignedNumberSubField = $('#AutoAllocateAssignedNumberSubField'),
         autoAllocateAssignedNumberSubField = $autoAllocateAssignedNumberSubField[0];

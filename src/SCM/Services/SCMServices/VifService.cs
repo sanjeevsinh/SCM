@@ -488,7 +488,7 @@ namespace SCM.Services.SCMServices
                 }
             }
 
-            catch ( Exception /** ex **/  )
+            catch ( Exception  /** ex **/  )
             {
                 // Add logging for the exception here
                 result.Add("Something went wrong during the network update. The issue has been logged."

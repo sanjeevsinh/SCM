@@ -44,11 +44,11 @@ namespace SCM.Controllers
             var checkVrfsResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
             if (!checkVrfsResult.IsSuccess)
             {
-                checkVrfsResult.GetMessageList().ForEach(message => ModelState.AddModelError(string.Empty, message));
+                ViewData["ErrorMessage"] = checkVrfsResult.GetHtmlListMessage();
             }
             else
             {
-                ViewData["ValidationSuccessMessage"] = "The VRFs for this attachment set are configured correctly!";
+                ViewData["SuccessMessage"] = "The VRFs for this attachment set are configured correctly!";
             }
 
             var attachmentSetVrfs = await AttachmentSetVrfService.GetAllByAttachmentSetID(id.Value);

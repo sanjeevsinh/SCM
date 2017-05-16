@@ -298,9 +298,15 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                     if (source.Attachment.IsTagged)
                     {
                         var data = mapper.Map<TaggedAttachmentMultiPortNetModel>(source.Attachment);
+
+                        // Filter data to remove all VIFs and policy-bandwidths other than the VIF we're interested in
+                        // and the policy-bandwidth for that VIF
+
                         foreach (var member in data.MultiPortMembers)
                         {
                             member.Vifs = member.Vifs.Where(q => q.VlanID == source.VlanTag).ToList();
+                            var vif = member.Vifs.Single();
+                            member.PolicyBandwidths = member.PolicyBandwidths.Where(q => q.Name == vif.PolicyBandwidthName).ToList();
                         }
 
                         data.ContractBandwidthPools.Add(mapper.Map<ContractBandwidthPoolNetModel>(source.ContractBandwidthPool));

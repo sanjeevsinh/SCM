@@ -15,6 +15,15 @@
 <form asp-action="Create">
     <div class="form-horizontal">
         <hr />
+        <div class="form-group">
+            <label asp-for="Tenant" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
+                    <option value="">-- Select Tenant --</option>
+                </select>
+                <span asp-validation-for="TenantID" class="text-danger"></span>
+            </div>
+        </div>
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
@@ -64,15 +73,6 @@
                     <option value="">-- Select Topology Type --</option>
                 </select>
                 <span asp-validation-for="VpnTopologyTypeID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="Tenant" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <select asp-for="TenantID" class="form-control" asp-items="ViewBag.TenantID">
-                    <option value="">-- Select Tenant --</option>
-                </select>
-                <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
 @if (ViewBag.VpnProtocolType.ProtocolType == "IP")

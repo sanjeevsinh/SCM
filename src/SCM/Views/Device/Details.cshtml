@@ -61,8 +61,6 @@
 <form asp-action="">
     <input type="hidden" asp-for="ID" name="id"/>
     <div class="form-actions no-color">
-        <input type="submit" id="CheckSync" asp-action="CheckSync" value="Check Sync" class="btn btn-default" /> |
-        <input type="submit" id="Sync" asp-action="Sync" value="Sync" class="btn btn-default" /> |
         @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
         <a asp-action="GetAll">Back to List</a>
     </div>
