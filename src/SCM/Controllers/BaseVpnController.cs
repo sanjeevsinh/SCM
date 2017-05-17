@@ -88,7 +88,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(syncResult.GetMessage());
             }
 
             item.RequiresSync = true;

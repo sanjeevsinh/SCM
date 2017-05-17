@@ -21,16 +21,12 @@ namespace SCM.Services.SCMServices
         {
             Messages = new List<string>();
         }
-
-        public List<string> Messages { get; set; }
-
-        public bool IsSuccess { get; set; }
-
-        public string GetMessagesAsHtmlList()
+        public string GetMessage()
         {
-            var message = string.Concat(Messages.Select(q => $"<li>{q}</li>"));
-            return $"<ul>{message}</ul>";
+            return string.Concat(Messages);
         }
+        public List<string> Messages { get; set; }
+        public bool IsSuccess { get; set; }
         public string Content { get; set; }
         public object Item { get; set; }
         public NetworkSyncStatusCode StatusCode { get; set; }

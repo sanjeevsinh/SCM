@@ -18,20 +18,13 @@ namespace SCM.Services.SCMServices
 
         public string GetMessage()
         {
-            return string.Concat(Messages);
+            var messages = Messages.Concat(NetworkSyncServiceResults.Select(q => q.GetMessage()));
+            return string.Concat(messages);
         }
 
         public List<string> GetMessageList()
         {
             return Messages;
-        }
-
-        public string GetHtmlListMessage()
-        {
-            var message = string.Concat(Messages.Select(q => $"<li>{q}</li>"));
-            message += string.Concat(NetworkSyncServiceResults.SelectMany(q => q.Messages.Select(m => $"<li>{m}</li>")));
-
-           return $"<ul>{message}</ul>";
         }
 
         public void Add(string message)

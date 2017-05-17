@@ -175,8 +175,8 @@ namespace SCM.Services.SCMServices
             if (vifsRequireSync.Count() > 0)
             {
                 result.IsSuccess = false;
-                result.Add("The following vifs require synchronisation with the network:");
-                vifsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+                result.Add("\\The following vifs require synchronisation with the network:");
+                vifsRequireSync.ToList().ForEach(f => result.Add($"\\'{f.Name}'\\"));
             }
 
             return result;
@@ -212,13 +212,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed and the vif was tested for sync with the network
 
-                    result.Add($"Attachment '{vif.Name}' is not synchronised with the network.");
+                    result.Add($"\\Attachment '{vif.Name}' is not synchronised with the network\\");
                 }
                 else
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error checking status for vif '{vif.Name}'.");
+                    result.Add($"\\There was an error checking status for vif '{vif.Name}'\\");
                 }
             }
 
@@ -269,13 +269,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed but synchronisation failed
 
-                    result.Add($"Failed to synchronise vif '{vif.Name}' with the network.");
+                    result.Add($"\\Failed to synchronise vif '{vif.Name}' with the network\\");
                 }
                 else
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"There was an error synchronising vif '{vif.Name}' with the network.");
+                    result.Add($"\\There was an error synchronising vif '{vif.Name}' with the network\\");
                 }
             }
 
@@ -575,8 +575,8 @@ namespace SCM.Services.SCMServices
             {
 
                 result.IsSuccess = false;
-                result.Add("Vifs for the VPN require synchronisation with the network.");
-                vifsRequireSync.ForEach(a => result.Add($"'{a.Name}' on device '{a.Attachment.Device.Name}' for tenant '{a.Tenant.Name}'."));
+                result.Add("\\Vifs for the VPN require synchronisation with the network\\");
+                vifsRequireSync.ForEach(a => result.Add($"\\'{a.Name}' on device '{a.Attachment.Device.Name}' for tenant '{a.Tenant.Name}'\\"));
             }
 
             return result;
@@ -916,7 +916,7 @@ namespace SCM.Services.SCMServices
 
                 if (currentVifs.Where(q => q.VlanTag == request.RequestedVlanTag).Count() > 0)
                 {
-                    result.Add($"The requested vlan tag is already assigned.");
+                    result.Add("The requested vlan tag is already assigned.");
                     result.Add("Try again with a different vlan tag.");
                     result.IsSuccess = false;
 

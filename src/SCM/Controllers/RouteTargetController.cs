@@ -45,7 +45,7 @@ namespace SCM.Controllers
 
             if (!validateResult.IsSuccess)
             {
-                ViewData["ErrorMessage"] = validateResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(validateResult.GetMessage());
             }
             else
             {
@@ -201,7 +201,7 @@ namespace SCM.Controllers
 
                     if (!validationResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(validationResult.GetMessage());
                         await PopulateVpnItem(routeTarget.VpnID);
 
                         return View(Mapper.Map<RouteTargetViewModel>(currentRouteTarget));

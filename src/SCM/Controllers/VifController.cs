@@ -75,7 +75,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
@@ -262,7 +262,7 @@ namespace SCM.Controllers
                 var validateVrfDelete = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
                 if (!validateVrfDelete.IsSuccess)
                 {
-                    ViewData["ErrorMessage"] = validateVrfDelete.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] = FormatAsHtmlList(validateVrfDelete.GetMessage());
                 }
                 else
                 {
@@ -285,14 +285,14 @@ namespace SCM.Controllers
 
                     if (!inSync)
                     {
-                        ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] += FormatAsHtmlList(syncResult.GetMessage());
                     }
                     else 
                     {
                         var result = await VifService.DeleteAsync(item);
                         if (!result.IsSuccess)
                         {
-                            ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                            ViewData["ErrorMessage"] = FormatAsHtmlList(result.GetMessage());
                         }
                         else
                         {
@@ -355,7 +355,7 @@ namespace SCM.Controllers
                 }
 
                 HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
-                    .onSingleComplete(mappedItem, false, checkSyncResult.GetHtmlListMessage());
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(checkSyncResult.GetMessage()));
             }
 
             await VifService.UpdateRequiresSyncAsync(item, !checkSyncResult.IsSuccess, true);
@@ -389,12 +389,12 @@ namespace SCM.Controllers
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
                     message = "All VIFs are synchronised with the network.";
-                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, false);
+                    checkSyncResults.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -437,7 +437,7 @@ namespace SCM.Controllers
             else
             {
                 HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
-                    .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
             }
 
             await VifService.UpdateRequiresSyncAsync(item, !syncResult.IsSuccess, true);
@@ -475,8 +475,8 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(message, false);
+                    checkSyncResults.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"Attachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -510,7 +510,7 @@ namespace SCM.Controllers
             var validationResult = await VrfService.ValidateDeleteAsync(item.VrfID.Value);
             if (!validationResult.IsSuccess)
             {
-                ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(validationResult.GetMessage());
             }
             else
             {
@@ -521,7 +521,7 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] = FormatAsHtmlList(syncResult.GetMessage());
                 }
             }
 

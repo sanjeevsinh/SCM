@@ -198,6 +198,13 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        public async Task<int> UpdateAsync(Attachment attachment)
+        {
+            this.UnitOfWork.AttachmentRepository.Update(attachment);
+
+            return await this.UnitOfWork.SaveAsync();
+        }
+
         /// <summary>
         /// Perform shallow check of network sync state of a collection
         /// of attachments by checking the 'RequiresSync' property.
@@ -212,8 +219,8 @@ namespace SCM.Services.SCMServices
             if (attachmentsRequireSync.Count() > 0)
             {
                 result.IsSuccess = false;
-                result.Add("The following Attachments require synchronisation with the network:");
-                attachmentsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+                result.Add("The following Attachments require synchronisation with the network:.");
+                attachmentsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'."));
             }
 
             return result;
@@ -736,6 +743,7 @@ namespace SCM.Services.SCMServices
             var attachment = Mapper.Map<Attachment>(request);
             attachment.AttachmentBandwidthID = request.BandwidthID;
             attachment.RequiresSync = true;
+            attachment.Created = true;
 
             var iface = new Interface();
             iface.DeviceID = port.DeviceID;
@@ -810,6 +818,7 @@ namespace SCM.Services.SCMServices
             var attachment = Mapper.Map<Attachment>(request);
             attachment.AttachmentBandwidthID = request.BandwidthID;
             attachment.RequiresSync = true;
+            attachment.Created = true;
 
             var bundleIface = new Interface();
 
@@ -909,6 +918,7 @@ namespace SCM.Services.SCMServices
             attachment.DeviceID = request.DeviceID;
             attachment.AttachmentBandwidthID = request.BandwidthID;
             attachment.RequiresSync = true;
+            attachment.Created = true;
 
             try
             {

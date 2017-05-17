@@ -19,6 +19,7 @@ namespace SCM.Services.SCMServices
         Task<IEnumerable<Attachment>> GetAllByTenantAsync(Tenant tenant);
         Task<ServiceResult> AddAsync(AttachmentRequest attachmentRequest);
         Task<ServiceResult> DeleteAsync(Attachment attachment);
+        Task<int> UpdateAsync(Attachment attachment);
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Attachment> attachments);
         Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments, IProgress<ServiceResult> progress);
         Task<ServiceResult> CheckNetworkSyncAsync(Attachment attachment);

@@ -53,17 +53,20 @@ namespace SCM.Controllers
             }
 
             var attachments = await AttachmentService.GetAllByTenantAsync(tenant);
+            var successMessage = string.Empty;
+            attachments.Where(q => q.Created).ToList().ForEach(q => successMessage += $"{q.Name} has been created.");
 
             var checkSyncResult = AttachmentService.ShallowCheckNetworkSync(attachments);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "All attachments appear to be synchronised with the network.";
+                successMessage += "All attachments appear to be synchronised with the network.";
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
+            ViewData["SuccessMessage"] = FormatAsHtmlList(successMessage);
             ViewBag.Tenant = tenant;
 
             return View(Mapper.Map<List<AttachmentViewModel>>(attachments));
@@ -269,14 +272,14 @@ namespace SCM.Controllers
 
                     if (!inSync)
                     {
-                        ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] += FormatAsHtmlList(syncResult.GetMessage());
                     }
                     else
                     {
                         var result = await AttachmentService.DeleteAsync(item);
                         if (!result.IsSuccess)
                         {
-                            ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                            ViewData["ErrorMessage"] = FormatAsHtmlList(result.GetMessage());
                         }
                         else
                         {
@@ -337,7 +340,7 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
-                        .onSingleComplete(mappedItem, false, checkSyncResult.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(checkSyncResult.GetMessage()));
                 }
             }
 
@@ -372,12 +375,12 @@ namespace SCM.Controllers
                 if (results.Where(q => q.IsSuccess).Count() == results.Count())
                 {
                     message = "All attachments are synchronised with the network.";
-                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), true);
                 }
                 else
                 {
-                    results.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, false);
+                    results.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in results)
@@ -423,10 +426,12 @@ namespace SCM.Controllers
             else
             {
                 HubContext.Clients.Group($"TenantAttachment_{item.Tenant.TenantID}")
-                    .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
             }
 
-            await AttachmentService.UpdateRequiresSyncAsync(item, !result.IsSuccess, true);
+            item.RequiresSync = !result.IsSuccess;
+            item.Created = false;
+            await AttachmentService.UpdateAsync(item);
         }
 
         [HttpPost]
@@ -457,18 +462,20 @@ namespace SCM.Controllers
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
                     message = "All attachments are synchronised with the network.";
-                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(message, false);
+                    checkSyncResults.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"TenantAttachment_{id.Value}").onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in checkSyncResults)
                 {
                     var item = (Attachment)r.Item;
-                    await AttachmentService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+                    item.RequiresSync = !r.IsSuccess;
+                    item.Created = false;
+                    await AttachmentService.UpdateAsync(item);
                 }
             }
             else
@@ -499,7 +506,7 @@ namespace SCM.Controllers
                 }
                 else
                 {
-                    ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] = FormatAsHtmlList(syncResult.GetMessage());
                 }
             }
 
@@ -529,7 +536,7 @@ namespace SCM.Controllers
                 if (!vrfValidationResult.IsSuccess)
                 {
                     result = false;
-                    ViewData["ErrorMessage"] = vrfValidationResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] = FormatAsHtmlList(vrfValidationResult.GetMessage());
 
                     return result;
 
@@ -547,7 +554,7 @@ namespace SCM.Controllers
                     if (!vifVrfValidationResult.IsSuccess)
                     {
                         result = false;
-                        ViewData["ErrorMessage"] = vifVrfValidationResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(vifVrfValidationResult.GetMessage());
 
                         return result;
                     }

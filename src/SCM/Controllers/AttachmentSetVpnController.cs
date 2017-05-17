@@ -55,7 +55,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
             ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
@@ -93,9 +93,9 @@ namespace SCM.Controllers
             if (failedValidationResults.Count() > 0) 
             {
                 var message = "You must resolve the following issues first: ";
-                failedValidationResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                failedValidationResults.ToList().ForEach(q => message += q.GetMessage());
                 HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
-                    .onSingleComplete(mappedItem, false, message);
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(message));
             }
             else
             {
@@ -109,7 +109,7 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
-                        .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
                 }
 
                 await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
@@ -157,7 +157,7 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
-                        .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
                 }
             }
 
@@ -192,12 +192,12 @@ namespace SCM.Controllers
                 if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
                 {
                     message = "All VPNs are synchronised with the network.";
-                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(FormatAsHtmlList(message), true);
                 }
                 else
                 {
-                    checkSyncResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(message, false);
+                    checkSyncResults.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in checkSyncResults)
@@ -240,8 +240,9 @@ namespace SCM.Controllers
                 if (failedValidationResults.Count() > 0)
                 {
                     var validationMessage = "You must resolve the following issues first: ";
-                    failedValidationResults.ToList().ForEach(q => validationMessage += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(validationMessage, false);
+                    failedValidationResults.ToList().ForEach(q => validationMessage += q.GetMessage());
+                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
+                        .onAllComplete(FormatAsHtmlList(validationMessage), false);
 
                     return;
                 }
@@ -253,12 +254,14 @@ namespace SCM.Controllers
                 if (results.Where(q => q.IsSuccess).Count() == results.Count())
                 {
                     message = "All VPNs are synchronised with the network.";
-                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(message, true);
+                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
+                        .onAllComplete(FormatAsHtmlList(message), true);
                 }
                 else
                 {
-                    results.ToList().ForEach(q => message += q.GetHtmlListMessage());
-                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}").onAllComplete(message, false);
+                    results.ToList().ForEach(q => message += q.GetMessage());
+                    HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
+                        .onAllComplete(FormatAsHtmlList(message), false);
                 }
 
                 foreach (var r in results)

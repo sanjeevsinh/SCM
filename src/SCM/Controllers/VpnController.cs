@@ -49,7 +49,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
             return View(Mapper.Map<List<VpnViewModel>>(vpns));
@@ -309,7 +309,7 @@ namespace SCM.Controllers
 
                 if (!inSync)
                 {
-                    ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] += FormatAsHtmlList(syncResult.GetMessage());
                 }
                 else
                 {
@@ -320,7 +320,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        ViewData["ErrorMessage"] = result.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(result.GetMessage());
                     }
                 }
 
@@ -355,9 +355,9 @@ namespace SCM.Controllers
             if (failedValidationResults.Count() > 0)
             {
                 var message = "You must resolve the following issues first: ";
-                failedValidationResults.ToList().ForEach(q => message += q.GetHtmlListMessage());
+                failedValidationResults.ToList().ForEach(q => message += q.GetMessage());
                 HubContext.Clients.Group("Vpns")
-                    .onSingleComplete(mappedItem, false, message);
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(message));
             }
             else
             {
@@ -371,7 +371,7 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group("Vpns")
-                        .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
                 }
 
                 await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
@@ -412,7 +412,7 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group("Vpns")
-                        .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
                 }
             }
 

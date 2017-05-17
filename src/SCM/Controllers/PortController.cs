@@ -269,7 +269,7 @@ namespace SCM.Controllers
                     var validationResult = PortService.ValidateDelete(currentPort);
                     if (!validationResult.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(validationResult.GetMessage());
 
                         return View(Mapper.Map<PortViewModel>(currentPort));
                     }

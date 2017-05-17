@@ -170,7 +170,7 @@ namespace SCM.Services.SCMServices
             catch (HttpRequestException  /** ex **/ )
             {
                 result.StatusCode = NetworkSyncStatusCode.RequestFailed;
-                result.Messages.Add("Unable to complete the request. Perhaps the network is unavailable. Check logs for more details. ");
+                result.Messages.Add("Unable to complete the request.Perhaps the network is unavailable.Check logs for more details.");
                 result.IsSuccess = false;
             }
 

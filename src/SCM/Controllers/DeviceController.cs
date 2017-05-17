@@ -44,7 +44,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = checkSyncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
             return View(Mapper.Map<List<DeviceViewModel>>(devices));
@@ -95,12 +95,13 @@ namespace SCM.Controllers
                 {
                     HubContext.Clients.Group("Devices")
                         .onSingleComplete(mappedItem, false,
-                        $"Device {item.Name} is not synchronised with the network. Press the 'Sync' button to update the network.");
+                        FormatAsHtmlList($"Device {item.Name} is not synchronised with the network." 
+                        + "Press the 'Sync' button to update the network."));
                 }
                 else
                 {
                     HubContext.Clients.Group("Devices")
-                        .onSingleComplete(mappedItem, false, result.GetHtmlListMessage());
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
                 }
             }
 
@@ -130,12 +131,12 @@ namespace SCM.Controllers
             if (syncResult.IsSuccess)
             {
                 HubContext.Clients.Group("Devices")
-                    .onSingleComplete(mappedItem, true, $"Device {item.Name} is synchronised with the network.");
+                    .onSingleComplete(mappedItem, true, FormatAsHtmlList($"Device {item.Name} is synchronised with the network."));
             }
             else
             {
                 HubContext.Clients.Group("Devices")
-                    .onSingleComplete(mappedItem, false, syncResult.GetHtmlListMessage());
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
             }
 
             await DeviceService.UpdateDeviceRequiresSyncAsync(item.ID, !syncResult.IsSuccess, true);
@@ -327,14 +328,14 @@ namespace SCM.Controllers
 
                 if (!inSync)
                 {
-                    ViewData["ErrorMessage"] += syncResult.GetHtmlListMessage();
+                    ViewData["ErrorMessage"] += FormatAsHtmlList(syncResult.GetMessage());
                 }
                 else
                 {
                     var result = await DeviceService.DeleteAsync(currentDevice);
                     if (!result.IsSuccess)
                     {
-                        ViewData["ErrorMessage"] = result.GetMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(result.GetMessage());
 
                         return View(Mapper.Map<DeviceViewModel>(currentDevice));
                     }
@@ -375,7 +376,7 @@ namespace SCM.Controllers
             }
             else
             {
-                ViewData["ErrorMessage"] = syncResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(syncResult.GetMessage());
             }
 
             device.RequiresSync = !syncResult.IsSuccess;

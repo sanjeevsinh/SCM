@@ -312,7 +312,7 @@ namespace SCM.Controllers
                     }
                     else
                     {
-                        ViewData["ErrorMessage"] = validationResult.GetHtmlListMessage();
+                        ViewData["ErrorMessage"] = FormatAsHtmlList(validationResult.GetMessage());
 
                         return View(Mapper.Map<AttachmentSetViewModel>(currentAttachmentSet));
                     }

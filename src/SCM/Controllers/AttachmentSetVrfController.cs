@@ -44,7 +44,7 @@ namespace SCM.Controllers
             var checkVrfsResult = await AttachmentSetVrfService.CheckVrfsConfiguredCorrectlyAsync(attachmentSet);
             if (!checkVrfsResult.IsSuccess)
             {
-                ViewData["ErrorMessage"] = checkVrfsResult.GetHtmlListMessage();
+                ViewData["ErrorMessage"] = FormatAsHtmlList(checkVrfsResult.GetMessage());
             }
             else
             {

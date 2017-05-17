@@ -41,7 +41,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.ContractBandwidthPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
-                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src : null))
+                .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src.Interfaces.Single() : null))
                 .Include<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>();
 
             CreateMap<Attachment, UntaggedAttachmentBundleInterfaceServiceNetModel>();
