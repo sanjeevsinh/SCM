@@ -17,6 +17,7 @@ namespace SCM.Services.SCMServices
         Task<List<Vif>> GetAllByAttachmentIDAsync(int id);
         Task<List<Vif>> GetAllByVpnIDAsync(int vpnID);
         Task<ServiceResult> AddAsync(VifRequest request);
+        Task<int> UpdateAsync(Vif vif);
         Task<ServiceResult> DeleteAsync(Vif vif);
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Vif> vifs);
         Task<ServiceResult> CheckNetworkSyncAsync(Vif vif);

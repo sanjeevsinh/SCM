@@ -161,6 +161,13 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        public async Task<int> UpdateAsync(Vif vif)
+        {
+            this.UnitOfWork.VifRepository.Update(vif);
+
+            return await this.UnitOfWork.SaveAsync();
+        }
+
         /// <summary>
         /// Perform shallow check of network sync state of a collection
         /// of vifs by checking the 'RequiresSync' property.
@@ -564,6 +571,13 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
+        /// <summary>
+        /// Validates if a VPN can be synchronised with the network. The VPN can be
+        /// synchronised only if all vifs which are bound to the VPN are already
+        /// synchronised.
+        /// </summary>
+        /// <param name="vpn"></param>
+        /// <returns></returns>
         public async Task<ServiceResult> ValidateAsync(Vpn vpn)
         {
             var result = new ServiceResult { IsSuccess = true };
@@ -628,6 +642,7 @@ namespace SCM.Services.SCMServices
 
             var vif = Mapper.Map<Vif>(request);
             vif.RequiresSync = true;
+            vif.Created = true;
 
             var attachment = await AttachmentService.GetByIDAsync(request.AttachmentID);
             request.DeviceID = attachment.DeviceID;
@@ -709,6 +724,7 @@ namespace SCM.Services.SCMServices
 
             var vif = Mapper.Map<Vif>(request);
             vif.RequiresSync = true;
+            vif.Created = true;
 
             try
             {

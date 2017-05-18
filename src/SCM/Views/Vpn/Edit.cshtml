@@ -54,13 +54,17 @@
         var protocolType = topologyType.VpnProtocolType;
         if (protocolType != null)
         {
-            if (protocolType.ProtocolType == "IP")
+            if (protocolType.ProtocolType == "IP" && topologyType.TopologyType == "Hub-and-Spoke")
             {
 
                 <div class="form-group">
-                    <label asp-for="IsExtranet" class="col-md-2 control-label"></label>
+                    <div class="col-md-2">
+                    </div>
                     <div class="col-md-10">
-                        <input asp-for="IsExtranet" class="checkbox" />
+                        <label class="checkbox-inline">
+                            <input type="checkbox" asp-for="IsExtranet" data-toggle="tooltip" title="Enable the VPN to support Extranet">
+                            <label asp-for="IsExtranet"></label>
+                        </label>
                     </div>
                 </div>
             }

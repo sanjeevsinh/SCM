@@ -10,6 +10,7 @@ using System.Net;
 using SCM.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace SCM.Services.SCMServices
 {
@@ -152,6 +153,8 @@ namespace SCM.Services.SCMServices
                 // Implement transactionScope here when available in dotnet core
 
                 vpn.RequiresSync = true;
+                vpn.Created = true;
+
                 this.UnitOfWork.VpnRepository.Insert(vpn);
 
                 // Save in order to generat a new vpn ID
@@ -167,7 +170,7 @@ namespace SCM.Services.SCMServices
                 await this.UnitOfWork.SaveAsync();
             }
 
-            catch
+            catch (DbUpdateException /** ex **/)
             {
                 // Add logging for the exception here
                 result.Add("Something went wrong during the database update. The issue has been logged."
@@ -180,8 +183,8 @@ namespace SCM.Services.SCMServices
 
         public async Task<int> UpdateAsync(Vpn vpn)
         {
-            vpn.RequiresSync = true;
             this.UnitOfWork.VpnRepository.Update(vpn);
+
             return await this.UnitOfWork.SaveAsync();
         }
 

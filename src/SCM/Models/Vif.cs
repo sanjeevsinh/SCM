@@ -26,6 +26,7 @@ namespace SCM.Models
         public int TenantID { get; set; }
         public int? ContractBandwidthPoolID { get; set; }
         public int? VlanTagRangeID { get; set; }
+        public bool Created { get; set; }
         public bool RequiresSync { get; set; }
         [Timestamp]
         public byte[] RowVersion { get; set; }

@@ -39,6 +39,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
                 .ForMember(dest => dest.EnableLayer3, conf => conf.MapFrom(src => src.IsLayer3))
                 .ForMember(dest => dest.AttachmentBandwidth, conf => conf.MapFrom(src => src.AttachmentBandwidth.BandwidthGbps))
                 .ForMember(dest => dest.ContractBandwidthPool, conf => conf.MapFrom(src => src.ContractBandwidthPool))
+                .ForMember(dest => dest.PolicyBandwidth, conf => conf.ResolveUsing(new UntaggedAttachmentBundleInterfacePolicyBandwidthResolver()))
                 .ForMember(dest => dest.BundleInterfaceMembers, conf => conf.MapFrom(src => src.Interfaces.SelectMany(q => q.Ports)))
                 .ForMember(dest => dest.VrfName, conf => conf.MapFrom(src => src.Vrf.Name))
                 .ForMember(dest => dest.Layer3, conf => conf.MapFrom(src => src.IsLayer3 ? src.Interfaces.Single() : null))

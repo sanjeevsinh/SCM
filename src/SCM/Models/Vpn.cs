@@ -18,6 +18,7 @@ namespace SCM.Models
         public int VpnTenancyTypeID { get; set; }
         public int TenantID { get; set; }
         public bool RequiresSync { get; set; }
+        public bool Created { get; set; }
         public int? PlaneID { get; set; }
         public int? RegionID { get; set; }
         [Timestamp]

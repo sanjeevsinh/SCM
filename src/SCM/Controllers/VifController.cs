@@ -67,17 +67,20 @@ namespace SCM.Controllers
             }
 
             var vifs = await VifService.GetAllByAttachmentIDAsync(id.Value);
+            var successMessage = string.Empty;
+            vifs.Where(q => q.Created).ToList().ForEach(q => successMessage += $"\\{q.Name} has been created\\");
 
             var checkSyncResult = VifService.ShallowCheckNetworkSync(vifs);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "All vifs appear to be synchronised with the network.";
+                successMessage += "All vifs appear to be synchronised with the network.";
             }
             else
             {
                 ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
+            ViewData["SuccessMessage"] = FormatAsHtmlList(successMessage);
             ViewBag.Attachment = Mapper.Map<AttachmentViewModel>(attachment);
 
             return View(Mapper.Map<List<VifViewModel>>(vifs));
@@ -428,8 +431,8 @@ namespace SCM.Controllers
             }
 
             var mappedItem = Mapper.Map<VifViewModel>(item);
-            var syncResult = await VifService.SyncToNetworkAsync(item);
-            if (syncResult.IsSuccess)
+            var result = await VifService.SyncToNetworkAsync(item);
+            if (result.IsSuccess)
             {
                 HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
                     .onSingleComplete(mappedItem, true, $"Vif {mappedItem.Name} is synchronised with the network.");
@@ -437,10 +440,12 @@ namespace SCM.Controllers
             else
             {
                 HubContext.Clients.Group($"Attachment_{item.AttachmentID}")
-                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
+                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
             }
 
-            await VifService.UpdateRequiresSyncAsync(item, !syncResult.IsSuccess, true);
+            item.RequiresSync = !result.IsSuccess;
+            item.Created = false;
+            await VifService.UpdateAsync(item);
 
         }
 

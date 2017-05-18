@@ -47,17 +47,20 @@ namespace SCM.Controllers
             }
 
             var vpns = await VpnService.GetAllByAttachmentSetIDAsync(id.Value);
+            var successMessage = string.Empty;
+            vpns.Where(q => q.Created).ToList().ForEach(q => successMessage += $"{q.Name} has been created.");
 
             var checkSyncResult = VpnService.ShallowCheckNetworkSync(vpns);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "All VPNs appear to be synchronised with the network.";
+                successMessage += "All VPNs appear to be synchronised with the network.";
             }
             else
             {
                 ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
+            ViewData["SuccessMessage"] = FormatAsHtmlList(successMessage);
             ViewBag.AttachmentSet = await AttachmentSetService.GetByIDAsync(id.Value);
 
             return View(Mapper.Map<List<VpnViewModel>>(vpns));

@@ -15,6 +15,7 @@
 <form asp-action="Create">
     <div class="form-horizontal">
         <hr />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <div class="form-group">
             <label asp-for="Tenant" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -24,7 +25,6 @@
                 <span asp-validation-for="TenantID" class="text-danger"></span>
             </div>
         </div>
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -78,9 +78,13 @@
 @if (ViewBag.VpnProtocolType.ProtocolType == "IP")
 {
         <div class="form-group">
-            <label asp-for="IsExtranet" class="col-md-2 control-label"></label>
+            <div class="col-md-2">
+            </div>
             <div class="col-md-10">
-                <input asp-for="IsExtranet" class="checkbox" />
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="IsExtranet" data-toggle="tooltip" title="Enable the VPN to support Extranet"> 
+                    <label asp-for="IsExtranet"></label>
+                </label>
             </div>
         </div>
 }
@@ -95,7 +99,18 @@
 <div>
     <a asp-action="GetAll">Back to List</a>
 </div>
-
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+
+        (function ($) {
+
+            // Initialise all tool-tips
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+        }(jQuery));
+
+</script>
 }

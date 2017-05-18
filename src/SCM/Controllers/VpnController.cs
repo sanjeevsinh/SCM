@@ -41,17 +41,20 @@ namespace SCM.Controllers
         public async Task<IActionResult> GetAll()
         {
             var vpns = await VpnService.GetAllAsync();
+            var successMessage = string.Empty;
+            vpns.Where(q => q.Created).ToList().ForEach(q => successMessage += $"{q.Name} has been created.");
 
             var checkSyncResult = VpnService.ShallowCheckNetworkSync(vpns);
             if (checkSyncResult.IsSuccess)
             {
-                ViewData["SuccessMessage"] = "All VPNs appear to be synchronised with the network.";
+                successMessage += "All VPNs appear to be synchronised with the network.";
             }
             else
             {
                 ViewData["ErrorMessage"] = FormatAsHtmlList(checkSyncResult.GetMessage());
             }
 
+            ViewData["SuccessMessage"] = FormatAsHtmlList(successMessage);
             return View(Mapper.Map<List<VpnViewModel>>(vpns));
         }
 
@@ -361,9 +364,9 @@ namespace SCM.Controllers
             }
             else
             {
-                var syncResult = await VpnService.SyncToNetworkAsync(item);
+                var result = await VpnService.SyncToNetworkAsync(item);
 
-                if (syncResult.IsSuccess)
+                if (result.IsSuccess)
                 {
                     HubContext.Clients.Group("Vpns")
                         .onSingleComplete(mappedItem, true, $"VPN {item.Name} is synchronised with the network.");
@@ -371,10 +374,12 @@ namespace SCM.Controllers
                 else
                 {
                     HubContext.Clients.Group("Vpns")
-                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
+                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
                 }
 
-                await VpnService.UpdateVpnRequiresSyncAsync(item.VpnID, !syncResult.IsSuccess, true);
+                item.RequiresSync = !result.IsSuccess;
+                item.Created = false;
+                await VpnService.UpdateAsync(item);
             }
         }
 

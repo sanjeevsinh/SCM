@@ -44,9 +44,13 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="IsBfdEnabled" class="col-md-2 control-label"></label>
+            <div class="col-md-2">
+            </div>
             <div class="col-md-10">
-                <input asp-for="IsBfdEnabled" class="checkbox" />
+                <label class="checkbox-inline">
+                    <input type="checkbox" asp-for="IsBfdEnabled" data-toggle="tooltip" title="Enable the BGP Peer with BFD fast-failure detection">
+                    <label asp-for="IsBfdEnabled"></label>
+                </label>
             </div>
         </div>
         <div class="form-group">
@@ -63,4 +67,16 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<script type="text/javascript">
+
+    (function ($) {
+
+        // Initialise all tool-tips
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+    }(jQuery));
+
+</script>
 }
