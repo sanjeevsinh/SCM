@@ -86,10 +86,10 @@
             </td>
             <td>
                 <input type="submit" id="Sync_@item.VpnID" value="Sync" 
-                       data-item='{"AttachmentSetID" : "@ViewBag.AttachmentSet.AttachmentSetID", "VpnID" : "@item.VpnID"}' 
+                       data-item='{"id" : "@item.VpnID"}' 
                        class="btn btn-default btn-sync" />
                 <input type="submit" id="CheckSync_@item.VpnID" value="Check Sync" 
-                       data-item='{"AttachmentSetID" : "@ViewBag.AttachmentSet.AttachmentSetID", "VpnID" : "@item.VpnID"}' 
+                       data-item='{"id" : "@item.VpnID"}' 
                        class="btn btn-default btn-checksync" />
             </td>
             <td class="row-spinner spinner-element" id="syncStatus_@item.VpnID">
@@ -116,11 +116,10 @@
             attachmentSetVal = $attachmentSetID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/AttachmentSetVpn/CheckSync',
-                syncUrl: '/AttachmentSetVpn/Sync',
-                checkSyncAllUrl: '/AttachmentSetVpn/CheckSyncAllByAttachmentSetID',
-                syncAllUrl: '/AttachmentSetVpn/SyncAllByAttachmentSetID',
-                contextVal: attachmentSetVal,
+                checkSyncUrl: '/api/vpns/{id}/checksync',
+                syncUrl: '/api/vpns/{id}/sync',
+                checkSyncAllUrl: '/api/attachmentsets/' + attachmentSetVal + '/vpns/checksync',
+                syncAllUrl: '/api/attachmentsets/' + attachmentSetVal + '/vpns/sync',
                 groupName: 'AttachmentSet_' + attachmentSetVal,
                 itemKey: 'VpnID'
             });

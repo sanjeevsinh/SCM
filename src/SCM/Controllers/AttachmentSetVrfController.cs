@@ -126,7 +126,7 @@ namespace SCM.Controllers
                         // Update 'requiresSync' property of each VPN which the VRF was associated with
 
                         var vpns = await VpnService.GetAllByVrfIDAsync(mappedAttachmentSetVrf.VrfID);
-                        await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+                        await VpnService.UpdateRequiresSyncAsync(vpns, true, true);
 
                         return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID });
                     }
@@ -290,7 +290,7 @@ namespace SCM.Controllers
 
                 // Update 'requiresSync' property of each VPN which the VRF was associated with
 
-                await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+                await VpnService.UpdateRequiresSyncAsync(vpns, true, true);
 
                 return RedirectToAction("GetAllByAttachmentSetID", new { id = attachmentSetVrf.AttachmentSetID, tenantID = tenantID });
             }

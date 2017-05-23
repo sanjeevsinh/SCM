@@ -152,7 +152,7 @@ namespace SCM.Controllers
                     var warningMessage = string.Empty;
                     if (vpns.Count() > 0) {
 
-                        await VpnService.UpdateVpnRequiresSyncAsync(vpns, true, true);
+                        await VpnService.UpdateRequiresSyncAsync(vpns, true, true);
                         warningMessage = $"VPNs require synchronisation with the network as a result of this update. "
                             + "Follow this <a href = '/Vpn/GetAll'>link</a> to the VPNs page.";
                     }

@@ -76,7 +76,7 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.ContractBandwidthPool.Name)
                 </td>
-                <td id="requiresSync_@item.VifID">
+                <td id="requiresSync_@item.VifID" class="checkbox-insync">
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
@@ -124,11 +124,10 @@
                 attachmentVal = $attachmentID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Vif/CheckSync',
-                syncUrl: '/Vif/Sync',
-                checkSyncAllUrl: '/Vif/CheckSyncAllByAttachmentID',
-                syncAllUrl: '/Vif/SyncAllByAttachmentID',
-                contextVal: attachmentVal,
+                checkSyncUrl: '/api/vifs/{id}/checksync',
+                syncUrl: '/api/vifs/{id}/sync',
+                checkSyncAllUrl: '/api/attachments/' + attachmentVal + '/vifs/checksync',
+                syncAllUrl: '/api/attachments/' + attachmentVal + '/vifs/sync',
                 groupName: 'Attachment_' + attachmentVal,
                 itemKey: 'VifID'
             });

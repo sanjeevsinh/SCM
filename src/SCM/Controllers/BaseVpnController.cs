@@ -79,7 +79,7 @@ namespace SCM.Controllers
                 return View("VpnDeleted");
             }
 
-            await VpnService.UpdateVpnRequiresSyncAsync(item, true, false);
+            await VpnService.UpdateRequiresSyncAsync(item, true, false);
 
             var syncResult = await VpnService.DeleteFromNetworkAsync(item);
             if (syncResult.IsSuccess)

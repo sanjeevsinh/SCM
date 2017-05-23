@@ -466,7 +466,7 @@ namespace SCM.Services.SCMServices
         /// <param name="vpn"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges = true)
         {
             vpn.RequiresSync = requiresSync;
             UnitOfWork.VpnRepository.Update(vpn);
@@ -484,10 +484,10 @@ namespace SCM.Services.SCMServices
         /// <param name="vpn"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges = true)
         {
             var vpn = await UnitOfWork.VpnRepository.GetByIDAsync(vpnID);
-            await UpdateVpnRequiresSyncAsync(vpn, requiresSync, saveChanges);
+            await UpdateRequiresSyncAsync(vpn, requiresSync, saveChanges);
 
             return;
         }
@@ -498,12 +498,12 @@ namespace SCM.Services.SCMServices
         /// <param name="vpns"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateVpnRequiresSyncAsync(IEnumerable<Vpn> vpns, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(IEnumerable<Vpn> vpns, bool requiresSync, bool saveChanges = true)
         {
             var tasks = new List<Task>();
             foreach (var vpn in vpns)
             {
-                await UpdateVpnRequiresSyncAsync(vpn.VpnID, requiresSync, saveChanges);
+                await UpdateRequiresSyncAsync(vpn.VpnID, requiresSync, saveChanges);
             }
 
             return;

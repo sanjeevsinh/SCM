@@ -135,7 +135,7 @@ namespace SCM.Controllers
 
                     if (validationOk)
                     {
-                        await VpnService.UpdateVpnRequiresSyncAsync(mappedAttachmentSet.VpnID, true, false);
+                        await VpnService.UpdateRequiresSyncAsync(mappedAttachmentSet.VpnID, true, false);
                         await VpnAttachmentSetService.AddAsync(mappedAttachmentSet);
 
                         return RedirectToAction("GetAllByVpnID", new { id = vpnAttachmentSet.VpnID });
@@ -201,7 +201,7 @@ namespace SCM.Controllers
 
                 if (currentVpnAttachmentSet != null)
                 {
-                    await VpnService.UpdateVpnRequiresSyncAsync(currentVpnAttachmentSet.VpnID, true, false);
+                    await VpnService.UpdateRequiresSyncAsync(currentVpnAttachmentSet.VpnID, true, false);
                     await VpnAttachmentSetService.DeleteAsync(currentVpnAttachmentSet);
                 }
 

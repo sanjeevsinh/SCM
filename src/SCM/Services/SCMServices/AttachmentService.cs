@@ -55,7 +55,7 @@ namespace SCM.Services.SCMServices
         /// <returns></returns>
         public async Task<Attachment> GetByVrfIDAsync(int vrfID)
         {
-            var dbResult = await UnitOfWork.AttachmentRepository.GetAsync(q => q.VrfID == vrfID, 
+            var dbResult = await UnitOfWork.AttachmentRepository.GetAsync(q => q.VrfID == vrfID,
                 includeProperties: "Tenant,"
                 + "Device.Location.SubRegion.Region,"
                 + "Device.Plane,"
@@ -69,14 +69,14 @@ namespace SCM.Services.SCMServices
                 + "Interfaces.Ports.Interface.Vlans.Vif,"
                 + "Vifs.Vrf.BgpPeers,"
                 + "Vifs.Vlans.Vif.ContractBandwidthPool,"
-                + "Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable:false);
+                + "Vifs.ContractBandwidthPool.ContractBandwidth", AsTrackable: false);
 
             return dbResult.SingleOrDefault();
         }
 
         public async Task<IEnumerable<Attachment>> GetAllByTenantIDAsync(int tenantID)
         {
-            var dbresult = await UnitOfWork.TenantRepository.GetAsync(q => q.TenantID == tenantID, AsTrackable:false);
+            var dbresult = await UnitOfWork.TenantRepository.GetAsync(q => q.TenantID == tenantID, AsTrackable: false);
             var tenant = dbresult.SingleOrDefault();
 
             if (tenant != null)
@@ -144,58 +144,32 @@ namespace SCM.Services.SCMServices
 
         public async Task<ServiceResult> AddAsync(AttachmentRequest request)
         {
-            var result = new ServiceResult { IsSuccess = true };
-            IEnumerable<Port> ports = Enumerable.Empty<Port>();
+            // Request some ports
 
-            // Work out the number of ports we need to allocate and 
-            // the port bandwidth required
+            request = await RequestPortsAsync(request);
 
-            if (request.BundleRequired || request.MultiPortRequired)
+            if (request.Ports.Count() == 0)
             {
-                // For bundles and multiport requests we need at least 2 ports. Work out the number of ports required from 
-                // the request data based upon the required bandwidth of the attachment (e.g. 20Gbp/s) and the 
-                // per port bandwidth needed to satisfy the required bandwidth (e.g. 10Gb/s)
+                var result = new ServiceResult();
+                result.AddRange(request.Errors);
 
-                request.NumPortsRequired = request.Bandwidth.BandwidthGbps / request.Bandwidth.BundleOrMultiPortMemberBandwidthGbps.Value;
-                request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps / request.NumPortsRequired;
-            }
-            else
-            {
-                // The request is not for a bundle or multiport so the number of ports required must be 1
-
-                request.NumPortsRequired = 1;
-                request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps;
-            }
-
-            // Try and find some ports which satisfy the request
-
-            ports = await FindPortsAsync(request, result);
-
-            // Do we have some ports? If not quit. 
-
-            if (ports.Count() == 0)
-            {
                 return result;
             }
-
-            request.DeviceID = ports.First().DeviceID;
 
             // Hand off to method to generate the attachment from the allocated ports
 
             if (request.BundleRequired)
             {
-                await AddBundleAttachmentAsync(request, ports.ToList(), result);
+                return await AddBundleAttachmentAsync(request);
             }
             else if (request.MultiPortRequired)
             {
-                await AddMultiPortAsync(request, ports.ToList(), result);
+                return await AddMultiPortAsync(request);
             }
             else
             {
-                await AddAttachmentAsync(request, ports.First(), result);
+                return await AddAttachmentAsync(request);
             }
-
-            return result;
         }
 
         public async Task<int> UpdateAsync(Attachment attachment)
@@ -306,7 +280,7 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments, 
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Attachment> attachments,
             IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from attachment in attachments select SyncToNetworkAsync(attachment)).ToList();
@@ -363,7 +337,7 @@ namespace SCM.Services.SCMServices
             return result;
         }
 
-        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments, 
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Attachment> attachments,
             IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from attachment in attachments select SyncToNetworkAsync(attachment)).ToList();
@@ -423,15 +397,15 @@ namespace SCM.Services.SCMServices
             else if (serviceModelData.TaggedAttachmentInterfaces.Count > 0)
             {
                 var data = serviceModelData.TaggedAttachmentInterfaces.Single();
-                 taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                    + $"/tagged-attachment-interface/{data.InterfaceType},"
-                    + data.InterfaceName.Replace("/", "%2F"));
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                   + $"/tagged-attachment-interface/{data.InterfaceType},"
+                   + data.InterfaceName.Replace("/", "%2F"));
             }
             else if (serviceModelData.TaggedAttachmentMultiPorts.Count > 0)
             {
                 var data = serviceModelData.TaggedAttachmentMultiPorts.Single();
-                 taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
-                   + $"/tagged-attachment-multiport/{data.Name}");
+                taskResult = await NetSync.DeleteFromNetworkAsync($"/attachment/pe/{attachment.Device.Name}"
+                  + $"/tagged-attachment-multiport/{data.Name}");
             }
             else if (serviceModelData.UntaggedAttachmentBundleInterfaces.Count > 0)
             {
@@ -490,6 +464,9 @@ namespace SCM.Services.SCMServices
         public async Task<ServiceResult> ValidateNewAsync(AttachmentRequest request)
         {
             var result = new ServiceResult { IsSuccess = true };
+
+            var bandwidth = await UnitOfWork.AttachmentBandwidthRepository.GetByIDAsync(request.BandwidthID);
+            request.Bandwidth = bandwidth;
 
             if (request.BundleRequired)
             {
@@ -551,7 +528,7 @@ namespace SCM.Services.SCMServices
                     {
                         if (string.IsNullOrEmpty(request.IpAddress1) || string.IsNullOrEmpty(request.IpAddress2)
                             || string.IsNullOrEmpty(request.IpAddress3) || string.IsNullOrEmpty(request.IpAddress4))
-                        {  
+                        {
                             result.Add("Four IP addresses must be entered.");
                             result.IsSuccess = false;
 
@@ -585,7 +562,7 @@ namespace SCM.Services.SCMServices
                     }
                 }
             }
-     
+
             if (!request.IsTagged)
             {
                 // Validate the requested Contract Bandwidth Pool
@@ -610,8 +587,8 @@ namespace SCM.Services.SCMServices
             var attachments = await GetAllByVpnIDAsync(vpn.VpnID);
             var attachmentsRequireSync = attachments.Where(q => q.RequiresSync).ToList();
 
-            if (attachmentsRequireSync.Count() > 0) { 
-            
+            if (attachmentsRequireSync.Count() > 0) {
+
                 result.IsSuccess = false;
                 result.Add("The following attachments for the VPN require synchronisation with the network:");
                 attachmentsRequireSync.ForEach(a => result.Add($"'{a.Name}' on device '{a.Device.Name}' for tenant '{a.Tenant.Name}'."));
@@ -646,43 +623,80 @@ namespace SCM.Services.SCMServices
         {
             var attachment = await UnitOfWork.AttachmentRepository.GetByIDAsync(id);
             await UpdateRequiresSyncAsync(attachment, requiresSync, saveChanges);
-        
+
             return;
         }
 
-        private async Task<IEnumerable<Port>> FindPortsAsync(AttachmentRequest request, ServiceResult result)
-        {
-            var device = await FindDeviceAsync(request, result);
+        /// <summary>
+        /// Helper to request some ports for a new attachment
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private async Task<AttachmentRequest> RequestPortsAsync(AttachmentRequest request) {
 
-            if (device == null)
+            // Work out the number of ports we need to allocate and 
+            // the port bandwidth required
+
+            if (request.BundleRequired || request.MultiPortRequired)
             {
-                return Enumerable.Empty<Port>();
+                // For bundles and multiport requests we need at least 2 ports. Work out the number of ports required from 
+                // the request data based upon the required bandwidth of the attachment (e.g. 20Gbp/s) and the 
+                // per port bandwidth needed to satisfy the required bandwidth (e.g. 10Gb/s)
+
+                request.NumPortsRequired = request.Bandwidth.BandwidthGbps / request.Bandwidth.BundleOrMultiPortMemberBandwidthGbps.Value;
+                request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps / request.NumPortsRequired;
+            }
+            else
+            {
+                // The request is not for a bundle or multiport so the number of ports required must be 1
+
+                request.NumPortsRequired = 1;
+                request.PortBandwidthRequired = request.Bandwidth.BandwidthGbps;
             }
 
-            var ports = device.Ports.Where(q => q.TenantID == null && q.PortBandwidth.BandwidthGbps == request.PortBandwidthRequired);
+            // Try and find some ports which satisfy the request
+
+            request = await FindPortsAsync(request);
+
+            // Do we have some ports? If not quit. 
+
+            if (request.Ports.Count() == 0)
+            {
+                return request;
+            }
+
+            return request;
+        }
+
+        private async Task<AttachmentRequest> FindPortsAsync(AttachmentRequest request)
+        {
+            request = await FindDeviceAsync(request);
+
+            if (request.Device == null)
+            {
+                return request;
+            }
+
+            var ports = request.Device.Ports.Where(q => q.TenantID == null && q.PortBandwidth.BandwidthGbps == request.PortBandwidthRequired);
 
             if (ports.Count() == 0)
             {
-                result.Add("No ports matching the requested bandwidth parameter could not be found. "
+                request.Errors.Add("No ports matching the requested bandwidth parameter could not be found. "
                     + "Please change your request and try again, or contact your system adminstrator and report this issue.");
-
-                result.IsSuccess = false;
             }
 
             if (ports.Count() < request.NumPortsRequired)
             {
-                result.Add($"The number of ports available ({ports.Count()}) is less than the number required ({request.NumPortsRequired}). "
+                request.Errors.Add($"The number of ports available ({ports.Count()}) is less than the number required ({request.NumPortsRequired}). "
                     + "Please change your request and try again, or contact your system adminstrator and report this issue.");
-
-                result.IsSuccess = false;
             }
 
-            ports = ports.Take(request.NumPortsRequired);
+            request.Ports = ports.Take(request.NumPortsRequired);
 
-            return ports;
+            return request;
         }
 
-        private async Task<Device> FindDeviceAsync(AttachmentRequest request, ServiceResult result)
+        private async Task<AttachmentRequest> FindDeviceAsync(AttachmentRequest request)
         {
             // Find all devices in the requested location
 
@@ -703,42 +717,41 @@ namespace SCM.Services.SCMServices
             devices = devices.Where(q => q.Ports.Where(p => p.TenantID == null
                 && p.PortBandwidth.BandwidthGbps == request.PortBandwidthRequired).Count() >= request.NumPortsRequired).ToList();
 
-            Device device = null;
-
             if (devices.Count == 0)
             {
-                result.Add("Ports matching the requested location and "
+                request.Errors.Add("Ports matching the requested location and "
                     + "bandwidth parameters could not be found. "
                     + "Please change the input parameters and try again, "
                     + "or contact your system adminstrator to report this issue.");
 
-                result.IsSuccess = false;
-
+                return request;
             }
             else if (devices.Count > 1)
             {
                 // Get device with the least number of tenant-assigned ports.
 
-                device = devices.Aggregate((current, x) =>
+                request.Device = devices.Aggregate((current, x) =>
                 (x.Ports.Where(p => p.TenantID != null).Count() < current.Ports.Where(p => p.TenantID != null).Count() ? x : current));
             }
             else
             {
-                device = devices.Single();
+                request.Device = devices.Single();
             }
 
-            return device;
+            return request;
         }
 
         /// <summary>
         /// Add an attachment to the inventory
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="port"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddAttachmentAsync(AttachmentRequest request, Port port, ServiceResult result)
+        private async Task<ServiceResult> AddAttachmentAsync(AttachmentRequest request)
         {
+            var result = new ServiceResult
+            {
+                IsSuccess = true
+            };
 
             var attachment = Mapper.Map<Attachment>(request);
             attachment.AttachmentBandwidthID = request.BandwidthID;
@@ -746,7 +759,7 @@ namespace SCM.Services.SCMServices
             attachment.Created = true;
 
             var iface = new Interface();
-            iface.DeviceID = port.DeviceID;
+            iface.DeviceID = request.Device.ID;
 
             if (request.IsLayer3)
             {
@@ -766,7 +779,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(vrfResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     var vrf = (Vrf)vrfResult.Item;
@@ -778,7 +791,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(contractBandwidthPoolResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
@@ -789,10 +802,14 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.SaveAsync();
                 iface.AttachmentID = attachment.AttachmentID;
                 UnitOfWork.InterfaceRepository.Insert(iface);
+
                 await UnitOfWork.SaveAsync();
+
+                var port = request.Ports.Single();
                 port.TenantID = request.TenantID;
                 port.InterfaceID = iface.InterfaceID;
                 UnitOfWork.PortRepository.Update(port);
+
                 await UnitOfWork.SaveAsync();
 
             }
@@ -804,17 +821,22 @@ namespace SCM.Services.SCMServices
                    + "Please try again, and contact your system admin if the problem persists.");
                 result.IsSuccess = false;
             }
+
+            return result;
         }
 
         /// <summary>
         /// Add a bundle attachment to the inventory
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="ports"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddBundleAttachmentAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
+        private async Task<ServiceResult> AddBundleAttachmentAsync(AttachmentRequest request)
         {
+            var result = new ServiceResult
+            {
+                IsSuccess = true
+            };
+
             var attachment = Mapper.Map<Attachment>(request);
             attachment.AttachmentBandwidthID = request.BandwidthID;
             attachment.RequiresSync = true;
@@ -828,7 +850,7 @@ namespace SCM.Services.SCMServices
                 bundleIface.SubnetMask = request.SubnetMask1;
             }
 
-            var port = ports.First();
+            var port = request.Ports.First();
             bundleIface.DeviceID = port.DeviceID;
 
             var usedBundleIDs = port.Device.Attachments.Where(q => q.IsBundle).Select(q => q.ID).Where(q => q != null);
@@ -849,7 +871,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(vrfResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     var vrf = (Vrf)vrfResult.Item;
@@ -861,7 +883,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(contractBandwidthPoolResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
@@ -872,9 +894,10 @@ namespace SCM.Services.SCMServices
                 await UnitOfWork.SaveAsync();
                 bundleIface.AttachmentID = attachment.AttachmentID;
                 UnitOfWork.InterfaceRepository.Insert(bundleIface);
+
                 await this.UnitOfWork.SaveAsync();
 
-                foreach (var p in ports)
+                foreach (var p in request.Ports)
                 {
                     p.TenantID = request.TenantID;
                     p.InterfaceID = bundleIface.InterfaceID;
@@ -892,19 +915,23 @@ namespace SCM.Services.SCMServices
 
                 result.IsSuccess = false;
             }
+
+            return result;
         }
 
         /// <summary>
         /// Add a multiport attachment to the inventory
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="port"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
-        private async Task AddMultiPortAsync(AttachmentRequest request, IList<Port> ports, ServiceResult result)
+        private async Task<ServiceResult> AddMultiPortAsync(AttachmentRequest request)
         {
+            var result = new ServiceResult
+            {
+                IsSuccess = true
+            };
 
-            var port = ports.First();
+            var port = request.Ports.First();
             var attachment = Mapper.Map<Attachment>(request);
 
             var usedIds = port.Device.Attachments.Where(q => q.IsMultiPort).Select(q => q.ID).Where(q => q != null);
@@ -915,7 +942,7 @@ namespace SCM.Services.SCMServices
 
             attachment.ID = Enumerable.Range(1, 65535).Except(usedIds.Select(q => q.Value)).First();
 
-            attachment.DeviceID = request.DeviceID;
+            attachment.DeviceID = request.Device.ID;
             attachment.AttachmentBandwidthID = request.BandwidthID;
             attachment.RequiresSync = true;
             attachment.Created = true;
@@ -933,7 +960,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(vrfResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     vrf = (Vrf)vrfResult.Item;
@@ -947,7 +974,7 @@ namespace SCM.Services.SCMServices
                         result.AddRange(contractBandwidthPoolResult.GetMessageList());
                         result.IsSuccess = false;
 
-                        return;
+                        return result;
                     }
 
                     var contractBandwidthPool = (ContractBandwidthPool)contractBandwidthPoolResult.Item;
@@ -962,12 +989,13 @@ namespace SCM.Services.SCMServices
                 // Create interface records, one for each member interface 
                 // of the multiport
 
+                var ports = request.Ports.ToList();
                 var portCount = ports.Count();
 
                 for (var i = 1; i <= portCount; i++)
                 {
                     var iface = new Interface();
-                    iface.DeviceID = request.DeviceID;
+                    iface.DeviceID = request.Device.ID;
                     iface.AttachmentID = attachment.AttachmentID;
 
                     if (request.IsLayer3)
@@ -1016,6 +1044,8 @@ namespace SCM.Services.SCMServices
 
                 result.IsSuccess = false;
             }
+
+            return result;
         }
 
         /// <summary>

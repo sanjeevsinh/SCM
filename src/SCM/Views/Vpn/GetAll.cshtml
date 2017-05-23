@@ -81,7 +81,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Tenant.Name)
             </td>
-            <td id="requiresSync_@item.VpnID">
+            <td id="requiresSync_@item.VpnID" class="checkbox-insync">
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
@@ -111,8 +111,8 @@
         (function ($) {
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Vpn/CheckSync',
-                syncUrl: '/Vpn/Sync',
+                checkSyncUrl: '/api/vpns/{id}/checksync',
+                syncUrl: '/api/vpns/{id}/sync',
                 groupName: 'Vpns',
                 itemKey: 'VpnID'
             });

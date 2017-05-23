@@ -30,6 +30,7 @@ namespace SCM.Services.SCMServices
         public string Content { get; set; }
         public object Item { get; set; }
         public NetworkSyncStatusCode StatusCode { get; set; }
+        public HttpStatusCode HttpStatusCode { get; set; }
      
     }
 }

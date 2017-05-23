@@ -46,6 +46,8 @@
                 @Html.DisplayNameFor(model => model.RequiresSync)
             </th>
             <th></th>
+            <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -63,7 +65,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Location.SiteName)
             </td>
-            <td id="requiresSync_@item.ID">
+            <td id="requiresSync_@item.ID" class="checkbox-insync">
                 @Html.DisplayFor(modelItem => item.RequiresSync)
             </td>
             <td>
@@ -92,8 +94,8 @@
         (function ($) {
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Device/CheckSync',
-                syncUrl: '/Device/Sync',
+                checkSyncUrl: '/api/devices/{id}/checksync',
+                syncUrl: '/api/devices/{id}/sync',
                 groupName: 'Devices',
                 itemKey: 'ID'
             });

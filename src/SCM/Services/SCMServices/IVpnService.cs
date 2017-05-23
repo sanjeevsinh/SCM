@@ -30,8 +30,8 @@ namespace SCM.Services.SCMServices
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn, AttachmentSet attachmentSetContext);
         Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Vpn> vpns, AttachmentSet attachmentSetContext, IProgress<ServiceResult> progress);
         Task<ServiceResult> DeleteFromNetworkAsync(Vpn vpn);
-        Task UpdateVpnRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
-        Task UpdateVpnRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);
-        Task UpdateVpnRequiresSyncAsync(IEnumerable<Vpn> vpns, bool requiresSync, bool saveChanges);
+        Task UpdateRequiresSyncAsync(int vpnID, bool requiresSync, bool saveChanges);
+        Task UpdateRequiresSyncAsync(Vpn vpn, bool requiresSync, bool saveChanges);
+        Task UpdateRequiresSyncAsync(IEnumerable<Vpn> vpns, bool requiresSync, bool saveChanges);
     }
 }

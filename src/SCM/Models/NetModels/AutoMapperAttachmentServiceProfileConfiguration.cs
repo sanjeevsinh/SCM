@@ -406,7 +406,7 @@ namespace SCM.Models.NetModels.AttachmentNetModels
         public PolicyBandwidthNetModel Resolve(Port source, UntaggedMultiPortMemberNetModel destination, PolicyBandwidthNetModel destMember, ResolutionContext context)
         {
             var memberPortCount = source.Interface.Ports.Count();
-            var portBandwidthGbps = source.Interface.Ports.Single().PortBandwidth.BandwidthGbps;
+            var portBandwidthGbps = source.PortBandwidth.BandwidthGbps;
             var contractBandwidthMbps = source.Interface.Attachment.ContractBandwidthPool.ContractBandwidth.BandwidthMbps;
 
             if (portBandwidthGbps * 1000 > (contractBandwidthMbps / memberPortCount))

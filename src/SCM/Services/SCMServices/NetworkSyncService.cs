@@ -147,6 +147,7 @@ namespace SCM.Services.SCMServices
 
                 var httpResponse = await client.SendAsync(httpRequest);
                 result.Content = await httpResponse.Content.ReadAsStringAsync();
+                result.HttpStatusCode = httpResponse.StatusCode;
 
                 if (httpResponse.IsSuccessStatusCode)
                 {

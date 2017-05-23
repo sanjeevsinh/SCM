@@ -87,7 +87,7 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Vrf.Name)
                 </td>
-                <td id="requiresSync_@item.AttachmentID">
+                <td id="requiresSync_@item.AttachmentID" class="checkbox-insync">
                     @Html.DisplayFor(modelItem => item.RequiresSync)
                 </td>
                 <td>
@@ -138,10 +138,10 @@
                 tenantVal = $tenantID[0].value;
 
             SCM.Utilities.connectToNetworkSyncHub({
-                checkSyncUrl: '/Attachment/CheckSync',
-                syncUrl: '/Attachment/Sync',
-                checkSyncAllUrl: '/Attachment/CheckSyncAllByTenantID',
-                syncAllUrl: '/Attachment/SyncAllByTenantID',
+                checkSyncUrl: '/api/attachments/{id}/checksync',
+                syncUrl: '/api/attachments/{id}/sync',
+                checkSyncAllUrl: '/api/tenants/' + tenantVal + '/attachments/checksync',
+                syncAllUrl: '/api/tenants/' + tenantVal + '/attachments/sync',
                 contextVal: tenantVal,
                 groupName: 'TenantAttachment_' + tenantVal,
                 itemKey: 'AttachmentID'

@@ -20,6 +20,7 @@ namespace SCM.Services.SCMServices
         public async Task<IEnumerable<Device>> GetAllAsync()
         {
             return await this.UnitOfWork.DeviceRepository.GetAsync(includeProperties: "Vrfs,"
+                               + "Ports.PortBandwidth,"
                                + "Interfaces.Ports,"
                                + "Attachments.Interfaces.Ports.Interface.Vlans,"
                                + "Attachments.AttachmentBandwidth,"
@@ -36,7 +37,8 @@ namespace SCM.Services.SCMServices
         {
             var result = await this.UnitOfWork.DeviceRepository.GetAsync(d => d.ID == id,
                 includeProperties: "Vrfs,"
-                               + "Interfaces.Ports,"
+                               + "Ports.PortBandwidth,"
+                               + "Interfaces.Ports"
                                + "Attachments.Interfaces.Ports.Interface.Vlans,"
                                + "Attachments.AttachmentBandwidth,"
                                + "Attachments.Vrf.BgpPeers,"
@@ -50,10 +52,19 @@ namespace SCM.Services.SCMServices
             return result.SingleOrDefault();
         }
 
-        public async Task<int> AddAsync(Device device)
+        public async Task<ServiceResult> AddAsync(Device device)
         {
+            var result = new ServiceResult
+            {
+                IsSuccess = true
+            };
+
+            device.Created = true;
+            device.RequiresSync = true;
             this.UnitOfWork.DeviceRepository.Insert(device);
-            return await this.UnitOfWork.SaveAsync();
+            await this.UnitOfWork.SaveAsync();
+
+            return result;
         }
 
         public async Task<int> UpdateAsync(Device device)
@@ -92,7 +103,27 @@ namespace SCM.Services.SCMServices
 
             return result;
         }
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Device> devices,
+            IProgress<ServiceResult> progress)
+        {
+            List<Task<ServiceResult>> tasks = (from device in devices select CheckNetworkSyncAsync(device)).ToList();
+            var results = new List<ServiceResult>();
 
+            while (tasks.Count() > 0)
+            {
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                // Update caller with progress
+
+                progress.Report(task.Result);
+            }
+
+            await Task.WhenAll(tasks);
+
+            return results;
+        }
 
         public async Task<ServiceResult> CheckNetworkSyncAsync(Device device)
         {
@@ -102,36 +133,67 @@ namespace SCM.Services.SCMServices
                 Item = device
             };
 
-            var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
-            var syncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
-
-
-            result.NetworkSyncServiceResults.Add(syncResult);
-
-            if (!syncResult.IsSuccess)
+            try
             {
-                result.IsSuccess = false;
-                device.RequiresSync = true;
 
-                if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                var attachmentServiceModelData = Mapper.Map<AttachmentServiceNetModel>(device);
+                var syncResult = await NetSync.CheckNetworkSyncAsync(attachmentServiceModelData, "/attachment/pe/" + device.Name);
+
+                result.NetworkSyncServiceResults.Add(syncResult);
+
+                if (!syncResult.IsSuccess)
                 {
-                    // Request was successfully executed and the device was tested for sync with the network
+                    result.IsSuccess = false;
+                    device.RequiresSync = true;
 
-                    result.Add($"Device '{device.Name}' is not synchronised with the network.");
+                    if (syncResult.StatusCode == NetworkSyncStatusCode.Success)
+                    {
+                        // Request was successfully executed and the device was tested for sync with the network
+
+                        result.Add($"Device '{device.Name}' is not synchronised with the network.");
+                    }
+                    else
+                    {
+                        // Request failed to execute for some reason - e.g server down, no network etc
+
+                        result.Add($"There was an error checking status for device '{device.Name}'.");
+                    }
                 }
                 else
                 {
-                    // Request failed to execute for some reason - e.g server down, no network etc
-
-                    result.Add($"There was an error checking status for device '{device.Name}'.");
+                    device.RequiresSync = false;
                 }
+
             }
-            else
+
+            catch (Exception ex)
             {
-                device.RequiresSync = false;
+                return result;
             }
 
             return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> SyncToNetworkAsync(IEnumerable<Device> devices,
+           IProgress<ServiceResult> progress)
+        {
+            List<Task<ServiceResult>> tasks = (from device in devices select SyncToNetworkAsync(device)).ToList();
+            var results = new List<ServiceResult>();
+
+            while (tasks.Count() > 0)
+            {
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                // Update caller with progress
+
+                progress.Report(task.Result);
+            }
+
+            await Task.WhenAll(tasks);
+
+            return results;
         }
 
         public async Task<ServiceResult> SyncToNetworkAsync(Device device)
@@ -191,7 +253,7 @@ namespace SCM.Services.SCMServices
         /// <param name="device"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateDeviceRequiresSyncAsync(Device device, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(Device device, bool requiresSync, bool saveChanges = true)
         {
             device.RequiresSync = requiresSync;
             UnitOfWork.DeviceRepository.Update(device);
@@ -209,10 +271,10 @@ namespace SCM.Services.SCMServices
         /// <param name="deviceID"></param>
         /// <param name="requiresSync"></param>
         /// <returns></returns>
-        public async Task UpdateDeviceRequiresSyncAsync(int deviceID, bool requiresSync, bool saveChanges = true)
+        public async Task UpdateRequiresSyncAsync(int deviceID, bool requiresSync, bool saveChanges = true)
         {
             var device = await GetByIDAsync(deviceID);
-            await UpdateDeviceRequiresSyncAsync(device, requiresSync, saveChanges);
+            await UpdateRequiresSyncAsync(device, requiresSync, saveChanges);
 
             return;
         }

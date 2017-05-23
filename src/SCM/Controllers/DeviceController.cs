@@ -65,83 +65,7 @@ namespace SCM.Controllers
             }
             return View(Mapper.Map<DeviceViewModel>(item));
         }
-
-        [HttpPost]
-        public async Task CheckSync(int? id)
-        {
-            if (id == null)
-            {
-                RedirectToAction("PageNotFound");
-                return;
-            }
-
-            var item = await DeviceService.GetByIDAsync(id.Value);
-            if (item == null)
-            {
-                RedirectToAction("PageNotFound");
-                return;
-            }
-
-            var mappedItem = Mapper.Map<DeviceViewModel>(item);
-            var result = await DeviceService.CheckNetworkSyncAsync(item);
-            if (result.IsSuccess)
-            {
-                HubContext.Clients.Group("Devices")
-                    .onSingleComplete(mappedItem, true, $"Device {item.Name} is synchronised with the network.");
-            }
-            else
-            {
-                if (result.NetworkSyncServiceResults.Single().StatusCode == NetworkSyncStatusCode.Success)
-                {
-                    HubContext.Clients.Group("Devices")
-                        .onSingleComplete(mappedItem, false,
-                        FormatAsHtmlList($"Device {item.Name} is not synchronised with the network." 
-                        + "Press the 'Sync' button to update the network."));
-                }
-                else
-                {
-                    HubContext.Clients.Group("Devices")
-                        .onSingleComplete(mappedItem, false, FormatAsHtmlList(result.GetMessage()));
-                }
-            }
-
-            await DeviceService.UpdateDeviceRequiresSyncAsync(item.ID, !result.IsSuccess, true);
-        }
-
-
-        [HttpPost]
-        public async Task Sync(int? id)
-        {
-            if (id == null)
-            {
-                RedirectToAction("PageNotFound");
-                return;
-            }
-
-            var item = await DeviceService.GetByIDAsync(id.Value);
-            if (item == null)
-            {
-                RedirectToAction("PageNotFound");
-                return;
-            }
-
-            var mappedItem = Mapper.Map<DeviceViewModel>(item);
-            var syncResult = await DeviceService.SyncToNetworkAsync(item);
-
-            if (syncResult.IsSuccess)
-            {
-                HubContext.Clients.Group("Devices")
-                    .onSingleComplete(mappedItem, true, FormatAsHtmlList($"Device {item.Name} is synchronised with the network."));
-            }
-            else
-            {
-                HubContext.Clients.Group("Devices")
-                    .onSingleComplete(mappedItem, false, FormatAsHtmlList(syncResult.GetMessage()));
-            }
-
-            await DeviceService.UpdateDeviceRequiresSyncAsync(item.ID, !syncResult.IsSuccess, true);
-        }
-
+     
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -367,7 +291,7 @@ namespace SCM.Controllers
                 return View("DeviceDeleted");
             }
 
-            await DeviceService.UpdateDeviceRequiresSyncAsync(device.ID, true, false);
+            await DeviceService.UpdateRequiresSyncAsync(device.ID, true, false);
 
             var syncResult = await DeviceService.DeleteFromNetworkAsync(device);
             if (syncResult.IsSuccess)
