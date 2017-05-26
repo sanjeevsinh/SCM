@@ -90,8 +90,6 @@ namespace SCM.Api.Controllers
             }
 
             var result = await DeviceService.CheckNetworkSyncAsync(item);
-            var mappedItem = Mapper.Map<DeviceViewModel>(item);
-
             await DeviceService.UpdateRequiresSyncAsync(item, !result.IsSuccess, true);
 
             if (result.IsSuccess)
@@ -99,7 +97,7 @@ namespace SCM.Api.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    message = $"Device {item.Name} has been checked and is synchronised with the network."
+                    Message = $"Device {item.Name} has been checked and is synchronised with the network."
                 });
             }
             else
@@ -156,13 +154,10 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                var message = string.Empty;
-                results.ToList().ForEach(q => message += q.GetMessage());
-
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }
@@ -180,8 +175,6 @@ namespace SCM.Api.Controllers
             item.RequiresSync = !result.IsSuccess;
             item.Created = false;
             await DeviceService.UpdateAsync(item);
-
-            var mappedItem = Mapper.Map<DeviceViewModel>(item);
 
             if (result.IsSuccess)
             {
@@ -215,8 +208,6 @@ namespace SCM.Api.Controllers
             }
 
             var progress = new Progress<ServiceResult>(UpdateClientProgress);
-            var message = string.Empty;
-
             var results = await DeviceService.SyncToNetworkAsync(devices, progress);
 
             foreach (var r in results)
@@ -237,11 +228,10 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                results.ToList().ForEach(q => message += q.GetMessage());
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }
@@ -258,7 +248,7 @@ namespace SCM.Api.Controllers
             // Update all clients which are subscribed to the attachment context
             // supplied in the result object
 
-            HubContext.Clients.Group($"Devices_{device.ID}")
+            HubContext.Clients.Group($"Devices")
                 .onSingleComplete(Mapper.Map<DeviceViewModel>(device), result.IsSuccess);
         }
     }

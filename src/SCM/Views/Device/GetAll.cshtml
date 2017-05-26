@@ -87,6 +87,7 @@
 }
     </tbody>
 </table>
+<input type="submit" id="CheckSync" value="Check Sync All" class="btn btn-default" />
 @section Scripts {
 
     <script type="text/javascript">
@@ -94,6 +95,7 @@
         (function ($) {
 
             SCM.Utilities.connectToNetworkSyncHub({
+                checkSyncAllUrl: '/api/devices/checksync',
                 checkSyncUrl: '/api/devices/{id}/checksync',
                 syncUrl: '/api/devices/{id}/sync',
                 groupName: 'Devices',

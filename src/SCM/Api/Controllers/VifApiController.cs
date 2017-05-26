@@ -105,8 +105,6 @@ namespace SCM.Api.Controllers
             }
 
             var result = await VifService.CheckNetworkSyncAsync(item);
-            var mappedItem = Mapper.Map<VifViewModel>(item);
-
             await VifService.UpdateRequiresSyncAsync(item, !result.IsSuccess, true);
 
             if (result.IsSuccess)
@@ -114,7 +112,7 @@ namespace SCM.Api.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    message = $"Vif {item.Name} has been checked and is synchronised with the network."
+                    Message = $"Vif {item.Name} has been checked and is synchronised with the network."
                 });
             }
             else
@@ -133,7 +131,7 @@ namespace SCM.Api.Controllers
                     return Ok(new
                     {
                         Success = false,
-                        Message = result.GetMessage()
+                        Message = result.GetMessageList()
                     });
                 }
             }
@@ -177,13 +175,10 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                var message = string.Empty;
-                results.ToList().ForEach(q => message += q.GetMessage());
-
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }
@@ -202,8 +197,6 @@ namespace SCM.Api.Controllers
             item.Created = false;
             await VifService.UpdateAsync(item);
 
-            var mappedItem = Mapper.Map<VifViewModel>(item);
-
             if (result.IsSuccess)
             {
                 return Ok(new
@@ -217,7 +210,7 @@ namespace SCM.Api.Controllers
                 return Ok(new
                 {
                     Success = false,
-                    Message = result.GetMessage()
+                    Message = result.GetMessageList()
                 });
             }
         }
@@ -242,11 +235,9 @@ namespace SCM.Api.Controllers
             }
 
             var progress = new Progress<ServiceResult>(UpdateClientProgress);
-            var message = string.Empty;
+            var results = await VifService.SyncToNetworkAsync(vifs, progress);
 
-            var checkSyncResults = await VifService.SyncToNetworkAsync(vifs, progress);
-
-            foreach (var r in checkSyncResults)
+            foreach (var r in results)
             {
                 var item = (Vif)r.Item;
                 item.RequiresSync = !r.IsSuccess;
@@ -254,7 +245,7 @@ namespace SCM.Api.Controllers
                 await VifService.UpdateAsync(item);
             }
 
-            if (checkSyncResults.Where(q => q.IsSuccess).Count() == checkSyncResults.Count())
+            if (results.Where(q => q.IsSuccess).Count() == results.Count())
             {
                 return Ok(new
                 {
@@ -264,11 +255,10 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                checkSyncResults.ToList().ForEach(q => message += q.GetMessage());
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }

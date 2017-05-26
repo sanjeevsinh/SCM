@@ -25,6 +25,7 @@ namespace SCM.Services.SCMServices
         ServiceResult ShallowCheckNetworkSync(IEnumerable<Vpn> vpns);
         Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn);
         Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn, AttachmentSet attachmentSetContext);
+        Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, IProgress<ServiceResult> progress);
         Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, AttachmentSet attachmentSetContext, IProgress<ServiceResult> progress);
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn);
         Task<ServiceResult> SyncToNetworkAsync(Vpn vpn, AttachmentSet attachmentSetContext);

@@ -24,7 +24,7 @@ namespace SCM.Services.SCMServices
 
         public List<string> GetMessageList()
         {
-            return Messages;
+            return Messages.Concat(NetworkSyncServiceResults.SelectMany(q => q.Messages)).ToList();
         }
 
         public void Add(string message)

@@ -219,13 +219,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed and the vif was tested for sync with the network
 
-                    result.Add($"\\Attachment '{vif.Name}' is not synchronised with the network\\");
+                    result.Add($"Attachment '{vif.Name}' is not synchronised with the network");
                 }
                 else
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"\\There was an error checking status for vif '{vif.Name}'\\");
+                    result.Add($"There was an error checking status for vif '{vif.Name}'");
                 }
             }
 
@@ -276,13 +276,13 @@ namespace SCM.Services.SCMServices
                 {
                     // Request was successfully executed but synchronisation failed
 
-                    result.Add($"\\Failed to synchronise vif '{vif.Name}' with the network\\");
+                    result.Add($"Failed to synchronise vif '{vif.Name}' with the network");
                 }
                 else
                 {
                     // Request failed to execute for some reason - e.g server down, no network etc
 
-                    result.Add($"\\There was an error synchronising vif '{vif.Name}' with the network\\");
+                    result.Add($"There was an error synchronising vif '{vif.Name}' with the network");
                 }
             }
 

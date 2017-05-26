@@ -38,7 +38,7 @@ namespace SCM.Services.SCMServices
             var result = await this.UnitOfWork.DeviceRepository.GetAsync(d => d.ID == id,
                 includeProperties: "Vrfs,"
                                + "Ports.PortBandwidth,"
-                               + "Interfaces.Ports"
+                               + "Interfaces.Ports,"
                                + "Attachments.Interfaces.Ports.Interface.Vlans,"
                                + "Attachments.AttachmentBandwidth,"
                                + "Attachments.Vrf.BgpPeers,"
@@ -97,8 +97,8 @@ namespace SCM.Services.SCMServices
             if (devicesRequireSync.Count() > 0)
             {
                 result.IsSuccess = false;
-                result.Add("The following devices require synchronisation with the network:");
-                devicesRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+                result.Add("The following devices require synchronisation with the network:.");
+                devicesRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'."));
             }
 
             return result;

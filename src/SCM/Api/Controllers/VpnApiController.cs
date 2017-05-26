@@ -102,8 +102,6 @@ namespace SCM.Api.Controllers
             }
 
             var result = await VpnService.CheckNetworkSyncAsync(item);
-            var mappedItem = Mapper.Map<VpnViewModel>(item);
-
             await VpnService.UpdateRequiresSyncAsync(item, !result.IsSuccess, true);
 
             if (result.IsSuccess)
@@ -111,7 +109,7 @@ namespace SCM.Api.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    message = $"Vpn {item.Name} has been checked and is synchronised with the network."
+                    Message = $"Vpn {item.Name} has been checked and is synchronised with the network."
                 });
             }
             else
@@ -130,9 +128,49 @@ namespace SCM.Api.Controllers
                     return Ok(new
                     {
                         Success = false,
-                        Message = result.GetMessage()
+                        Message = result.GetMessageList()
                     });
                 }
+            }
+        }
+
+        [HttpPost("vpns/checksync")]
+        public async Task<IActionResult> CheckSyncAll()
+        {
+            var vpns = await VpnService.GetAllAsync();
+            if (vpns.Count() == 0)
+            {
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "No vpns were found."
+                });
+            }
+
+            var progress = new Progress<ServiceResult>(UpdateVpnClientProgress);
+            var results = await VpnService.CheckNetworkSyncAsync(vpns, progress);
+
+            foreach (var r in results)
+            {
+                var item = (Vpn)r.Item;
+                await VpnService.UpdateRequiresSyncAsync(item, !r.IsSuccess, true);
+            }
+
+            if (results.Where(q => q.IsSuccess).Count() == results.Count())
+            {
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "All vpns have been checked and are synchronised with the network."
+                });
+            }
+            else
+            {
+                return Ok(new
+                {
+                    Success = false,
+                    Message = results.SelectMany(q => q.GetMessageList())
+                });
             }
         }
 
@@ -155,7 +193,7 @@ namespace SCM.Api.Controllers
                 });
             }
 
-            var progress = new Progress<ServiceResult>(UpdateClientProgress);
+            var progress = new Progress<ServiceResult>(UpdateAttachmentSetClientProgress);
             var results = await VpnService.CheckNetworkSyncAsync(vpns, attachmentSet, progress);
 
             foreach (var r in results)
@@ -174,13 +212,10 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                var message = string.Empty;
-                results.ToList().ForEach(q => message += q.GetMessage());
-
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }
@@ -199,8 +234,6 @@ namespace SCM.Api.Controllers
             item.Created = false;
             await VpnService.UpdateAsync(item);
 
-            var mappedItem = Mapper.Map<VpnViewModel>(item);
-
             if (result.IsSuccess)
             {
                 return Ok(new
@@ -214,7 +247,7 @@ namespace SCM.Api.Controllers
                 return Ok(new
                 {
                     Success = false,
-                    Message = result.GetMessage()
+                    Message = result.GetMessageList()
                 });
             }
         }
@@ -238,9 +271,7 @@ namespace SCM.Api.Controllers
                 });
             }
 
-            var progress = new Progress<ServiceResult>(UpdateClientProgress);
-            var message = string.Empty;
-
+            var progress = new Progress<ServiceResult>(UpdateAttachmentSetClientProgress);
             var results = await VpnService.SyncToNetworkAsync(vpns, attachmentSet, progress);
 
             foreach (var r in results)
@@ -261,29 +292,38 @@ namespace SCM.Api.Controllers
             }
             else
             {
-                results.ToList().ForEach(q => message += q.GetMessage());
                 return Ok(new
                 {
                     Success = false,
-                    Message = message
+                    Message = results.SelectMany(q => q.GetMessageList())
                 });
             }
         }
 
         /// <summary>
         /// Delegate method which is called when sync or checksync of an 
-        /// individual vpn has completed.
+        /// individual vpn has completed in the context of an attachment set.
         /// </summary>
         /// <param name="result"></param>
-        private void UpdateClientProgress(ServiceResult result)
+        private void UpdateAttachmentSetClientProgress(ServiceResult result)
         {
             var vpn = (Vpn)result.Item;
             var attachmentSet = (AttachmentSet)result.Context;
 
-            // Update all clients which are subscribed to the attachment context
-            // supplied in the result object
+            // Update all clients which are subscribed to attachment set group 
+            // of the attachment set context supplied in the result object
 
             HubContext.Clients.Group($"AttachmentSet_{attachmentSet.AttachmentSetID}")
+                .onSingleComplete(Mapper.Map<VpnViewModel>(vpn), result.IsSuccess);
+        }
+
+        private void UpdateVpnClientProgress(ServiceResult result)
+        {
+            var vpn = (Vpn)result.Item;
+            
+            // Update all clients which have joined the Vpns group
+
+            HubContext.Clients.Group("Vpns")
                 .onSingleComplete(Mapper.Map<VpnViewModel>(vpn), result.IsSuccess);
         }
     }

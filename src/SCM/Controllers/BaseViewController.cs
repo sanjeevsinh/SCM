@@ -31,7 +31,7 @@ namespace SCM.Controllers
             char[] separator;
             if (str.StartsWith("\\"))
             {
-                str.TrimStart(new char[] {'\\', '\\' });
+                str.TrimStart(new char[] { '\\', '\\' });
                 separator = new char[] { '\\', '\\' };
             }
             else {

@@ -28,12 +28,16 @@ namespace SCM.Services.SCMServices
 
         public async Task<IEnumerable<Vpn>> GetAllAsync()
         {
-            return await this.UnitOfWork.VpnRepository.GetAsync(includeProperties: 
-                "Plane,"
+            return await this.UnitOfWork.VpnRepository.GetAsync(includeProperties:
+                "Region,"
+                + "Plane,"
                 + "VpnTenancyType,"
-                + "VpnTopologyType.VpnProtocolType," 
-                + "Tenant," 
-                + "Region");
+                + "VpnTopologyType.VpnProtocolType,"
+                + "Tenant,"
+                + "VpnAttachmentSets.VpnTenantNetworks.TenantNetwork,"
+                + "VpnAttachmentSets.VpnTenantCommunities.TenantCommunity,"
+                + "VpnAttachmentSets.AttachmentSet.AttachmentSetVrfs.Vrf.Device.Location.SubRegion.Region,"
+                + "RouteTargets",AsTrackable:false);
         }
 
         public async Task<Vpn> GetByIDAsync(int id)
@@ -303,11 +307,18 @@ namespace SCM.Services.SCMServices
             if (vpnsRequireSync.Count() > 0)
             {
                 result.IsSuccess = false;
-                result.Add("The following VPNs require synchronisation with the network:");
-                vpnsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'"));
+                result.Add("The following VPNs require synchronisation with the network:.");
+                vpnsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'."));
             }
 
             return result;
+        }
+
+        public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns,
+           IProgress<ServiceResult> progress)
+        {
+            List<Task<ServiceResult>> tasks = (from vpn in vpns select CheckNetworkSyncAsync(vpn)).ToList();
+            return await ExecuteTasksAsync(tasks, progress);
         }
 
         public async Task<IEnumerable<ServiceResult>> CheckNetworkSyncAsync(IEnumerable<Vpn> vpns, 
@@ -315,22 +326,7 @@ namespace SCM.Services.SCMServices
             IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from vpn in vpns select CheckNetworkSyncAsync(vpn, attachmentSetContext)).ToList();
-            var results = new List<ServiceResult>();
-
-            while (tasks.Count() > 0)
-            {
-                Task<ServiceResult> task = await Task.WhenAny(tasks);
-                results.Add(task.Result);
-                tasks.Remove(task);
-
-                // Update caller with progress
-
-                progress.Report(task.Result);
-            }
-
-            await Task.WhenAll(tasks);
-
-            return results;
+            return await ExecuteTasksAsync(tasks, progress);
         }
 
         public async Task<ServiceResult> CheckNetworkSyncAsync(Vpn vpn)
@@ -384,22 +380,7 @@ namespace SCM.Services.SCMServices
             IProgress<ServiceResult> progress)
         {
             List<Task<ServiceResult>> tasks = (from vpn in vpns select SyncToNetworkAsync(vpn, attachmentSetContext)).ToList();
-            var results = new List<ServiceResult>();
-
-            while (tasks.Count() > 0)
-            {
-                Task<ServiceResult> task = await Task.WhenAny(tasks);
-                results.Add(task.Result);
-                tasks.Remove(task);
-
-                // Update caller with progress
-
-                progress.Report(task.Result);
-            }
-
-            await Task.WhenAll(tasks);
-
-            return results;
+            return await ExecuteTasksAsync(tasks, progress);
         }
 
         public async Task<ServiceResult> SyncToNetworkAsync(Vpn vpn)
@@ -507,6 +488,27 @@ namespace SCM.Services.SCMServices
             }
 
             return;
+        }
+
+        private async Task<IEnumerable<ServiceResult>> ExecuteTasksAsync(IList<Task<ServiceResult>> tasks,
+            IProgress<ServiceResult> progress)
+        {
+            var results = new List<ServiceResult>();
+
+            while (tasks.Count() > 0)
+            {
+                Task<ServiceResult> task = await Task.WhenAny(tasks);
+                results.Add(task.Result);
+                tasks.Remove(task);
+
+                // Update caller with progress
+
+                progress.Report(task.Result);
+            }
+
+            await Task.WhenAll(tasks);
+
+            return results;
         }
     }
 }

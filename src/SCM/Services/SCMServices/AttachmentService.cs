@@ -193,7 +193,7 @@ namespace SCM.Services.SCMServices
             if (attachmentsRequireSync.Count() > 0)
             {
                 result.IsSuccess = false;
-                result.Add("The following Attachments require synchronisation with the network:.");
+                result.Add("The following attachments require synchronisation with the network:.");
                 attachmentsRequireSync.ToList().ForEach(f => result.Add($"'{f.Name}'."));
             }
 

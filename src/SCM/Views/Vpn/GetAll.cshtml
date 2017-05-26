@@ -104,6 +104,7 @@
 }
     </tbody>
 </table>
+<input type="submit" id="CheckSync" value="Check Sync All" class="btn btn-default" />
 @section Scripts {
 
     <script type="text/javascript">
@@ -112,6 +113,7 @@
 
             SCM.Utilities.connectToNetworkSyncHub({
                 checkSyncUrl: '/api/vpns/{id}/checksync',
+                checkSyncAllUrl: '/api/vpns/checksync',
                 syncUrl: '/api/vpns/{id}/sync',
                 groupName: 'Vpns',
                 itemKey: 'VpnID'

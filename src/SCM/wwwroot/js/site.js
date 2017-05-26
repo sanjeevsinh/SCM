@@ -72,6 +72,7 @@ SCM.Utilities = (function () {
             // Handle Sync All and Check Sync All button click events
             if (args.syncAllUrl) {
 
+                // wire-up button click event handler
                 handleButtonClick({
                     $button: $('#Sync'),
                     $spinnerContainer: $spinnerContainer,
@@ -93,11 +94,11 @@ SCM.Utilities = (function () {
 
                         if (responseItem.success) {
 
-                            showSuccessMessage(responseItem.message);
+                            showSuccessMessage(format(responseItem.message));
                         }
                         else {
 
-                            showErrorMessage(responseItem.message);
+                            showErrorMessage(format(responseItem.message));
                         }
                     },
                     onError: function (errorThrown) {
@@ -114,6 +115,7 @@ SCM.Utilities = (function () {
 
             if (args.checkSyncAllUrl) {
 
+                // wire-up button click event handler
                 handleButtonClick({
                     $button: $('#CheckSync'),
                     $spinnerContainer: $spinnerContainer,
@@ -135,11 +137,11 @@ SCM.Utilities = (function () {
 
                         if (responseItem.success) {
 
-                            showSuccessMessage(responseItem.message);
+                            showSuccessMessage(format(responseItem.message));
                         }
                         else {
 
-                            showErrorMessage(responseItem.message);
+                            showErrorMessage(format(responseItem.message));
                         }
                     },
                     onError: function (errorThrown) {
@@ -149,7 +151,7 @@ SCM.Utilities = (function () {
 
                             $(this).data('spinner').stop();
                         });
-                        showErrorMessage(errorThrown);
+                        showErrorMessage(format(errorThrown));
                     }
                 });
             }
@@ -164,7 +166,7 @@ SCM.Utilities = (function () {
                 var $spinnerContainer = $this.parents('tr').children('.row-spinner');
                 var $requiresSync = $this.parents('tr').children('.checkbox-insync').children('input');
 
-                // Calculate URL and replace tokens in url with data 
+                // Calculate url and replace tokens with data 
                 var url = $this.hasClass('btn-sync') ? args.syncUrl : args.checkSyncUrl;
 
                 for (var item in data) {
@@ -176,6 +178,7 @@ SCM.Utilities = (function () {
                         });
                 }
 
+                // wire-up button click event handler
                 handleButtonClick({
                     $button: $this,
                     $spinnerContainer: $spinnerContainer,
@@ -197,12 +200,12 @@ SCM.Utilities = (function () {
                       
                         if (responseItem.success) {
 
-                            showSuccessMessage(responseItem.message);
+                            showSuccessMessage(format(responseItem.message));
                             $spinnerContainer.html(successGlyph);
                         }
                         else {
 
-                            showErrorMessage(responseItem.message);
+                            showErrorMessage(format(responseItem.message));
                             $spinnerContainer.html(errorGlyph);
                         }
                     },
@@ -210,7 +213,7 @@ SCM.Utilities = (function () {
 
                         $spinnerContainer.data('spinner').stop();
                         $buttons.prop('disabled', false);
-                        showErrorMessage(errorThrown);
+                        showErrorMessage(format(errorThrown));
 
                         // Set requiresSync checkbox state
                         $requiresSync.prop('checked', true);
@@ -269,12 +272,12 @@ SCM.Utilities = (function () {
                 if (success) {
 
                     $syncStatus.html(successGlyph);
-                    if (message) showSuccessMessage(message);
+                    if (message) showSuccessMessage(format(message));
                 }
                 else {
 
                     $syncStatus.html(errorGlyph);
-                    if (message) showErrorMessage(message);
+                    if (message) showErrorMessage(format(message));
                 }
             };
         }
@@ -310,9 +313,21 @@ SCM.Utilities = (function () {
             });
         }
 
-        function parseToHtml(message) {
+        function format(oMessages) {
 
+            var str = '<ul>';
+            if (typeof oMessages === 'object') {
+                oMessages.forEach(function (m) {
 
+                    str += '<li>' + m + '</li>';
+                });
+            }
+            else {
+
+                str += '<li>' + oMessages + '</li>';
+            }
+
+            return str += '</ul>';
         }
 
         function initSpinners($item) {
